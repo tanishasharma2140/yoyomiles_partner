@@ -1,0 +1,68 @@
+{
+  "project_info": {
+    "project_number": "288902387437",
+    "firebase_url": "https://porter-98613-default-rtdb.firebaseio.com",
+    "project_id": "porter-98613",
+    "storage_bucket": "porter-98613.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:288902387437:android:869f0cab2e2ee558b7dee4",
+        "android_client_info": {
+          "package_name": "com.foundercode.port_karo"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDJPlS2CQh7LCGMyWr1x8KaVEdFs1QoV1I"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:288902387437:android:9adaf7dad2c6d424b7dee4",
+        "android_client_info": {
+          "package_name": "com.foundercode.porter_partner"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDJPlS2CQh7LCGMyWr1x8KaVEdFs1QoV1I"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:288902387437:android:37a6ee282a7dc32bb7dee4",
+        "android_client_info": {
+          "package_name": "com.foundercode.yoyomiles_partner"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDJPlS2CQh7LCGMyWr1x8KaVEdFs1QoV1I"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

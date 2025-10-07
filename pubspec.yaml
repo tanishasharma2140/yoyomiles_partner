@@ -1,0 +1,79 @@
+name: yoyomiles_partner
+description: "A new Flutter project."
+
+publish_to: 'none'
+
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.8.1
+
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+
+  cupertino_icons: ^1.0.8
+  image_picker: ^1.1.2
+  google_maps_flutter: ^2.9.0
+  another_flushbar: ^1.12.30
+  geolocator: ^12.0.0
+  http: ^1.2.2
+  provider: ^6.1.2
+
+  dropdown_textfield:
+  shared_preferences: ^2.3.3
+  firebase_core: ^3.8.1
+  cloud_firestore: ^5.5.1
+  url_launcher: ^6.3.1
+  dio: ^5.9.0
+  image:
+  pull_to_refresh: ^2.0.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+
+  flutter_lints: ^5.0.0
+
+
+flutter:
+
+
+  uses-material-design: true
+  assets:
+    - assets/
+
+  fonts:
+    - family: poppins_regular
+      fonts:
+        - asset: fonts/poppins_regular.ttf
+    - family: roboto_regular
+      fonts:
+        - asset: fonts/roboto_regular.ttf
+    - family: kanit_regular
+      fonts:
+        - asset: fonts/kanit_regular.ttf
+    - family: poppins_black
+      fonts:
+        - asset: fonts/poppins_black.ttf
+    - family: protestRiot_regular
+      fonts:
+        - asset: fonts/protestRiot-regular.ttf
+    - family: bold.otf
+      fonts:
+        - asset: fonts/sf_pro/bold.otf
+    - family: medium.otf
+      fonts:
+        - asset: fonts/sf_pro/medium.otf
+    - family: regular.otf
+      fonts:
+        - asset: fonts/sf_pro/regular.otf
+    - family: light_italic.otf
+      fonts:
+        - asset: fonts/sf_pro/light_italic.otf
+
+
