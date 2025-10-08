@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:yoyomiles_partner/res/constant_color.dart';
 import 'package:yoyomiles_partner/res/text_const.dart';
+import 'package:yoyomiles_partner/view_model/help_topics_view_model.dart';
 
 class Help extends StatefulWidget {
   const Help({super.key});
@@ -14,27 +16,53 @@ class _HelpState extends State<Help> {
     {
       'question': 'How long does withdrawal take?',
       'answer':
-          'Withdrawals are processed within 2-4 hours during business days. For weekends, it may take up to 24 hours.',
+      'Withdrawals are processed within 2-4 hours during business days. For weekends, it may take up to 24 hours.',
     },
     {
       'question': 'Why is my withdrawal pending?',
       'answer':
-          'Pending status usually means your request is being processed. It can take 2-4 hours to complete.',
+      'Pending status usually means your request is being processed. It can take 2-4 hours to complete.',
     },
     {
       'question': 'What are the withdrawal charges?',
       'answer':
-          'We charge zero fees for withdrawals. You get the full amount transferred to your bank account.',
+      'We charge zero fees for withdrawals. You get the full amount transferred to your bank account.',
     },
     {
       'question': 'How to add bank account?',
       'answer':
-          'Go to Wallet → Add Bank → Enter your account details and IFSC code → Verify and submit.',
+      'Go to Wallet → Add Bank → Enter your account details and IFSC code → Verify and submit.',
+    },
+  ];
+
+  final List<Map<String, dynamic>> _contactOptions = [
+    {
+      'icon': Icons.phone,
+      'title': 'Call Us',
+      'subtitle': '+91 1800-123-4567',
+      'color': Colors.green,
+    },
+    {
+      'icon': Icons.email,
+      'title': 'Email Us',
+      'subtitle': 'support@yoyomiles.com',
+      'color': Colors.blue,
     },
   ];
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final helpTopics = Provider.of<HelpTopicsViewModel>(context, listen: false);
+      helpTopics.helpTopicApi();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final help = Provider.of<HelpTopicsViewModel>(context);
+    final totalItems = _contactOptions.length + _faqs.length + 1; // +1 for section header
     return Scaffold(
       backgroundColor: PortColor.scaffoldBgGrey,
       appBar: AppBar(
@@ -52,69 +80,68 @@ class _HelpState extends State<Help> {
           onPressed: () => Navigator.pop(context),
         ),
       ),
-      body: SingleChildScrollView(
+      body: ListView.builder(
         padding: EdgeInsets.all(16),
-        child: Column(
-          children: [
-            // Contact Options
-            _buildContactOptions(),
+        itemCount: help.helpTopicsModel!.data!.length,
+        itemBuilder: (context, index) {
+          // Section header
+          final helpSupport = help.helpTopicsModel!.data![index];
+          if (index == 0) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                TextConst(
+                  title: 'Contact Support',
+                  size: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+                SizedBox(height: 16),
+              ],
+            );
+          }
 
-            SizedBox(height: 20),
+          // Contact options
+          if (index > 0 && index <= _contactOptions.length) {
+            final contact = _contactOptions[index - 1];
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: _buildContactItem(
+                contact['icon'],
+                contact['title'],
+                contact['subtitle'],
+                contact['color'],
+              ),
+            );
+          }
 
-            // FAQ Section
-            _buildFAQSection(),
-          ],
-        ),
-      ),
-    );
-  }
+          // FAQ Section header
+          if (index == _contactOptions.length + 1) {
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 20),
+              child: TextConst(
+                title: 'Frequently Asked Questions',
+                size: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
+            );
+          }
 
-  Widget _buildContactOptions() {
-    return Container(
-      padding: EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          TextConst(
-            title: 'Contact Support',
-            size: 16,
-            fontWeight: FontWeight.bold,
-            color: Colors.black87,
-          ),
-          SizedBox(height: 16),
-
-          // Call Support
-          _buildContactItem(
-            Icons.phone,
-            'Call Us',
-            '+91 1800-123-4567',
-            Colors.green,
-          ),
-
-          SizedBox(height: 12),
-
-          // Email Support
-          _buildContactItem(
-            Icons.email,
-            'Email Us',
-            'support@yoyomiles.com',
-            Colors.blue,
-          ),
-        ],
+          // FAQ items
+          final faqIndex = index - (_contactOptions.length + 2);
+          final faq = _faqs[faqIndex];
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: _buildFAQItem(faq),
+          );
+        },
       ),
     );
   }
 
   Widget _buildContactItem(
-    IconData icon,
-    String title,
-    String subtitle,
-    Color color,
-  ) {
+      IconData icon, String title, String subtitle, Color color) {
     return Container(
       padding: EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -154,33 +181,8 @@ class _HelpState extends State<Help> {
     );
   }
 
-  Widget _buildFAQSection() {
-    return Container(
-      padding: EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          TextConst(
-            title: 'Frequently Asked Questions',
-            size: 18,
-            fontWeight: FontWeight.bold,
-            color: Colors.black87,
-          ),
-          SizedBox(height: 12),
-
-          ..._faqs.map((faq) => _buildFAQItem(faq)).toList(),
-        ],
-      ),
-    );
-  }
-
   Widget _buildFAQItem(Map<String, dynamic> faq) {
     return Container(
-      margin: EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
         color: Colors.grey.shade50,
         borderRadius: BorderRadius.circular(8),

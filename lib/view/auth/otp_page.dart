@@ -1,5 +1,7 @@
 import 'dart:async';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:yoyomiles_partner/generated/assets.dart';
 import 'package:yoyomiles_partner/main.dart';
 import 'package:yoyomiles_partner/res/app_fonts.dart';
@@ -108,6 +110,9 @@ class _OtpPageState extends State<OtpPage> {
               cursorColor: PortColor.gray,
               textAlign: TextAlign.center,
               maxLength: 4,
+               inputFormatters: [
+                 FilteringTextInputFormatter.digitsOnly,
+               ],
               keyboardType: TextInputType.number,
               decoration: const InputDecoration(
                 counterText: "",
@@ -150,7 +155,7 @@ class _OtpPageState extends State<OtpPage> {
                       : Colors.black,
                   size: Sizes.fontSizeSeven,
                   fontWeight: FontWeight.w400,
-                ): const CircularProgressIndicator(color: PortColor.white,),
+                ):  CupertinoActivityIndicator(color: PortColor.black, radius: 12),
               ),
             ),
 

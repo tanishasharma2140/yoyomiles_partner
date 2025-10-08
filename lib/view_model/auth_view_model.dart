@@ -15,24 +15,87 @@ class AuthViewModel with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> loginApi(dynamic mobile, context) async {
+  Future<void> loginApi(dynamic mobile,dynamic fcm, BuildContext context) async {
     setLoading(true);
     Map data = {
       "phone": mobile,
+      "fcm": fcm
     };
+
     _authRepo.loginApi(data).then((value) {
       setLoading(false);
-      Navigator.pushNamed(context, RoutesName.otp, arguments: {
-        "mobileNumber": mobile,
-        "user_id": value["user_id"] ?? 0
-      });
+      Navigator.pushNamed(
+        context,
+        RoutesName.otp,
+        arguments: {
+          "mobileNumber": mobile,
+          "user_id": value["user_id"] ?? 0,
+        },
+      );
     }).onError((error, stackTrace) {
       setLoading(false);
       if (kDebugMode) {
         print('error: $error');
       }
+
+      // 🔹 Show popup dialog on error
+      showGeneralDialog(
+        context: context,
+        barrierDismissible: true,
+        barrierLabel: '',
+        transitionDuration: Duration(milliseconds: 400),
+        pageBuilder: (context, animation, secondaryAnimation) => AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+          ),
+          backgroundColor: Colors.white,
+          shadowColor: Colors.black54,
+          elevation: 15,
+          title: Row(
+            children: [
+              Icon(Icons.error_outline, color: Colors.red, size: 24),
+              SizedBox(width: 8),
+              Text(
+                'Error',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.red,
+                  fontSize: 20,
+                ),
+              ),
+            ],
+          ),
+          content: Text(
+            error.toString(),
+            style: TextStyle(fontSize: 15, height: 1.4),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.blue,
+                padding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+              ),
+              child: Text(
+                'OK',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+              ),
+            ),
+          ],
+        ),
+        transitionBuilder: (context, animation, secondaryAnimation, child) {
+          return ScaleTransition(
+            scale: animation,
+            child: FadeTransition(
+              opacity: animation,
+              child: child,
+            ),
+          );
+        },
+      );
     });
   }
+
 
   Future<void> sendOtpApi(dynamic mobile, context) async {
     setLoading(true);
@@ -59,9 +122,12 @@ class AuthViewModel with ChangeNotifier {
   }
 
   Future<void> verifyOtpApi(
-      dynamic phone, dynamic otp, dynamic userId, context) async {
-    setLoading(true);
+      dynamic phone, dynamic otp, dynamic userId, BuildContext context) async {
+    setOtpLoading(true);
+
     _authRepo.verifyOtpApi(phone, otp).then((value) {
+      setOtpLoading(false);
+
       if (value['error'] == "200") {
         if (userId != 0) {
           UserViewModel userViewModel = UserViewModel();
@@ -71,14 +137,18 @@ class AuthViewModel with ChangeNotifier {
           Navigator.pushNamed(context, RoutesName.owner,
               arguments: {'mobileNumber': phone});
         }
+      } else {
+        Utils.showErrorMessage(context, value['message'] ?? "Something went wrong");
       }
     }).onError((error, stackTrace) {
       setOtpLoading(false);
+      Utils.showErrorMessage(context, error.toString());
       if (kDebugMode) {
         print('error: $error');
       }
     });
   }
+
 
   // bool _regLoading = false;
   // bool get regLoading => _regLoading;

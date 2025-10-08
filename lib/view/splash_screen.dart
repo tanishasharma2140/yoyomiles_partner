@@ -35,7 +35,6 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 
     _controller.forward();
 
-    // Navigation after delay
     Timer(const Duration(seconds: 3), () {
       checkSession(context);
     });
@@ -50,7 +49,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: PortColor.scaffoldBgGrey,
+      backgroundColor: PortColor.gold,
       body: Center(
         child: ScaleTransition(
           scale: _scaleAnimation,

@@ -1,5 +1,9 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:yoyomiles_partner/res/app_fonts.dart';
 import 'package:yoyomiles_partner/res/constant_color.dart';
+import 'package:yoyomiles_partner/res/text_const.dart';
+import 'package:yoyomiles_partner/view_model/bank_detail_view_model.dart';
 
 import 'package:yoyomiles_partner/view_model/bank_view_model.dart';
 import 'package:provider/provider.dart';
@@ -15,9 +19,9 @@ class _EditBankAccountPageState extends State<EditBankAccountPage> {
   final TextEditingController _accountController = TextEditingController();
   final TextEditingController _reAccountController = TextEditingController();
   final TextEditingController _holderNameController = TextEditingController();
+  final TextEditingController _bankNameController = TextEditingController();
   final TextEditingController _ifscCodeController = TextEditingController();
 
-  bool _isLoading = false;
 
   @override
   void initState() {
@@ -28,15 +32,18 @@ class _EditBankAccountPageState extends State<EditBankAccountPage> {
   void _loadCurrentData() {
     final bankViewModel = Provider.of<BankViewModel>(context, listen: false);
     if (bankViewModel.bankDetailModel != null) {
-      _holderNameController.text = bankViewModel.bankDetailModel!.bankDetails!.accountHolderName ?? '';
-      _accountController.text = bankViewModel.bankDetailModel!.bankDetails!.accountNumber ?? '';
-      _reAccountController.text = bankViewModel.bankDetailModel!.bankDetails!.reAccountNumber ?? '';
-      _ifscCodeController.text = bankViewModel.bankDetailModel!.bankDetails!.ifscCode ?? '';
+      _holderNameController.text = bankViewModel.bankDetailModel!.bankDetails!.accountHolderName ?? 'N/A';
+      _accountController.text = bankViewModel.bankDetailModel!.bankDetails!.accountNumber ?? 'N/A';
+      _reAccountController.text = bankViewModel.bankDetailModel!.bankDetails!.reAccountNumber ?? 'N/A';
+      _bankNameController.text = bankViewModel.bankDetailModel!.bankDetails!.bankName ?? 'N/A';
+      _ifscCodeController.text = bankViewModel.bankDetailModel!.bankDetails!.ifscCode ?? 'N/A';
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final bankDetailViewModel = Provider.of<BankDetailViewModel>(context);
+
     return Scaffold(
       backgroundColor: PortColor.scaffoldBgGrey,
       appBar: AppBar(
@@ -55,12 +62,6 @@ class _EditBankAccountPageState extends State<EditBankAccountPage> {
           icon: Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () => Navigator.pop(context),
         ),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.save, color: PortColor.gold),
-            onPressed: _saveChanges,
-          ),
-        ],
       ),
       body: SingleChildScrollView(
         padding: EdgeInsets.all(16),
@@ -104,21 +105,18 @@ class _EditBankAccountPageState extends State<EditBankAccountPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
+                        TextConst(
+                          title:
                           'Update Bank Details',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
+                          color: PortColor.blackLight,
+                          size: 18,
+                          fontWeight: FontWeight.bold,
                         ),
                         SizedBox(height: 4),
-                        Text(
+                        TextConst(title:
                           'Modify your bank account information',
-                          style: TextStyle(
-                            color: Colors.white.withOpacity(0.9),
-                            fontSize: 14,
-                          ),
+                          color: Colors.black38,
+                          size: 14,
                         ),
                       ],
                     ),
@@ -145,6 +143,13 @@ class _EditBankAccountPageState extends State<EditBankAccountPage> {
               ),
               child: Column(
                 children: [
+                  _buildFormField(
+                    title: "Bank Name",
+                    hintText: "Enter bank name",
+                    controller: _bankNameController,
+                    icon: Icons.person_outline,
+                  ),
+                  SizedBox(height: 16),
                   // Account Holder Name
                   _buildFormField(
                     title: "Account Holder Name",
@@ -163,6 +168,7 @@ class _EditBankAccountPageState extends State<EditBankAccountPage> {
                     icon: Icons.credit_card,
                     keyboardType: TextInputType.number,
                     maxLength: 12,
+
                   ),
 
                   SizedBox(height: 16),
@@ -250,7 +256,15 @@ class _EditBankAccountPageState extends State<EditBankAccountPage> {
                 // Save Button
                 Expanded(
                   child: ElevatedButton(
-                    onPressed: _isLoading ? null : _saveChanges,
+                    onPressed: (){
+                      bankDetailViewModel.bankDetailApi(
+                          _accountController.text
+                          , _bankNameController.text,
+                          _reAccountController.text,
+                          _holderNameController.text,
+                          _ifscCodeController.text,
+                          context);
+                    },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: PortColor.gold,
                       shape: RoundedRectangleBorder(
@@ -259,23 +273,19 @@ class _EditBankAccountPageState extends State<EditBankAccountPage> {
                       padding: EdgeInsets.symmetric(vertical: 12),
                       elevation: 2,
                     ),
-                    child: _isLoading
-                        ? SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
-                      ),
-                    )
-                        : Row(
+                    child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.save, size: 18, color: Colors.white),
+                        Icon(Icons.save, size: 18, color: Colors.black),
                         SizedBox(width: 8),
-                        Text(
+                        !bankDetailViewModel.loading
+                            ? TextConst(
+                          title:
                           'Save Changes',
-                          style: TextStyle(color: Colors.white),
+                        color: PortColor.black,
+                        ):const CupertinoActivityIndicator(
+                          color: Colors.white,
+                          radius: 14,
                         ),
                       ],
                     ),
@@ -305,13 +315,11 @@ class _EditBankAccountPageState extends State<EditBankAccountPage> {
           children: [
             Icon(icon, color: PortColor.gold, size: 18),
             SizedBox(width: 8),
-            Text(
+            TextConst(title:
               title,
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: Colors.black87,
-              ),
+              size : 14,
+              fontWeight: FontWeight.w400,
+              color: Colors.black38,
             ),
           ],
         ),
@@ -322,6 +330,7 @@ class _EditBankAccountPageState extends State<EditBankAccountPage> {
           maxLength: maxLength,
           textCapitalization: textCapitalization,
           decoration: InputDecoration(
+            counterText: "",
             hintText: hintText,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
@@ -338,71 +347,18 @@ class _EditBankAccountPageState extends State<EditBankAccountPage> {
             contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           ),
           style: TextStyle(
-            fontSize: 16,
+            fontSize: 14,
             fontWeight: FontWeight.w500,
+            fontFamily: AppFonts.kanitReg
           ),
         ),
       ],
     );
   }
 
-  void _saveChanges() {
-    if (_holderNameController.text.isEmpty) {
-      _showErrorDialog('Please enter account holder name');
-      return;
-    }
-    if (_accountController.text.isEmpty) {
-      _showErrorDialog('Please enter account number');
-      return;
-    }
-    if (_reAccountController.text.isEmpty) {
-      _showErrorDialog('Please confirm account number');
-      return;
-    }
-    if (_ifscCodeController.text.isEmpty) {
-      _showErrorDialog('Please enter IFSC code');
-      return;
-    }
-    if (_accountController.text != _reAccountController.text) {
-      _showErrorDialog('Account numbers do not match');
-      return;
-    }
 
-    setState(() {
-      _isLoading = true;
-    });
 
-    // Simulate API call
-    Future.delayed(Duration(seconds: 2), () {
-      setState(() {
-        _isLoading = false;
-      });
 
-      _showSuccessDialog();
-    });
-  }
-
-  void _showErrorDialog(String message) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Row(
-          children: [
-            Icon(Icons.error, color: Colors.red),
-            SizedBox(width: 8),
-            Text('Error'),
-          ],
-        ),
-        content: Text(message),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('OK'),
-          ),
-        ],
-      ),
-    );
-  }
 
   void _showSuccessDialog() {
     showGeneralDialog(

@@ -14,7 +14,7 @@ class YoyomilesPartnerCon with ChangeNotifier {
         title: 'Wallet',
         route: RoutesName.wallet),
     DashBoardModel(
-        img: Assets.assetsReward, title: 'Reward', route: RoutesName.reward),
+        img: Assets.assetsReward, title: 'Reward', route: RoutesName.rideSafety),
   ];
 }
 class DashBoardModel{

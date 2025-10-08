@@ -1,4 +1,5 @@
 import "package:cloud_firestore/cloud_firestore.dart";
+import "package:flutter/cupertino.dart";
 import "package:flutter/material.dart";
 import "package:yoyomiles_partner/res/app_fonts.dart";
 import "package:yoyomiles_partner/res/sizing_const.dart";
@@ -20,6 +21,7 @@ class _BankDetailState extends State<BankDetail> {
   final CollectionReference myItems =
   FirebaseFirestore.instance.collection("data");
 
+  final TextEditingController _bankController = TextEditingController();
   final TextEditingController _accountController = TextEditingController();
   final TextEditingController _reAccountController = TextEditingController();
   final TextEditingController _holderNameController = TextEditingController();
@@ -149,6 +151,16 @@ class _BankDetailState extends State<BankDetail> {
                             size: 14,
                           ),
                         ),
+                      ),
+
+                      SizedBox(height: Sizes.screenHeight * 0.03),
+
+                      // Account Holder Name
+                      _buildFormField(
+                        title: "Bank Name",
+                        hintText: "Enter bank name",
+                        controller: _bankController,
+                        icon: Icons.account_balance,
                       ),
 
                       SizedBox(height: Sizes.screenHeight * 0.03),
@@ -287,6 +299,7 @@ class _BankDetailState extends State<BankDetail> {
                               } else {
                                 bankDetailViewModel.bankDetailApi(
                                     _accountController.text,
+                                    _bankController.text,
                                     _reAccountController.text,
                                     _holderNameController.text,
                                     _ifscCodeController.text,
@@ -300,7 +313,6 @@ class _BankDetailState extends State<BankDetail> {
                             },
                             child: Stack(
                               children: [
-                                // Button Content
                                 Center(
                                   child: !bankDetailViewModel.loading
                                       ? TextConst(
@@ -310,9 +322,9 @@ class _BankDetailState extends State<BankDetail> {
                                         size: 16,
                                         fontWeight: FontWeight.bold,
                                       )
-                                      : CircularProgressIndicator(
+                                      :  const CupertinoActivityIndicator(
                                     color: Colors.white,
-                                    strokeWidth: 2,
+                                    radius: 14,
                                   ),
                                 ),
 

@@ -18,6 +18,7 @@ class CustomTextField extends StatelessWidget {
   final FocusNode? focusNode;
   final double? cursorHeight;
   final int? maxLength;
+  final List<TextInputFormatter>? inputFormatters;
   final Color? focusedBorder;
   final VoidCallback? onTap;
   final bool readOnly;
@@ -40,6 +41,7 @@ class CustomTextField extends StatelessWidget {
     this.cursorHeight,
     this.maxLength,
     this.focusedBorder = PortColor.gray,
+    this.inputFormatters,
     this.onTap,
     this.readOnly = false,
     this.enabled = true,
@@ -104,8 +106,8 @@ class CustomTextField extends StatelessWidget {
         textInputAction: textInputAction,
         keyboardType: keyboardType,
         inputFormatters: [
-          if (maxLength != null)
-            LengthLimitingTextInputFormatter(maxLength),
+          if (maxLength != null) LengthLimitingTextInputFormatter(maxLength),
+          if (inputFormatters != null) ...inputFormatters!,
         ],
       ),
     );

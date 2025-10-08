@@ -6,6 +6,8 @@ import 'package:yoyomiles_partner/res/text_const.dart';
 import 'package:yoyomiles_partner/view/earning/edit_bank_account_page.dart';
 import 'package:yoyomiles_partner/view_model/bank_view_model.dart';
 import 'package:provider/provider.dart';
+import 'package:yoyomiles_partner/view_model/delete_bank_detail_view_model.dart';
+import 'package:yoyomiles_partner/view_model/user_view_model.dart';
 
 class BankDetailView extends StatefulWidget {
   const BankDetailView({super.key});
@@ -185,6 +187,18 @@ class _BankDetailViewState extends State<BankDetailView> {
                           .bankDetailModel!
                           .bankDetails!
                           .accountHolderName ??
+                      '',
+                  isFirst: true,
+                ),
+
+                _buildListTile(
+                  icon: Icons.account_balance,
+                  title: 'Bank Name',
+                  value:
+                  bankViewModel
+                      .bankDetailModel!
+                      .bankDetails!
+                      .bankName ??
                       '',
                   isFirst: true,
                 ),
@@ -602,6 +616,7 @@ class _BankDetailViewState extends State<BankDetailView> {
   }
 
   void _deleteBankAccount() {
+    final deleteAccount = Provider.of<DeleteBankDetailViewModel>(context,listen: false);
     showGeneralDialog(
       context: context,
       barrierDismissible: true,
@@ -717,9 +732,13 @@ class _BankDetailViewState extends State<BankDetailView> {
                       // Delete Button
                       Expanded(
                         child: ElevatedButton(
-                          onPressed: () {
+                          onPressed: () async {
+                            UserViewModel userViewModel = UserViewModel();
+                            int? userId = await userViewModel.getUser();
+
+                            await deleteAccount.deleteBankDetailApi(userId.toString(), context);
+
                             Navigator.pop(context);
-                            _confirmDelete();
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.red,
@@ -734,17 +753,17 @@ class _BankDetailViewState extends State<BankDetailView> {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.delete_outline, size: 18),
-                              SizedBox(width: 6),
-                              TextConst(title:
-                                'Delete',
-                                  fontWeight: FontWeight.bold,
+                              !deleteAccount.loading
+                                  ? TextConst(
+                                title: 'Delete',
+                                fontWeight: FontWeight.bold,
                                 color: PortColor.white,
-                              ),
+                              ): CircularProgressIndicator(color: PortColor.white,)
                             ],
                           ),
                         ),
                       ),
+
                     ],
                   ),
                 ),
@@ -756,165 +775,4 @@ class _BankDetailViewState extends State<BankDetailView> {
     );
   }
 
-  void _confirmDelete() {
-    showGeneralDialog(
-      context: context,
-      barrierDismissible: false,
-      barrierColor: Colors.black54,
-      transitionDuration: Duration(milliseconds: 400),
-      pageBuilder: (context, animation, secondaryAnimation) {
-        return ScaleTransition(
-          scale: CurvedAnimation(parent: animation, curve: Curves.easeOutBack),
-          child: FadeTransition(
-            opacity: animation,
-            child: Dialog(
-              backgroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-              ),
-              elevation: 15,
-              child: Container(
-                padding: EdgeInsets.all(24),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // Processing Animation
-                    Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        CircularProgressIndicator(
-                          valueColor: AlwaysStoppedAnimation<Color>(Colors.red),
-                          strokeWidth: 3,
-                        ),
-                        Icon(Icons.delete_outline, color: Colors.red, size: 24),
-                      ],
-                    ),
-                    SizedBox(height: 20),
-
-                    Text(
-                      'Deleting Account',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black87,
-                      ),
-                    ),
-                    SizedBox(height: 8),
-
-                    Text(
-                      'Please wait while we remove your bank account',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey.shade600,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        );
-      },
-    );
-
-    // Simulate API call
-    Future.delayed(Duration(seconds: 2), () {
-      Navigator.pop(context); // Close loading dialog
-
-      // Show success message
-      _showDeleteSuccess();
-    });
-  }
-
-  void _showDeleteSuccess() {
-    showGeneralDialog(
-      context: context,
-      barrierDismissible: true,
-      barrierColor: Colors.black54,
-      transitionDuration: Duration(milliseconds: 500),
-      pageBuilder: (context, animation, secondaryAnimation) {
-        return ScaleTransition(
-          scale: CurvedAnimation(parent: animation, curve: Curves.elasticOut),
-          child: FadeTransition(
-            opacity: animation,
-            child: Dialog(
-              backgroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-              ),
-              elevation: 15,
-              child: Container(
-                padding: EdgeInsets.all(24),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // Success Icon
-                    Container(
-                      padding: EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.green.withOpacity(0.1),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        Icons.check_circle,
-                        color: Colors.green,
-                        size: 40,
-                      ),
-                    ),
-                    SizedBox(height: 16),
-
-                    Text(
-                      'Successfully Deleted',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black87,
-                      ),
-                    ),
-                    SizedBox(height: 8),
-
-                    Text(
-                      'Your bank account has been removed successfully',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey.shade600,
-                      ),
-                    ),
-                    SizedBox(height: 20),
-
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          Navigator.pop(context);
-                          Navigator.pop(context);
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: PortColor.gold,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          padding: EdgeInsets.symmetric(vertical: 12),
-                        ),
-                        child: Text(
-                          'Done',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
 }

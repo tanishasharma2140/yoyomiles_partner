@@ -16,4 +16,8 @@ class RoutesName {
   static const vehicleDetail = "/vehicleDetail";
   static const addDriverDetail = "/addDriverDetail";
   static const walletHome = "/walletHome";
+  static const termsCondition = "/termsCondition";
+  static const privacyPolicy = "/privacyPolicy";
+  static const tdsDeclaration = "/tdsDeclaration";
+  static const rideSafety = "/rideSafety";
 }

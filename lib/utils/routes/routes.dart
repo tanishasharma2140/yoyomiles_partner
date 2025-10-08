@@ -10,8 +10,12 @@ import 'package:yoyomiles_partner/view/bank_detail.dart';
 import 'package:yoyomiles_partner/view/bank_detail_view.dart';
 import 'package:yoyomiles_partner/view/dashboard.dart';
 import 'package:yoyomiles_partner/view/live_ride_screen.dart';
+import 'package:yoyomiles_partner/view/privacy_policy/privacy_policy.dart';
+import 'package:yoyomiles_partner/view/privacy_policy/tds_declaration.dart';
+import 'package:yoyomiles_partner/view/privacy_policy/terms_and_condition.dart';
 import 'package:yoyomiles_partner/view/profile.dart';
 import 'package:yoyomiles_partner/view/reward.dart';
+import 'package:yoyomiles_partner/view/ride/ride_safety.dart';
 import 'package:yoyomiles_partner/view/ride_history.dart';
 import 'package:yoyomiles_partner/view/splash_screen.dart';
 import 'package:yoyomiles_partner/view/trip_status.dart';
@@ -40,8 +44,8 @@ class Routers {
         return (context) => const RideHistory();
       case RoutesName.wallet:
         return (context) => const Wallet();
-      case RoutesName.reward:
-        return (context) => const Reward();
+      // case RoutesName.reward:
+      //   return (context) => const Reward();
       case RoutesName.bank:
         return (context) => const BankDetail();
       case RoutesName.liveRide:
@@ -52,6 +56,14 @@ class Routers {
         return (context) => const VehicleDetail();
       case RoutesName.addDriverDetail:
         return (context) => const AddDriverDetail();
+      case RoutesName.termsCondition:
+        return (context) => const TermsAndCondition();
+      case RoutesName.privacyPolicy:
+        return (context) => const PrivacyPolicy();
+      case RoutesName.tdsDeclaration:
+        return (context) => const TdsDeclaration();
+      case RoutesName.rideSafety:
+        return (context) => const RideSafety();
       default:
         return (context) => const Scaffold(
           body: Center(

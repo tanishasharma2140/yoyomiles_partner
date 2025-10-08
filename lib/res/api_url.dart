@@ -13,10 +13,13 @@ class ApiUrl{
   static const String liveRideUrl="${baseUrl}liveorder/";
   static const String rideHistoryUrl="${baseUrl}driver_history/";
   static const String citiesUrl="${baseUrl}cities_of_operation";
+  static const String helpTopicsUrl ="${baseUrl}help_topics";
   static const String driverVehicleUrl="${baseUrl}vehicle_type";
   static const String vehicleBodyDetailUrl="${baseUrl}vehicle_body_details?";
   static const String bodyTypeUrl="${baseUrl}body_type?";
   static const String fuelTypeUrl="${baseUrl}fuel_type?";
+  static const String policyUrl ="${baseUrl}login_policy/";
+  static const String deleteBankDetailUrl ="${baseUrl}delete_bank_details/";
 
   static const String sendOtpUrl ="https://otp.fctechteam.org/send_otp.php?mode=test&digit=4&mobile=";
   static const String verifyOtpUrl ="https://otp.fctechteam.org/verifyotp.php?mobile=";

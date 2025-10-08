@@ -108,7 +108,7 @@ class _RegisterState extends State<Register> {
                   : Column(
                       children: [
                         Container(
-                          height: Sizes.screenHeight * 0.083,
+                          height: Sizes.screenHeight * 0.11,
                           decoration: const BoxDecoration(
                             gradient: LinearGradient(
                               colors: [
@@ -122,10 +122,7 @@ class _RegisterState extends State<Register> {
                             alignment: Alignment.center,
                             child: Image.asset(
                               Assets.assetsYoyoPartnerLogo,
-                              height: Sizes.screenHeight * 0.063,
-                              fit: BoxFit.fill,
-                              width: Sizes.screenWidth*0.35,
-                              color: PortColor.black,
+                              fit: BoxFit.contain,
                             ),
                           ),
                         ),
@@ -152,13 +149,13 @@ class _RegisterState extends State<Register> {
                                   SizedBox(
                                     width: Sizes.screenWidth * 0.01,
                                   ),
-                                  const TextConst( title: "welcome to Porter"),
+                                  const TextConst( title: "welcome to yoyomiles"),
                                 ],
                               ),
                               TextConst(
                                 title:
                                 "You are now a few steps away from getting your first trip",
-                                size: Sizes.fontSizeFive,
+                                size: 12,
                                 color: PortColor.black.withOpacity(0.5),
                               )
                             ],
@@ -181,28 +178,12 @@ class _RegisterState extends State<Register> {
                           child: SizedBox(
                             height: Sizes.screenHeight*0.05,
                             width: Sizes.screenWidth*0.3,
-                            // decoration: BoxDecoration(
-                            //  // color: PortColor.scaffoldBgGrey
-                            //  // borderRadius: BorderRadius.circular(20), // Border radius for rounded corners
-                            // ),
                             child: Padding(
                               padding: const EdgeInsets.symmetric(horizontal: 12.0),
                               child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center, // Centering content horizontally
-                                crossAxisAlignment: CrossAxisAlignment.center, // Centering content vertically
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.center,
                                 children: [
-                                  // Icon(
-                                  //   Icons.refresh, // Refresh icon
-                                  //   color: PortColor.scaffoldBgGrey, // Icon color
-                                  // ),
-                                  // SizedBox(width: Sizes.screenWidth*0.02,),
-                                  // TextConst(
-                                  //   "Refresh", // Text in the center
-                                  //  color: PortColor.scaffoldBgGrey,
-                                  //   fontWeight: FontWeight.bold,
-                                  //
-                                  // ),
-                             // Space between text and icon
 
                                 ],
                               ),
@@ -335,9 +316,8 @@ class _RegisterState extends State<Register> {
                             shape: BoxShape.circle,
                             gradient: const LinearGradient(
                               colors: [
-                                PortColor.partner,
-                                PortColor.porterPartner,
-                                PortColor.purple,
+                                PortColor.yellow, // orange
+                                Color(0xFFFF7043), // coral red
                               ],
                               begin: Alignment.topCenter,
                               end: Alignment.bottomCenter,
@@ -351,7 +331,7 @@ class _RegisterState extends State<Register> {
                             child: TextConst(
                               title:
                               '2',
-                              color: PortColor.yellow, // Text color
+                              color: PortColor.blackLight, // Text color
                             ),
                           ),
                         ),
@@ -460,13 +440,13 @@ class _RegisterState extends State<Register> {
                                       horizontal: Sizes.screenWidth * 0.015),
                                   height: Sizes.screenHeight * 0.05,
                                   width: Sizes.screenWidth * 0.7,
-                                  color: PortColor.darkCoin,
+                                  color: PortColor.white,
                                   child: Row(
                                     mainAxisAlignment:
                                         MainAxisAlignment.spaceBetween,
                                     children: [
                                       const TextConst( title: 'Go Online',
-                                          color: PortColor.blue),
+                                          color: PortColor.black),
                                       Icon(
                                         Icons.arrow_forward_ios_rounded,
                                         color: PortColor.blue,

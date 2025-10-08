@@ -1,7 +1,10 @@
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:yoyomiles_partner/firebase_options.dart';
+import 'package:yoyomiles_partner/res/notification_service.dart';
 import 'package:yoyomiles_partner/res/sizing_const.dart';
 import 'package:yoyomiles_partner/utils/routes/routes.dart';
 import 'package:yoyomiles_partner/utils/routes/routes_name.dart';
@@ -12,10 +15,13 @@ import 'package:yoyomiles_partner/view_model/bank_detail_view_model.dart';
 import 'package:yoyomiles_partner/view_model/bank_view_model.dart';
 import 'package:yoyomiles_partner/view_model/body_type_view_model.dart';
 import 'package:yoyomiles_partner/view_model/cities_view_model.dart';
+import 'package:yoyomiles_partner/view_model/delete_bank_detail_view_model.dart';
 import 'package:yoyomiles_partner/view_model/driver_vehicle_view_model.dart';
 import 'package:yoyomiles_partner/view_model/fuel_type_view_model.dart';
+import 'package:yoyomiles_partner/view_model/help_topics_view_model.dart';
 import 'package:yoyomiles_partner/view_model/live_ride_view_model.dart';
 import 'package:yoyomiles_partner/view_model/online_status_view_model.dart';
+import 'package:yoyomiles_partner/view_model/policy_view_model.dart';
 import 'package:yoyomiles_partner/view_model/profile_view_model.dart';
 import 'package:yoyomiles_partner/view_model/ride_history_view_model.dart';
 import 'package:yoyomiles_partner/view_model/update_ride_status_view_model.dart';
@@ -24,15 +30,26 @@ import 'package:yoyomiles_partner/view_model/vehicle_name_view_model.dart';
 import 'package:yoyomiles_partner/view_model/vehicle_type_view_model.dart';
 import 'package:provider/provider.dart';
 
+String? fcmToken;
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
-  // Only initialize if no Firebase app exists
-  if (Firebase.apps.isEmpty) {
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
+  await Firebase.initializeApp();
+  // SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+  // 🔹 Get FCM Token
+  fcmToken = await FirebaseMessaging.instance.getToken();
+  if (kDebugMode) {
+    print("✅ FCM Token: $fcmToken");
   }
+
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
+
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  //
 
   runApp(const MyApp());
 }
@@ -41,8 +58,23 @@ double topPadding = 0.0;
 double bottomPadding = 0.0;
 
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  final notificationService = NotificationService(navigatorKey: navigatorKey);
+
+  @override
+  void initState() {
+    super.initState();
+    notificationService.requestedNotificationPermission();
+    notificationService.firebaseInit(context);
+    notificationService.setupInteractMassage(context);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -76,6 +108,9 @@ class MyApp extends StatelessWidget {
           ChangeNotifierProvider(create: (context)=> VehicleBodyDetailViewModel()),
           ChangeNotifierProvider(create: (context)=> BodyTypeViewModel()),
           ChangeNotifierProvider(create: (context)=> FuelTypeViewModel()),
+          ChangeNotifierProvider(create: (context)=> PolicyViewModel()),
+          ChangeNotifierProvider(create: (context)=> DeleteBankDetailViewModel()),
+          ChangeNotifierProvider(create: (context)=> HelpTopicsViewModel()),
 
         ],
         child: MaterialApp(
