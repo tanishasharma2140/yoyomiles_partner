@@ -433,7 +433,7 @@ class _RegisterState extends State<Register> {
                               InkWell(
                                 onTap: () {
                                   onlineStatusViewModel.onlineStatusApi(
-                                      context, 1, "userId");
+                                      context, 1);
                                 },
                                 child: Container(
                                   padding: EdgeInsets.symmetric(

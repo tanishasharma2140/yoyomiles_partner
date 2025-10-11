@@ -7,20 +7,20 @@ class ProfileModel {
   ProfileModel({this.data, this.message, this.status, this.success});
 
   ProfileModel.fromJson(Map<String, dynamic> json) {
-    data = json['data'] != null ? new Data.fromJson(json['data']) : null;
+    data = json['data'] != null ? Data.fromJson(json['data']) : null;
     message = json['message'];
     status = json['status'];
     success = json['success'];
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
+    final Map<String, dynamic> data = <String, dynamic>{};
     if (this.data != null) {
       data['data'] = this.data!.toJson();
     }
-    data['message'] = this.message;
-    data['status'] = this.status;
-    data['success'] = this.success;
+    data['message'] = message;
+    data['status'] = status;
+    data['success'] = success;
     return data;
   }
 }
@@ -150,46 +150,46 @@ class Data {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['id'] = this.id;
-    data['vehicle_no'] = this.vehicleNo;
-    data['rc_front'] = this.rcFront;
-    data['rc_back'] = this.rcBack;
-    data['city_id'] = this.cityId;
-    data['vehicle_type'] = this.vehicleType;
-    data['vehicle_body_details_type'] = this.vehicleBodyDetailsType;
-    data['vehicle_body_type'] = this.vehicleBodyType;
-    data['fuel_type'] = this.fuelType;
-    data['owner_name'] = this.ownerName;
-    data['owner_aadhaar_back'] = this.ownerAadhaarBack;
-    data['owner_aadhaar_front'] = this.ownerAadhaarFront;
-    data['owner_pan_fornt'] = this.ownerPanFornt;
-    data['owner_pan_back'] = this.ownerPanBack;
-    data['owner_selfie'] = this.ownerSelfie;
-    data['driver_name'] = this.driverName;
-    data['driving_licence_back'] = this.drivingLicenceBack;
-    data['driving_licence_front'] = this.drivingLicenceFront;
-    data['verify_document'] = this.verifyDocument;
-    data['phone'] = this.phone;
-    data['drive_operator'] = this.driveOperator;
-    data['device_id'] = this.deviceId;
-    data['doc_rej_resion'] = this.docRejResion;
-    data['email'] = this.email;
-    data['online_status'] = this.onlineStatus;
-    data['fcm'] = this.fcm;
-    data['updated_at'] = this.updatedAt;
-    data['created_at'] = this.createdAt;
-    data['status'] = this.status;
-    data['owner_doc_status'] = this.ownerDocStatus;
-    data['vehicle_doc_status'] = this.vehicleDocStatus;
-    data['driver_doc_status'] = this.driverDocStatus;
-    data['vehicle_type_name'] = this.vehicleTypeName;
-    data['vehicle_type_image'] = this.vehicleTypeImage;
-    data['vehicle_body_detail'] = this.vehicleBodyDetail;
-    data['vehicle_body_type_name'] = this.vehicleBodyTypeName;
-    data['vehicle_body_type_image'] = this.vehicleBodyTypeImage;
-    data['fuel_type_name'] = this.fuelTypeName;
-    data['city_name'] = this.cityName;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['id'] = id;
+    data['vehicle_no'] = vehicleNo;
+    data['rc_front'] = rcFront;
+    data['rc_back'] = rcBack;
+    data['city_id'] = cityId;
+    data['vehicle_type'] = vehicleType;
+    data['vehicle_body_details_type'] = vehicleBodyDetailsType;
+    data['vehicle_body_type'] = vehicleBodyType;
+    data['fuel_type'] = fuelType;
+    data['owner_name'] = ownerName;
+    data['owner_aadhaar_back'] = ownerAadhaarBack;
+    data['owner_aadhaar_front'] = ownerAadhaarFront;
+    data['owner_pan_fornt'] = ownerPanFornt;
+    data['owner_pan_back'] = ownerPanBack;
+    data['owner_selfie'] = ownerSelfie;
+    data['driver_name'] = driverName;
+    data['driving_licence_back'] = drivingLicenceBack;
+    data['driving_licence_front'] = drivingLicenceFront;
+    data['verify_document'] = verifyDocument;
+    data['phone'] = phone;
+    data['drive_operator'] = driveOperator;
+    data['device_id'] = deviceId;
+    data['doc_rej_resion'] = docRejResion;
+    data['email'] = email;
+    data['online_status'] = onlineStatus;
+    data['fcm'] = fcm;
+    data['updated_at'] = updatedAt;
+    data['created_at'] = createdAt;
+    data['status'] = status;
+    data['owner_doc_status'] = ownerDocStatus;
+    data['vehicle_doc_status'] = vehicleDocStatus;
+    data['driver_doc_status'] = driverDocStatus;
+    data['vehicle_type_name'] = vehicleTypeName;
+    data['vehicle_type_image'] = vehicleTypeImage;
+    data['vehicle_body_detail'] = vehicleBodyDetail;
+    data['vehicle_body_type_name'] = vehicleBodyTypeName;
+    data['vehicle_body_type_image'] = vehicleBodyTypeImage;
+    data['fuel_type_name'] = fuelTypeName;
+    data['city_name'] = cityName;
     return data;
   }
 }

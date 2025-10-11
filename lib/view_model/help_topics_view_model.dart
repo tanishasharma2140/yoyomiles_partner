@@ -22,17 +22,21 @@ class HelpTopicsViewModel with ChangeNotifier {
 
   Future<void> helpTopicApi() async {
     setLoading(true);
+    try {
+      final value = await _helpTopicsRepo.helpTopicApi();
+      debugPrint('value: $value');
 
-    _helpTopicsRepo.helpTopicApi().then((value) {
-      debugPrint('value:$value');
       if (value.status == 200) {
         setModelData(value);
+      } else {
+        debugPrint('API returned non-200: ${value.status}');
       }
-    }).onError((error, stackTrace) {
+    } catch (error) {
+      debugPrint('error: $error');
+    } finally {
       setLoading(false);
-      if (kDebugMode) {
-        print('error: $error');
-      }
-    });
+    }
   }
+
+
 }

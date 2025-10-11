@@ -25,7 +25,7 @@ final userId = await UserViewModel().getUser();
       "ride_status":rideStatus,
       "ride_id":rideId,
     };
-    print(jsonEncode(data));
+    debugPrint(jsonEncode(data));
     _assignRideRepo.assignRideApi(data).then((value) async {
       setLoading(false);
       if (value['success'] == true) {

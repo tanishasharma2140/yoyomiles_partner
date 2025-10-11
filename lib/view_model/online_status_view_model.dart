@@ -5,6 +5,8 @@ import 'package:yoyomiles_partner/utils/routes/routes_name.dart';
 import 'package:yoyomiles_partner/utils/utils.dart';
 import 'package:yoyomiles_partner/view_model/profile_view_model.dart';
 import 'package:provider/provider.dart';
+import 'package:yoyomiles_partner/view_model/services/firebase_dao.dart';
+import 'package:yoyomiles_partner/view_model/user_view_model.dart';
 class OnlineStatusViewModel with ChangeNotifier {
   final _onlineStatusRepo = OnlineStatusRepo();
   bool _loading = false;
@@ -17,9 +19,10 @@ class OnlineStatusViewModel with ChangeNotifier {
   Future<void> onlineStatusApi(
     context,
       int status,
-      String userId
   ) async {
     setLoading(true);
+    UserViewModel userViewModel = UserViewModel();
+    int? userId = (await userViewModel.getUser());
 
     Map data = {
       "id": userId,
@@ -33,6 +36,7 @@ class OnlineStatusViewModel with ChangeNotifier {
         profileViewModel.profileApi();
 
         if (status ==1){
+          FirebaseServices().saveOrUpdateDocument(driverId: userId.toString(), data: profileViewModel.profileModel!.data!.toJson());
           Navigator.pushNamed(context, RoutesName.map);
         } else if (status == 0){
           Navigator.pushNamed(context, RoutesName.register);
