@@ -10,9 +10,11 @@ import 'package:yoyomiles_partner/view/auth/owner_detail.dart';
 import 'package:yoyomiles_partner/view/auth/vehicle_detail.dart';
 import 'package:yoyomiles_partner/view/controller/yoyomiles_partner_con.dart';
 import 'package:yoyomiles_partner/view/earning/wallet_settlement.dart';
+import 'package:yoyomiles_partner/view_model/active_ride_view_model.dart';
 import 'package:yoyomiles_partner/view_model/online_status_view_model.dart';
 import 'package:yoyomiles_partner/view_model/profile_view_model.dart';
 import 'package:provider/provider.dart';
+import 'package:yoyomiles_partner/view_model/user_view_model.dart';
 
 class Register extends StatefulWidget {
   const Register({super.key});
@@ -74,11 +76,24 @@ class _RegisterState extends State<Register> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      UserViewModel userViewModel = UserViewModel();
+      int? driverId = (await userViewModel.getUser());
       // print("object");
       final profileViewModel =
           Provider.of<ProfileViewModel>(context, listen: false);
       profileViewModel.profileApi();
+      final activeRideVm =
+      Provider.of<ActiveRideViewModel>(context, listen: false);
+      activeRideVm.activeRideApi(driverId.toString());
+      activeRideVm.addListener(() {
+        final model = activeRideVm.activeRideModel;
+        if (model != null && model.data != null) {
+          // ✅ Navigate automatically to Active Ride Screen
+          Navigator.pushReplacementNamed(
+              context, RoutesName.liveRide, arguments: model);
+        }
+      });
       // print("hello");
     });
   }

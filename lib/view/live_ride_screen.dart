@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:yoyomiles_partner/generated/assets.dart';
+import 'package:yoyomiles_partner/main.dart';
+import 'package:yoyomiles_partner/res/app_fonts.dart';
 import 'package:yoyomiles_partner/res/const_map.dart';
 import 'package:yoyomiles_partner/res/constant_color.dart';
 import 'package:yoyomiles_partner/res/launcher.dart';
@@ -9,7 +11,6 @@ import 'package:yoyomiles_partner/res/text_const.dart';
 import 'package:yoyomiles_partner/view_model/live_ride_view_model.dart';
 import 'package:yoyomiles_partner/view_model/online_status_view_model.dart';
 import 'package:yoyomiles_partner/view_model/profile_view_model.dart';
-import 'package:yoyomiles_partner/view_model/update_ride_status_view_model.dart';
 import 'package:provider/provider.dart';
 
 class LiveRideScreen extends StatefulWidget {
@@ -119,120 +120,124 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
   @override
   Widget build(BuildContext context) {
     final profileViewModel = Provider.of<ProfileViewModel>(context);
-    return Scaffold(
-      backgroundColor: PortColor.scaffoldBgGrey,
-      body: Column(
-        children: [
-          // Header Section
-          Container(
-            height: Sizes.screenHeight * 0.085,
-            decoration: BoxDecoration(
-              color: PortColor.white,
-              border: Border(
-                bottom: BorderSide(
-                  color: PortColor.gray,
-                  width: Sizes.screenWidth * 0.001,
-                ),
-              ),
-            ),
-            child: Row(
-              children: [
-                SizedBox(width: Sizes.screenWidth * 0.03),
-                ClipOval(
-                  child: Image.network(
-                    profileViewModel.profileModel!.data!.ownerSelfie ?? "",
-                    height: Sizes.screenHeight * 0.06,
-                    width: Sizes.screenHeight * 0.06,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => Container(
-                      height: Sizes.screenHeight * 0.06,
-                      width: Sizes.screenHeight * 0.06,
-                      decoration: BoxDecoration(
-                        color: PortColor.grey,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(Icons.person, color: PortColor.white),
-                    ),
-                  ),
-                ),
-                SizedBox(width: Sizes.screenWidth * 0.02),
-                Expanded(
-                  child: TextConst(
-                    title: profileViewModel.profileModel!.data!.driverName ?? "Driver",
-                    size: Sizes.fontSizeSeven,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                Transform.scale(
-                  scale: 0.8,
-                  child: Switch(
-                    value: isSwitched,
-                    onChanged: (value) {
-                      setState(() {
-                        isSwitched = value;
-                      });
-                      if (!value) {
-                        _showSwitchDialog(value);
-                      }
-                    },
-                    activeColor: PortColor.grey,
-                    inactiveThumbColor: Colors.blue[50],
-                    activeTrackColor: Colors.green,
-                    inactiveTrackColor: Colors.blue,
-                  ),
-                ),
-                SizedBox(width: Sizes.screenWidth * 0.03),
-              ],
-            ),
-          ),
-
-          // Map Section - Fixed Half Screen with proper constraints
-          Expanded(
-            flex: 5, // 50% of screen
-            child: Container(
-              width: double.infinity,
-              child: ConstMap(
-                onAddressFetched: (address) {
-                  setState(() {
-                    _currentAddress = address;
-                  });
-                },
-              ),
-            ),
-          ),
-
-          // Current Location Chip
-          if (_currentAddress != null)
+    return SafeArea(
+      top: false,
+      child: Scaffold(
+        backgroundColor: PortColor.scaffoldBgGrey,
+        body: Column(
+          children: [
+            SizedBox(height: topPadding,),
+            // Header Section
             Container(
-              width: double.infinity,
-              padding: EdgeInsets.symmetric(
-                horizontal: Sizes.screenWidth * 0.04,
-                vertical: Sizes.screenHeight * 0.01,
+              height: Sizes.screenHeight * 0.085,
+              decoration: BoxDecoration(
+                color: PortColor.white,
+                border: Border(
+                  bottom: BorderSide(
+                    color: PortColor.gray,
+                    width: Sizes.screenWidth * 0.001,
+                  ),
+                ),
               ),
-              color: PortColor.white,
               child: Row(
                 children: [
-                  Icon(Icons.location_on, color: PortColor.gold, size: 16),
+                  SizedBox(width: Sizes.screenWidth * 0.03),
+                  ClipOval(
+                    child: Image.network(
+                      profileViewModel.profileModel!.data!.ownerSelfie ?? "",
+                      height: Sizes.screenHeight * 0.06,
+                      width: Sizes.screenHeight * 0.06,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) => Container(
+                        height: Sizes.screenHeight * 0.06,
+                        width: Sizes.screenHeight * 0.06,
+                        decoration: BoxDecoration(
+                          color: PortColor.grey,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(Icons.person, color: PortColor.white),
+                      ),
+                    ),
+                  ),
                   SizedBox(width: Sizes.screenWidth * 0.02),
                   Expanded(
                     child: TextConst(
-                      title: _currentAddress!,
-                      size: Sizes.fontSizeFour,
-                      color: PortColor.blackLight,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
+                      title: profileViewModel.profileModel!.data!.driverName ?? "Driver",
+                      size: Sizes.fontSizeSeven,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
+                  Transform.scale(
+                    scale: 0.8,
+                    child: Switch(
+                      value: isSwitched,
+                      onChanged: (value) {
+                        setState(() {
+                          isSwitched = value;
+                        });
+                        if (!value) {
+                          _showSwitchDialog(value);
+                        }
+                      },
+                      activeColor: PortColor.grey,
+                      inactiveThumbColor: Colors.blue[50],
+                      activeTrackColor: Colors.green,
+                      inactiveTrackColor: Colors.blue,
+                    ),
+                  ),
+                  SizedBox(width: Sizes.screenWidth * 0.03),
                 ],
               ),
             ),
 
-          // Ride Details Section - Scrollable
-          Expanded(
-            flex: 5, // 50% of screen
-            child: _buildRideDetails(),
-          ),
-        ],
+            // Map Section - Fixed Half Screen with proper constraints
+            Expanded(
+              flex: 5, // 50% of screen
+              child: SizedBox(
+                width: double.infinity,
+                child: ConstMap(
+                  onAddressFetched: (address) {
+                    setState(() {
+                      _currentAddress = address;
+                    });
+                  },
+                ),
+              ),
+            ),
+
+            // Current Location Chip
+            if (_currentAddress != null)
+              Container(
+                width: double.infinity,
+                padding: EdgeInsets.symmetric(
+                  horizontal: Sizes.screenWidth * 0.04,
+                  vertical: Sizes.screenHeight * 0.01,
+                ),
+                color: PortColor.white,
+                child: Row(
+                  children: [
+                    Icon(Icons.location_on, color: PortColor.gold, size: 16),
+                    SizedBox(width: Sizes.screenWidth * 0.02),
+                    Expanded(
+                      child: TextConst(
+                        title: _currentAddress!,
+                        size: Sizes.fontSizeFour,
+                        color: PortColor.blackLight,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+            // Ride Details Section - Scrollable
+            Expanded(
+              flex: 5, // 50% of screen
+              child: _buildRideDetails(),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -440,28 +445,50 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                   Expanded(
                     child: InkWell(
                       onTap: () async {
+                        final liveRideViewModel =
+                        Provider.of<LiveRideViewModel>(context, listen: false);
+                        final orderId = liveRideViewModel.liveOrderModel!.data!.id;
+                        int currentStatus =
+                            liveRideViewModel.liveOrderModel!.data!.rideStatus ?? 1;
+
                         try {
-                          final liveRideViewModel =
-                          Provider.of<LiveRideViewModel>(context, listen: false);
-                          final orderId = liveRideViewModel.liveOrderModel!.data!.id;
+                          if (currentStatus == 1) {
+                            // ✅ Accepted -> Out for Pickup
+                            await FirebaseFirestore.instance
+                                .collection('order')
+                                .doc(orderId.toString())
+                                .update({'ride_status': 2});
 
-                          // ✅ Update Firestore ride_status = 2
-                          await FirebaseFirestore.instance
-                              .collection('order')
-                              .doc(orderId.toString())
-                              .update({'ride_status': 2});
+                            liveRideViewModel.liveOrderModel!.data!.rideStatus = 2;
 
-                          // ✅ Update local model for instant UI refresh
-                          liveRideViewModel.liveOrderModel!.data!.rideStatus = 2;
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text("Ride status updated: Start for Pickup Location"),
+                                backgroundColor: Colors.green,
+                              ),
+                            );
+                          } else if (currentStatus == 2) {
+                            // ✅ Out for Pickup -> Arrived at Pickup Point
+                            await FirebaseFirestore.instance
+                                .collection('order')
+                                .doc(orderId.toString())
+                                .update({'ride_status': 3});
+
+                            liveRideViewModel.liveOrderModel!.data!.rideStatus = 3;
+
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text("Ride status updated: Arrived at Pickup Point"),
+                                backgroundColor: Colors.green,
+                              ),
+                            );
+                          } else if (currentStatus == 3) {
+                            // ✅ Already arrived at pickup — open OTP popup (no Firestore update yet)
+                            _showOtpDialog(orderId.toString());
+                            return;
+                          }
+
                           setState(() {});
-
-                          // Optional toast/snackbar feedback
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text("Ride status updated: Start for Pickup Location"),
-                              backgroundColor: Colors.green,
-                            ),
-                          );
                         } catch (e) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
@@ -471,20 +498,17 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                           );
                         }
                       },
+
                       borderRadius: BorderRadius.circular(8),
                       child: Container(
-                        padding: EdgeInsets.symmetric(
-                          vertical: Sizes.screenHeight * 0.014,
-                        ),
+                        padding: EdgeInsets.symmetric(vertical: Sizes.screenHeight * 0.014),
                         decoration: BoxDecoration(
                           color: PortColor.gold,
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Center(
                           child: TextConst(
-                            title:  liveRideViewModel.liveOrderModel!.data!.rideStatus == 2
-                                ? "Start for Pickup Location"
-                                : "Start PickUp",
+                            title: _getButtonText(liveRideViewModel.liveOrderModel!.data!.rideStatus),
                             color: Colors.white,
                             fontWeight: FontWeight.w600,
                             size: Sizes.fontSizeFive,
@@ -492,39 +516,8 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                         ),
                       ),
                     ),
+                  ),
 
-                  ),
-                  SizedBox(width: Sizes.screenWidth * 0.03),
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () {
-                        // Track functionality
-                      },
-                      child: Container(
-                        padding: EdgeInsets.symmetric(
-                          vertical: Sizes.screenHeight * 0.014,
-                        ),
-                        decoration: BoxDecoration(
-                          border: Border.all(color: PortColor.gold),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Center(
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.track_changes, color: PortColor.gold, size: 18),
-                              SizedBox(width: Sizes.screenWidth * 0.02),
-                              TextConst(
-                                title: 'Track',
-                                color: PortColor.gold,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
                   SizedBox(width: Sizes.screenWidth * 0.03),
                   Expanded(
                     child: GestureDetector(
@@ -532,10 +525,7 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                         // Cancel functionality
                       },
                       child: Container(
-                        padding: EdgeInsets.symmetric(
-                          vertical: Sizes.screenHeight * 0.014,
-                        ),
-                        decoration: BoxDecoration(
+                        padding: EdgeInsets.symmetric(vertical: Sizes.screenHeight * 0.012),                        decoration: BoxDecoration(
                           border: Border.all(color: PortColor.red),
                           borderRadius: BorderRadius.circular(8),
                         ),
@@ -546,7 +536,7 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                               Icon(Icons.cancel, color: PortColor.red, size: 18),
                               SizedBox(width: Sizes.screenWidth * 0.02),
                               TextConst(
-                                title: 'Cancel',
+                                title: 'Reject',
                                 color: PortColor.red,
                                 fontWeight: FontWeight.w600,
                               ),
@@ -564,6 +554,152 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
       ),
     );
   }
+
+  String  _getButtonText(int? rideStatus) {
+    switch (rideStatus) {
+      case 1:
+        return "Start Ride";
+      case 2:
+        return "Arrived Pickup";
+      case 3:
+        return "Reached Pickup Point";
+      case 4:
+        return "Verify OTP / Start Ride";
+      default:
+        return "Start";
+    }
+  }
+
+  void _showOtpDialog(String orderId) {
+    final TextEditingController _otpController = TextEditingController();
+    final liveRideViewModel =
+    Provider.of<LiveRideViewModel>(context, listen: false);
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.verified_user_rounded,
+                  color: PortColor.gold, size: 50),
+              const SizedBox(height: 10),
+              Text(
+                "Trip OTP Verification",
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: AppFonts.kanitReg,
+                  color: PortColor.gold,
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // OTP input
+              TextField(
+                controller: _otpController,
+                keyboardType: TextInputType.number,
+                textAlign: TextAlign.center,
+                decoration: const InputDecoration(
+                  hintText: "Enter OTP",
+                  border: OutlineInputBorder(),
+                ),
+              ),
+
+              const SizedBox(height: 20),
+
+              Row(
+                children: [
+                  Expanded(
+                    child: TextButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      child: const Text("Cancel"),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: PortColor.gold,
+                      ),
+                      onPressed: () async {
+                        final enteredOtp = _otpController.text.trim();
+                        if (enteredOtp.isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                                content: Text("Please enter OTP"),
+                                backgroundColor: Colors.red),
+                          );
+                          return;
+                        }
+
+                        try {
+                          // ✅ Fetch OTP from Firestore
+                          final doc = await FirebaseFirestore.instance
+                              .collection('order')
+                              .doc(orderId)
+                              .get();
+
+                          final firestoreOtp =
+                              doc.data()?['otp']?.toString() ?? "";
+
+                          if (firestoreOtp == enteredOtp) {
+                            // ✅ Correct OTP -> Update ride_status = 4
+                            await FirebaseFirestore.instance
+                                .collection('order')
+                                .doc(orderId)
+                                .update({'ride_status': 4});
+
+                            liveRideViewModel.liveOrderModel!.data!.rideStatus =
+                            4;
+
+                            Navigator.of(context).pop();
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text("OTP verified! Ride started."),
+                                backgroundColor: Colors.green,
+                              ),
+                            );
+                            setState(() {});
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text("Invalid OTP. Try again."),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                          }
+                        } catch (e) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text("Error: $e"),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                        }
+                      },
+                      child: const Text(
+                        "Verify",
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ),
+                  ),
+                ],
+              )
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+
 
   Widget _buildSectionHeader(String title) {
     return Container(

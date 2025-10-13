@@ -9,6 +9,7 @@ import 'package:yoyomiles_partner/res/sizing_const.dart';
 import 'package:yoyomiles_partner/utils/routes/routes.dart';
 import 'package:yoyomiles_partner/utils/routes/routes_name.dart';
 import 'package:yoyomiles_partner/view/controller/yoyomiles_partner_con.dart';
+import 'package:yoyomiles_partner/view_model/active_ride_view_model.dart';
 import 'package:yoyomiles_partner/view_model/assign_ride_view_model.dart';
 import 'package:yoyomiles_partner/view_model/auth_view_model.dart';
 import 'package:yoyomiles_partner/view_model/bank_detail_view_model.dart';
@@ -111,6 +112,7 @@ class _MyAppState extends State<MyApp> {
           ChangeNotifierProvider(create: (context)=> PolicyViewModel()),
           ChangeNotifierProvider(create: (context)=> DeleteBankDetailViewModel()),
           ChangeNotifierProvider(create: (context)=> HelpTopicsViewModel()),
+          ChangeNotifierProvider(create: (context)=> ActiveRideViewModel()),
 
         ],
         child: MaterialApp(

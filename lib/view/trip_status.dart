@@ -548,13 +548,12 @@ class BookingCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Expanded(
-                  child: InkWell(
+                  child: GestureDetector(
                     onTap: () {
                       // FIX: Convert ID to string before passing
                       String bookingId = bookingData['id'].toString();
                       assignRideViewModel.assignRideApi(context, 1, bookingId);
                     },
-                    borderRadius: BorderRadius.circular(8),
                     child: Container(
                       padding: EdgeInsets.symmetric(
                         vertical: Sizes.screenHeight * 0.012,
@@ -591,43 +590,6 @@ class BookingCard extends StatelessWidget {
                 Expanded(
                   child: GestureDetector(
                     onTap: () {
-                      // Track functionality
-                    },
-                    child: Container(
-                      padding: EdgeInsets.symmetric(
-                        vertical: Sizes.screenHeight * 0.012,
-                      ),
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                          color: PortColor.gold,
-                        ), // Changed to gold
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Center(
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.track_changes,
-                              color: PortColor.gold,
-                              size: 18,
-                            ), // Changed to gold
-                            SizedBox(width: Sizes.screenWidth * 0.02),
-                            TextConst(
-                              title: 'Track',
-                              color: PortColor.gold, // Changed to gold
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                SizedBox(width: Sizes.screenWidth * 0.03),
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () {
                       // Cancel functionality
                     },
                     child: Container(
@@ -645,7 +607,7 @@ class BookingCard extends StatelessWidget {
                             Icon(Icons.cancel, color: PortColor.red, size: 18),
                             SizedBox(width: Sizes.screenWidth * 0.02),
                             TextConst(
-                              title: 'Cancel',
+                              title: 'Reject',
                               color: PortColor.red,
                               fontWeight: FontWeight.w600,
                             ),

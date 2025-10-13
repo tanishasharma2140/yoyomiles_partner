@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:yoyomiles_partner/repo/assign_ride_repo.dart';
@@ -29,6 +30,13 @@ final userId = await UserViewModel().getUser();
     _assignRideRepo.assignRideApi(data).then((value) async {
       setLoading(false);
       if (value['success'] == true) {
+        await FirebaseFirestore.instance
+            .collection('order')
+            .doc(rideId)
+            .update({
+          'accepted_driver_id': userId, // driver ki user ID
+          'ride_started': true,
+        });
         Utils.showSuccessMessage(context, value["message"]);
         Navigator.pushNamed(context, RoutesName.liveRide);
       } else {
