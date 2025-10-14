@@ -12,6 +12,7 @@ import 'package:yoyomiles_partner/view_model/live_ride_view_model.dart';
 import 'package:yoyomiles_partner/view_model/online_status_view_model.dart';
 import 'package:yoyomiles_partner/view_model/profile_view_model.dart';
 import 'package:provider/provider.dart';
+import 'package:yoyomiles_partner/view_model/update_ride_status_view_model.dart';
 
 class LiveRideScreen extends StatefulWidget {
   const LiveRideScreen({super.key});
@@ -26,8 +27,10 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       print("Shrutii");
-      final liveRideViewModel =
-      Provider.of<LiveRideViewModel>(context, listen: false);
+      final liveRideViewModel = Provider.of<LiveRideViewModel>(
+        context,
+        listen: false,
+      );
       liveRideViewModel.liveRideApi();
       print("tanu");
     });
@@ -40,8 +43,9 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        final onlineStatusViewModel =
-        Provider.of<OnlineStatusViewModel>(context);
+        final onlineStatusViewModel = Provider.of<OnlineStatusViewModel>(
+          context,
+        );
         return Dialog(
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(15.0),
@@ -117,6 +121,61 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
     );
   }
 
+  void _showWaitingForPaymentDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          backgroundColor: Colors.white,
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(
+                  Icons.access_time_filled,
+                  color: Colors.orange,
+                  size: 50,
+                ),
+                const SizedBox(height: 15),
+                const Text(
+                  "Waiting for Payment",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 10),
+                const Text(
+                  "Please wait while the customer completes the payment.",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.grey),
+                ),
+                const SizedBox(height: 20),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.orange,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  child: const Text(
+                    "OK",
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final profileViewModel = Provider.of<ProfileViewModel>(context);
@@ -126,7 +185,7 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
         backgroundColor: PortColor.scaffoldBgGrey,
         body: Column(
           children: [
-            SizedBox(height: topPadding,),
+            SizedBox(height: topPadding),
             // Header Section
             Container(
               height: Sizes.screenHeight * 0.085,
@@ -162,7 +221,9 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                   SizedBox(width: Sizes.screenWidth * 0.02),
                   Expanded(
                     child: TextConst(
-                      title: profileViewModel.profileModel!.data!.driverName ?? "Driver",
+                      title:
+                          profileViewModel.profileModel!.data!.driverName ??
+                          "Driver",
                       size: Sizes.fontSizeSeven,
                       fontWeight: FontWeight.bold,
                     ),
@@ -244,11 +305,10 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
 
   Widget _buildRideDetails() {
     final liveRideViewModel = Provider.of<LiveRideViewModel>(context);
+    final updateRideStatus = Provider.of<UpdateRideStatusViewModel>(context);
 
     if (liveRideViewModel.liveOrderModel == null || liveRideViewModel.loading) {
-      return Center(
-        child: CircularProgressIndicator(color: PortColor.gold),
-      );
+      return Center(child: CircularProgressIndicator(color: PortColor.gold));
     }
 
     // If no live ride data, show empty state
@@ -257,10 +317,7 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Image.asset(
-              Assets.assetsNoData,
-              height: Sizes.screenHeight * 0.15,
-            ),
+            Image.asset(Assets.assetsNoData, height: Sizes.screenHeight * 0.15),
             SizedBox(height: Sizes.screenHeight * 0.02),
             TextConst(
               title: "No Active Ride",
@@ -315,14 +372,20 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                         _buildDetailRow(
                           icon: Icons.confirmation_number,
                           title: "Booking ID",
-                          content: liveRideViewModel.liveOrderModel!.data!.id.toString(),
+                          content: liveRideViewModel.liveOrderModel!.data!.id
+                              .toString(),
                           isHeader: true,
                         ),
                         SizedBox(height: Sizes.screenHeight * 0.008),
                         _buildDetailRow(
                           icon: Icons.directions_car,
                           title: "Vehicle Type",
-                          content: liveRideViewModel.liveOrderModel!.data!.vehicleType ?? "N/A",
+                          content:
+                              liveRideViewModel
+                                  .liveOrderModel!
+                                  .data!
+                                  .vehicleType ??
+                              "N/A",
                           isHeader: true,
                         ),
                       ],
@@ -331,8 +394,10 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                   SizedBox(width: Sizes.screenWidth * 0.02),
                   GestureDetector(
                     onTap: () => Launcher.launchDialPad(
-                        context,
-                        liveRideViewModel.liveOrderModel!.data!.senderPhone?.toString() ?? '9876543210'
+                      context,
+                      liveRideViewModel.liveOrderModel!.data!.senderPhone
+                              ?.toString() ??
+                          '9876543210',
                     ),
                     child: Container(
                       padding: EdgeInsets.symmetric(
@@ -370,17 +435,23 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
               _buildDetailRow(
                 icon: Icons.person_outline,
                 title: "Name",
-                content: liveRideViewModel.liveOrderModel!.data!.senderName ?? "N/A",
+                content:
+                    liveRideViewModel.liveOrderModel!.data!.senderName ?? "N/A",
               ),
               _buildDetailRow(
                 icon: Icons.phone,
                 title: "Phone",
-                content: liveRideViewModel.liveOrderModel!.data!.senderPhone?.toString() ?? "N/A",
+                content:
+                    liveRideViewModel.liveOrderModel!.data!.senderPhone
+                        ?.toString() ??
+                    "N/A",
               ),
               _buildDetailRow(
                 icon: Icons.location_on,
                 title: "Address",
-                content: liveRideViewModel.liveOrderModel!.data!.pickupAddress ?? "N/A",
+                content:
+                    liveRideViewModel.liveOrderModel!.data!.pickupAddress ??
+                    "N/A",
                 isAddress: true,
               ),
 
@@ -394,17 +465,24 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
               _buildDetailRow(
                 icon: Icons.person_outline,
                 title: "Name",
-                content: liveRideViewModel.liveOrderModel!.data!.reciverName ?? "N/A",
+                content:
+                    liveRideViewModel.liveOrderModel!.data!.reciverName ??
+                    "N/A",
               ),
               _buildDetailRow(
                 icon: Icons.phone,
                 title: "Phone",
-                content: liveRideViewModel.liveOrderModel!.data!.reciverPhone?.toString() ?? "N/A",
+                content:
+                    liveRideViewModel.liveOrderModel!.data!.reciverPhone
+                        ?.toString() ??
+                    "N/A",
               ),
               _buildDetailRow(
                 icon: Icons.location_on,
                 title: "Address",
-                content: liveRideViewModel.liveOrderModel!.data!.dropAddress ?? "N/A",
+                content:
+                    liveRideViewModel.liveOrderModel!.data!.dropAddress ??
+                    "N/A",
                 isAddress: true,
               ),
 
@@ -426,7 +504,8 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                     SizedBox(width: Sizes.screenWidth * 0.02),
                     Expanded(
                       child: TextConst(
-                        title: "Current Status: ${_getStatusText(liveRideViewModel.liveOrderModel!.data!.rideStatus)}",
+                        title:
+                            "Current Status: ${_getStatusText(liveRideViewModel.liveOrderModel!.data!.rideStatus)}",
                         size: Sizes.fontSizeFive,
                         fontWeight: FontWeight.w600,
                         color: PortColor.gold,
@@ -446,10 +525,18 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                     child: InkWell(
                       onTap: () async {
                         final liveRideViewModel =
-                        Provider.of<LiveRideViewModel>(context, listen: false);
-                        final orderId = liveRideViewModel.liveOrderModel!.data!.id;
+                            Provider.of<LiveRideViewModel>(
+                              context,
+                              listen: false,
+                            );
+                        final orderId =
+                            liveRideViewModel.liveOrderModel!.data!.id;
                         int currentStatus =
-                            liveRideViewModel.liveOrderModel!.data!.rideStatus ?? 1;
+                            liveRideViewModel
+                                .liveOrderModel!
+                                .data!
+                                .rideStatus ??
+                            1;
 
                         try {
                           if (currentStatus == 1) {
@@ -459,11 +546,14 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                                 .doc(orderId.toString())
                                 .update({'ride_status': 2});
 
-                            liveRideViewModel.liveOrderModel!.data!.rideStatus = 2;
+                            liveRideViewModel.liveOrderModel!.data!.rideStatus =
+                                2;
 
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text("Ride status updated: Start for Pickup Location"),
+                                content: Text(
+                                  "Ride status updated: Start for Pickup Location",
+                                ),
                                 backgroundColor: Colors.green,
                               ),
                             );
@@ -474,18 +564,52 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                                 .doc(orderId.toString())
                                 .update({'ride_status': 3});
 
-                            liveRideViewModel.liveOrderModel!.data!.rideStatus = 3;
+                            liveRideViewModel.liveOrderModel!.data!.rideStatus =
+                                3;
 
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text("Ride status updated: Arrived at Pickup Point"),
+                                content: Text(
+                                  "Ride status updated: Arrived at Pickup Point",
+                                ),
                                 backgroundColor: Colors.green,
                               ),
                             );
                           } else if (currentStatus == 3) {
-                            // ✅ Already arrived at pickup — open OTP popup (no Firestore update yet)
+                            // ✅ Arrived at Pickup -> OTP verification popup
                             _showOtpDialog(orderId.toString());
                             return;
+                          } else if (currentStatus == 4) {
+                            // ✅ Ride started -> reached destination
+                            await FirebaseFirestore.instance
+                                .collection('order')
+                                .doc(orderId.toString())
+                                .update({'ride_status': 5});
+
+                            liveRideViewModel.liveOrderModel!.data!.rideStatus =
+                                5;
+
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  "Ride status updated: Reached destination",
+                                ),
+                                backgroundColor: Colors.green,
+                              ),
+                            );
+                            final payMode =
+                                liveRideViewModel
+                                    .liveOrderModel!
+                                    .data!.paymode??
+                                0;
+                            if (payMode == 2) {
+                              Future.delayed(
+                                const Duration(milliseconds: 300),
+                                () {
+                                  _showWaitingForPaymentDialog();
+                                },
+                              );
+                            }
                           }
 
                           setState(() {});
@@ -498,17 +622,23 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                           );
                         }
                       },
-
                       borderRadius: BorderRadius.circular(8),
                       child: Container(
-                        padding: EdgeInsets.symmetric(vertical: Sizes.screenHeight * 0.014),
+                        padding: EdgeInsets.symmetric(
+                          vertical: Sizes.screenHeight * 0.014,
+                        ),
                         decoration: BoxDecoration(
                           color: PortColor.gold,
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Center(
                           child: TextConst(
-                            title: _getButtonText(liveRideViewModel.liveOrderModel!.data!.rideStatus),
+                            title: _getButtonText(
+                              liveRideViewModel
+                                  .liveOrderModel!
+                                  .data!
+                                  .rideStatus,
+                            ),
                             color: Colors.white,
                             fontWeight: FontWeight.w600,
                             size: Sizes.fontSizeFive,
@@ -522,10 +652,17 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                   Expanded(
                     child: GestureDetector(
                       onTap: () {
-                        // Cancel functionality
+                        updateRideStatus.updateRideApi(
+                          context,
+                          liveRideViewModel.liveOrderModel!.data!.id.toString(),
+                          "8",
+                        );
                       },
                       child: Container(
-                        padding: EdgeInsets.symmetric(vertical: Sizes.screenHeight * 0.012),                        decoration: BoxDecoration(
+                        padding: EdgeInsets.symmetric(
+                          vertical: Sizes.screenHeight * 0.012,
+                        ),
+                        decoration: BoxDecoration(
                           border: Border.all(color: PortColor.red),
                           borderRadius: BorderRadius.circular(8),
                         ),
@@ -533,7 +670,11 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.cancel, color: PortColor.red, size: 18),
+                              Icon(
+                                Icons.cancel,
+                                color: PortColor.red,
+                                size: 18,
+                              ),
                               SizedBox(width: Sizes.screenWidth * 0.02),
                               TextConst(
                                 title: 'Reject',
@@ -555,40 +696,46 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
     );
   }
 
-  String  _getButtonText(int? rideStatus) {
-    switch (rideStatus) {
+  String _getButtonText(int? status) {
+    switch (status) {
       case 1:
-        return "Start Ride";
+        return "Start for Pickup";
       case 2:
-        return "Arrived Pickup";
+        return "Arrived at Pickup Point";
       case 3:
-        return "Reached Pickup Point";
+        return "Start Ride";
       case 4:
-        return "Verify OTP / Start Ride";
+        return "Reached"; // 👈 when status = 4, show 'Reached'
+      case 5:
+        return "Ride Completed"; // 👈 final state after reaching
       default:
-        return "Start";
+        return "Start for Pickup";
     }
   }
 
   void _showOtpDialog(String orderId) {
     final TextEditingController _otpController = TextEditingController();
-    final liveRideViewModel =
-    Provider.of<LiveRideViewModel>(context, listen: false);
+    final liveRideViewModel = Provider.of<LiveRideViewModel>(
+      context,
+      listen: false,
+    );
 
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (context) => Dialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        backgroundColor: Colors.white, // White background
         child: Padding(
           padding: const EdgeInsets.all(20),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.verified_user_rounded,
-                  color: PortColor.gold, size: 50),
+              Icon(
+                Icons.verified_user_rounded,
+                color: PortColor.gold,
+                size: 50,
+              ),
               const SizedBox(height: 10),
               Text(
                 "Trip OTP Verification",
@@ -596,7 +743,7 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                   fontFamily: AppFonts.kanitReg,
-                  color: PortColor.gold,
+                  color: Colors.black, // Black text for clarity
                 ),
               ),
               const SizedBox(height: 20),
@@ -606,9 +753,23 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                 controller: _otpController,
                 keyboardType: TextInputType.number,
                 textAlign: TextAlign.center,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   hintText: "Enter OTP",
-                  border: OutlineInputBorder(),
+                  hintStyle: TextStyle(color: Colors.grey),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: const BorderSide(
+                      color: Colors.grey, // grey border when not focused
+                      width: 1,
+                    ),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: const BorderSide(
+                      color: Colors.grey, // grey border when focused
+                      width: 1,
+                    ),
+                  ),
                 ),
               ),
 
@@ -617,9 +778,19 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
               Row(
                 children: [
                   Expanded(
-                    child: TextButton(
+                    child: OutlinedButton(
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: Colors.grey),
+                        backgroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
                       onPressed: () => Navigator.of(context).pop(),
-                      child: const Text("Cancel"),
+                      child: const Text(
+                        "Cancel",
+                        style: TextStyle(color: Colors.black),
+                      ),
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -627,20 +798,23 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: PortColor.gold,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
                       ),
                       onPressed: () async {
                         final enteredOtp = _otpController.text.trim();
                         if (enteredOtp.isEmpty) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
-                                content: Text("Please enter OTP"),
-                                backgroundColor: Colors.red),
+                              content: Text("Please enter OTP"),
+                              backgroundColor: Colors.red,
+                            ),
                           );
                           return;
                         }
 
                         try {
-                          // ✅ Fetch OTP from Firestore
                           final doc = await FirebaseFirestore.instance
                               .collection('order')
                               .doc(orderId)
@@ -650,14 +824,13 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                               doc.data()?['otp']?.toString() ?? "";
 
                           if (firestoreOtp == enteredOtp) {
-                            // ✅ Correct OTP -> Update ride_status = 4
                             await FirebaseFirestore.instance
                                 .collection('order')
                                 .doc(orderId)
                                 .update({'ride_status': 4});
 
                             liveRideViewModel.liveOrderModel!.data!.rideStatus =
-                            4;
+                                4;
 
                             Navigator.of(context).pop();
                             ScaffoldMessenger.of(context).showSnackBar(
@@ -691,15 +864,13 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                     ),
                   ),
                 ],
-              )
+              ),
             ],
           ),
         ),
       ),
     );
   }
-
-
 
   Widget _buildSectionHeader(String title) {
     return Container(
@@ -723,7 +894,9 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
     return Padding(
       padding: EdgeInsets.only(bottom: Sizes.screenHeight * 0.01),
       child: Row(
-        crossAxisAlignment: isAddress ? CrossAxisAlignment.start : CrossAxisAlignment.center,
+        crossAxisAlignment: isAddress
+            ? CrossAxisAlignment.start
+            : CrossAxisAlignment.center,
         children: [
           Icon(icon, color: PortColor.gold, size: 16),
           SizedBox(width: Sizes.screenWidth * 0.02),
@@ -765,6 +938,4 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
         return "Unknown Status";
     }
   }
-
-
 }

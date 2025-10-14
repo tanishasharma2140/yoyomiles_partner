@@ -10,6 +10,7 @@ import 'package:yoyomiles_partner/view_model/assign_ride_view_model.dart';
 import 'package:yoyomiles_partner/view_model/online_status_view_model.dart';
 import 'package:yoyomiles_partner/view_model/profile_view_model.dart';
 import 'package:provider/provider.dart';
+import 'package:yoyomiles_partner/view_model/update_ride_status_view_model.dart';
 
 class TripStatus extends StatefulWidget {
   const TripStatus({super.key});
@@ -410,7 +411,7 @@ class BookingCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final assignRideViewModel = Provider.of<AssignRideViewModel>(context);
-
+    final updateRideStatus = Provider.of<UpdateRideStatusViewModel>(context);
     return Container(
       margin: EdgeInsets.symmetric(
         horizontal: Sizes.screenWidth * 0.03,
@@ -590,7 +591,7 @@ class BookingCard extends StatelessWidget {
                 Expanded(
                   child: GestureDetector(
                     onTap: () {
-                      // Cancel functionality
+                      updateRideStatus.updateRideApi(context, bookingData['id'].toString(), "8");
                     },
                     child: Container(
                       padding: EdgeInsets.symmetric(

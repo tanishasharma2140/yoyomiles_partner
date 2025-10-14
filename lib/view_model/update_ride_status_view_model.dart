@@ -27,9 +27,12 @@ class UpdateRideStatusViewModel with ChangeNotifier {
     _updateRideStatusRepo.updateRideApi(data).then((value) async {
       setLoading(false);
       if (value['success'] == true) {
-        Provider.of<LiveRideViewModel>(context, listen: false).
-        liveRideApi();
-        // Utils.showSuccessMessage(context, "Updated Successfully");
+        Navigator.pushNamedAndRemoveUntil(
+          context,
+          RoutesName.register,
+              (route) => false,
+        );
+        Utils.showSuccessMessage(context, "Ride status updated successfully!");
       } else {
         Utils.showSuccessMessage(context, value["message"]);
       }

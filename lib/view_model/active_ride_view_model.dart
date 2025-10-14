@@ -46,7 +46,6 @@ class ActiveRideViewModel with ChangeNotifier {
   /// ✅ Listen for real-time active ride in Firestore
   void listenToActiveRide(String driverId) {
     debugPrint("🎧 Listening for active rides for driverId: $driverId");
-
     _rideListener = FirebaseFirestore.instance
         .collection('order')
         .where('accepted_driver_id', isEqualTo: driverId)

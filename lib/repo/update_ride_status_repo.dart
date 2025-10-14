@@ -13,7 +13,7 @@ class UpdateRideStatusRepo {
       return response;
     } catch (e) {
       if (kDebugMode) {
-        print('Error occurred during onlineStatus: $e');
+        print('Error occurred during UpdateStatusApi: $e');
       }
       rethrow;
     }

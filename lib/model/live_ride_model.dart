@@ -26,6 +26,7 @@ class Data {
   int? id;
   int? userid;
   String? vehicleType;
+  int? vehicleBodyDetailsType;
   String? pickupAddress;
   String? pickupLatitute;
   String? pickLongitude;
@@ -39,15 +40,26 @@ class Data {
   int? rideStatus;
   int? driverId;
   int? amount;
+  int? paymode;
+  int? paymentStatus;
   int? distance;
+  String? pickupSaveAs;
+  String? dropSaveAs;
+  dynamic orderTime;
+  int? orderType;
+  int? otp;
+  String? goodsType;
   String? datetime;
-  String? createdAt;
   String? updatedAt;
+  dynamic txnId;
+  String? createdAt;
+  String? availableDriverId;
 
   Data(
       {this.id,
         this.userid,
         this.vehicleType,
+        this.vehicleBodyDetailsType,
         this.pickupAddress,
         this.pickupLatitute,
         this.pickLongitude,
@@ -61,15 +73,26 @@ class Data {
         this.rideStatus,
         this.driverId,
         this.amount,
+        this.paymode,
+        this.paymentStatus,
         this.distance,
+        this.pickupSaveAs,
+        this.dropSaveAs,
+        this.orderTime,
+        this.orderType,
+        this.otp,
+        this.goodsType,
         this.datetime,
+        this.updatedAt,
+        this.txnId,
         this.createdAt,
-        this.updatedAt});
+        this.availableDriverId});
 
   Data.fromJson(Map<String, dynamic> json) {
     id = json['id'];
     userid = json['userid'];
     vehicleType = json['vehicle_type'];
+    vehicleBodyDetailsType = json['vehicle_body_details_type'];
     pickupAddress = json['pickup_address'];
     pickupLatitute = json['pickup_latitute'];
     pickLongitude = json['pick_longitude'];
@@ -83,10 +106,20 @@ class Data {
     rideStatus = json['ride_status'];
     driverId = json['driver_id'];
     amount = json['amount'];
+    paymode = json['paymode'];
+    paymentStatus = json['payment_status'];
     distance = json['distance'];
+    pickupSaveAs = json['pickup_save_as'];
+    dropSaveAs = json['drop_save_as'];
+    orderTime = json['order_time'];
+    orderType = json['order_type'];
+    otp = json['otp'];
+    goodsType = json['goods_type'];
     datetime = json['datetime'];
-    createdAt = json['created_at'];
     updatedAt = json['updated_at'];
+    txnId = json['txn_id'];
+    createdAt = json['created_at'];
+    availableDriverId = json['available_driver_id'];
   }
 
   Map<String, dynamic> toJson() {
@@ -94,6 +127,7 @@ class Data {
     data['id'] = id;
     data['userid'] = userid;
     data['vehicle_type'] = vehicleType;
+    data['vehicle_body_details_type'] = vehicleBodyDetailsType;
     data['pickup_address'] = pickupAddress;
     data['pickup_latitute'] = pickupLatitute;
     data['pick_longitude'] = pickLongitude;
@@ -107,10 +141,20 @@ class Data {
     data['ride_status'] = rideStatus;
     data['driver_id'] = driverId;
     data['amount'] = amount;
+    data['paymode'] = paymode;
+    data['payment_status'] = paymentStatus;
     data['distance'] = distance;
+    data['pickup_save_as'] = pickupSaveAs;
+    data['drop_save_as'] = dropSaveAs;
+    data['order_time'] = orderTime;
+    data['order_type'] = orderType;
+    data['otp'] = otp;
+    data['goods_type'] = goodsType;
     data['datetime'] = datetime;
-    data['created_at'] = createdAt;
     data['updated_at'] = updatedAt;
+    data['txn_id'] = txnId;
+    data['created_at'] = createdAt;
+    data['available_driver_id'] = availableDriverId;
     return data;
   }
 }
