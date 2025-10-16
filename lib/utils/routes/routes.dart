@@ -48,8 +48,8 @@ class Routers {
       //   return (context) => const Reward();
       case RoutesName.bank:
         return (context) => const BankDetail();
-      case RoutesName.liveRide:
-        return (context) => const LiveRideScreen();
+      // case RoutesName.liveRide:
+      //   return (context) => const LiveRideScreen();
       case RoutesName.bankDetail:
         return (context) => const BankDetailView();
       case RoutesName.vehicleDetail:

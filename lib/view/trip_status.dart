@@ -1,15 +1,16 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:yoyomiles_partner/generated/assets.dart';
 import 'package:yoyomiles_partner/res/const_map.dart';
 import 'package:yoyomiles_partner/res/constant_color.dart';
+import 'package:yoyomiles_partner/res/custom_appbar.dart';
 import 'package:yoyomiles_partner/res/launcher.dart';
 import 'package:yoyomiles_partner/res/sizing_const.dart';
 import 'package:yoyomiles_partner/res/text_const.dart';
 import 'package:yoyomiles_partner/view_model/assign_ride_view_model.dart';
 import 'package:yoyomiles_partner/view_model/online_status_view_model.dart';
 import 'package:yoyomiles_partner/view_model/profile_view_model.dart';
-import 'package:provider/provider.dart';
 import 'package:yoyomiles_partner/view_model/update_ride_status_view_model.dart';
 
 class TripStatus extends StatefulWidget {
@@ -22,7 +23,6 @@ class TripStatus extends StatefulWidget {
 class _TripStatusState extends State<TripStatus> {
   bool isSwitched = true;
   String? _currentAddress;
-  final ScrollController _scrollController = ScrollController();
 
   void _showSwitchDialog(bool value) {
     showDialog(
@@ -30,6 +30,7 @@ class _TripStatusState extends State<TripStatus> {
       builder: (BuildContext context) {
         final onlineStatusViewModel = Provider.of<OnlineStatusViewModel>(
           context,
+          listen: false,
         );
         return Dialog(
           shape: RoundedRectangleBorder(
@@ -52,7 +53,7 @@ class _TripStatusState extends State<TripStatus> {
                   title: 'Are you sure you want to go offline?',
                   size: Sizes.fontSizeFive,
                   fontWeight: FontWeight.bold,
-                  color: PortColor.gold, // Changed to gold
+                  color: PortColor.gold,
                 ),
                 SizedBox(height: Sizes.screenHeight * 0.02),
                 TextConst(
@@ -112,247 +113,225 @@ class _TripStatusState extends State<TripStatus> {
 
     return Scaffold(
       backgroundColor: PortColor.scaffoldBgGrey,
-      body: Column(
-        children: [
-          // Header Section
-          Container(
-            height: Sizes.screenHeight * 0.085,
-            decoration: BoxDecoration(
-              color: PortColor.white,
-              border: Border(
-                bottom: BorderSide(
-                  color: PortColor.gray,
-                  width: Sizes.screenWidth * 0.001,
-                ),
-              ),
-            ),
-            child: Row(
-              children: [
-                SizedBox(width: Sizes.screenWidth * 0.03),
-                ClipOval(
-                  child: Image.network(
-                    profileViewModel.profileModel!.data!.ownerSelfie ?? "",
-                    height: Sizes.screenHeight * 0.06,
-                    width: Sizes.screenHeight * 0.06,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => Container(
-                      height: Sizes.screenHeight * 0.06,
-                      width: Sizes.screenHeight * 0.06,
-                      decoration: BoxDecoration(
-                        color: PortColor.grey,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(Icons.person, color: PortColor.white),
-                    ),
-                  ),
-                ),
-                SizedBox(width: Sizes.screenWidth * 0.02),
-                Expanded(
-                  child: TextConst(
-                    title:
-                        profileViewModel.profileModel!.data!.driverName ??
-                        "Driver",
-                    size: Sizes.fontSizeSeven,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                Transform.scale(
-                  scale: 0.8,
-                  child: Switch(
-                    value: isSwitched,
-                    onChanged: (value) {
-                      setState(() {
-                        isSwitched = value;
-                      });
-                      if (!value) {
-                        _showSwitchDialog(value);
-                      }
-                    },
-                    activeColor: PortColor.grey,
-                    inactiveThumbColor: Colors.blue[50],
-                    activeTrackColor: Colors.green,
-                    inactiveTrackColor: Colors.blue,
-                  ),
-                ),
-                SizedBox(width: Sizes.screenWidth * 0.03),
-              ],
-            ),
-          ),
-
-          // Map Section - Fixed Half Screen
-          Container(
-            height: Sizes.screenHeight * 0.45,
-            child: ConstMap(
-              onAddressFetched: (address) {
+      appBar:  CustomAppBar(
+        name: profileViewModel.profileModel!.data!.driverName!,
+        imageUrl: profileViewModel.profileModel!.data!.ownerSelfie ?? "",
+        actions: [
+          Transform.scale(
+            scale: 0.8,
+            child: Switch(
+              value: isSwitched,
+              onChanged: (value) {
                 setState(() {
-                  _currentAddress = address;
+                  isSwitched = value;
                 });
+                if (!value) {
+                  _showSwitchDialog(value); // Call the dialog here
+                }
               },
+              activeColor: Colors.white,
+              inactiveThumbColor: Colors.blue[50],
+              activeTrackColor: PortColor.gold,
+              inactiveTrackColor: Colors.blue,
             ),
           ),
-
-          // Current Location Chip
-          if (_currentAddress != null)
-            Container(
-              width: double.infinity,
-              padding: EdgeInsets.symmetric(
-                horizontal: Sizes.screenWidth * 0.04,
-                vertical: Sizes.screenHeight * 0.01,
-              ),
-              color: PortColor.white,
-              child: Row(
+          const SizedBox(width: 12),
+        ],
+      ),
+      body: StreamBuilder<List<Map<String, dynamic>>>(
+        stream: fetchBookings("",context),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(
+              child: CircularProgressIndicator(color: PortColor.gold),
+            );
+          } else if (snapshot.hasError) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
-                    Icons.location_on,
-                    color: PortColor.gold,
-                    size: 16,
-                  ), // Changed to gold
-                  SizedBox(width: Sizes.screenWidth * 0.02),
-                  Expanded(
-                    child: TextConst(
-                      title: _currentAddress!,
-                      size: Sizes.fontSizeFour,
-                      color: PortColor.blackLight,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
+                  Icon(Icons.error_outline, color: PortColor.red, size: 50),
+                  SizedBox(height: Sizes.screenHeight * 0.02),
+                  TextConst(
+                    title: 'Error loading bookings',
+                    color: PortColor.red,
+                    size: Sizes.fontSizeFive,
                   ),
                 ],
               ),
-            ),
-
-          // Bookings Header
-          Container(
-            width: double.infinity,
-            padding: EdgeInsets.symmetric(
-              horizontal: Sizes.screenWidth * 0.04,
-              vertical: Sizes.screenHeight * 0.015,
-            ),
-            decoration: BoxDecoration(
-              color: PortColor.white,
-              border: Border(
-                bottom: BorderSide(color: PortColor.greyLight, width: 1),
-              ),
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.local_shipping,
-                  color: PortColor.gold,
-                  size: 20,
-                ), // Changed to gold
-                SizedBox(width: Sizes.screenWidth * 0.02),
-                TextConst(
-                  title: "Available Bookings",
-                  size: Sizes.fontSizeSix,
-                  fontWeight: FontWeight.bold,
-                  color: PortColor.black, // Changed to gold
-                ),
-                const Spacer(),
-                StreamBuilder<List<Map<String, dynamic>>>(
-                  stream: fetchBookings(""),
-                  builder: (context, snapshot) {
-                    final count = snapshot.hasData ? snapshot.data!.length : 0;
-                    return Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: Sizes.screenWidth * 0.03,
-                        vertical: Sizes.screenHeight * 0.005,
-                      ),
-                      decoration: BoxDecoration(
-                        color: PortColor.gold, // Changed to gold
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: TextConst(
-                        title: "$count",
-                        color: PortColor.black,
-                        size: Sizes.fontSizeFour,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    );
-                  },
-                ),
-              ],
-            ),
-          ),
-
-          // Bookings List - Scrollable Section
-          Expanded(
-            child: StreamBuilder<List<Map<String, dynamic>>>(
-              stream: fetchBookings(""),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return Center(
-                    child: CircularProgressIndicator(
-                      color: PortColor.gold,
-                    ), // Changed to gold
-                  );
-                } else if (snapshot.hasError) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.error_outline,
-                          color: PortColor.red,
-                          size: 50,
-                        ),
-                        SizedBox(height: Sizes.screenHeight * 0.02),
-                        TextConst(
-                          title: 'Error loading bookings',
-                          color: PortColor.red,
-                          size: Sizes.fontSizeFive,
-                        ),
-                      ],
-                    ),
-                  );
-                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Image.asset(
-                          Assets.assetsNoData,
-                          height: Sizes.screenHeight * 0.15,
-                        ),
-                        SizedBox(height: Sizes.screenHeight * 0.02),
-                        TextConst(
-                          title: "No Bookings Available",
-                          color: PortColor.gold, // Changed to gold
-                          fontWeight: FontWeight.bold,
-                          size: Sizes.fontSizeSix,
-                        ),
-                        SizedBox(height: Sizes.screenHeight * 0.01),
-                        TextConst(
-                          title: "New bookings will appear here",
-                          color: PortColor.gray,
-                          size: Sizes.fontSizeFour,
-                        ),
-                      ],
-                    ),
-                  );
-                }
-
-                final bookingList = snapshot.data!;
-                return ListView.builder(
-                  controller: _scrollController,
-                  padding: EdgeInsets.symmetric(
-                    vertical: Sizes.screenHeight * 0.01,
+            );
+          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Image.asset(Assets.assetsNoData,
+                      height: Sizes.screenHeight * 0.15),
+                  SizedBox(height: Sizes.screenHeight * 0.02),
+                  TextConst(
+                    title: "No Bookings Available",
+                    color: PortColor.gold,
+                    fontWeight: FontWeight.bold,
+                    size: Sizes.fontSizeSix,
                   ),
-                  itemCount: bookingList.length,
-                  itemBuilder: (context, index) {
-                    return BookingCard(bookingData: bookingList[index]);
+                  SizedBox(height: Sizes.screenHeight * 0.01),
+                  TextConst(
+                    title: "New bookings will appear here",
+                    color: PortColor.gray,
+                    size: Sizes.fontSizeFour,
+                  ),
+                ],
+              ),
+            );
+          }
+
+          final bookingList = snapshot.data!;
+
+          return Stack(
+            children: [
+              /// ✅ FIXED MAP SECTION
+              Positioned.fill(
+                top: 0,
+                bottom: MediaQuery.of(context).size.height * 0.25,
+                child: ConstMap(
+                  onAddressFetched: (address) {
+                    setState(() {
+                      _currentAddress = address;
+                    });
                   },
-                );
-              },
-            ),
-          ),
-        ],
+                  data: bookingList,
+                ),
+              ),
+
+              /// ✅ DRAGGABLE SCROLLABLE BOOKING LIST
+              DraggableScrollableSheet(
+                initialChildSize: 0.35,
+                minChildSize: 0.28,
+                maxChildSize: 0.65,
+                builder: (context, scrollController) {
+                  return Container(
+                    decoration: BoxDecoration(
+                      color: PortColor.white,
+                      borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(20),
+                        topRight: Radius.circular(20),
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 8,
+                          offset: const Offset(0, -2),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      children: [
+                        // Drag Handle
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          child: Container(
+                            width: 40,
+                            height: 5,
+                            decoration: BoxDecoration(
+                              color: Colors.grey[300],
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                        ),
+
+                        // Header Row
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 8),
+                          child: Row(
+                            children: [
+                              Icon(Icons.local_shipping, color: PortColor.gold),
+                              const SizedBox(width: 8),
+                              TextConst(
+                                title: "Available Bookings",
+                                size: Sizes.fontSizeSix,
+                                fontWeight: FontWeight.bold,
+                                color: PortColor.black,
+                              ),
+                              const Spacer(),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: PortColor.gold,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: TextConst(
+                                  title: "${bookingList.length}",
+                                  color: PortColor.black,
+                                  size: Sizes.fontSizeFour,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        const Divider(height: 1, color: Colors.grey),
+
+                        // Booking List
+                        Expanded(
+                          child: ListView.builder(
+                            controller: scrollController,
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                            itemCount: bookingList.length,
+                            itemBuilder: (context, index) {
+                              return BookingCard(
+                                bookingData: bookingList[index],
+                              );
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+
+              /// ✅ TOP CURRENT ADDRESS BANNER
+              if (_currentAddress != null)
+                Positioned(
+                  top: 40,
+                  left: 16,
+                  right: 16,
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.9),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.location_on, color: PortColor.gold, size: 18),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: TextConst(
+                            title: _currentAddress!,
+                            color: PortColor.black,
+                            size: Sizes.fontSizeFour,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+            ],
+          );
+        },
       ),
     );
   }
+}
 
-  /// ✅ Stream for matching bookings
-  Stream<List<Map<String, dynamic>>> fetchBookings(String driverVehicleType) {
+/// ✅ Stream for matching bookings
+  Stream<List<Map<String, dynamic>>> fetchBookings(String driverVehicleType,context) {
     final profileViewModel = Provider.of<ProfileViewModel>(
       context,
       listen: false,
@@ -400,7 +379,7 @@ class _TripStatusState extends State<TripStatus> {
       return filtered;
     });
   }
-}
+
 
 /// ✅ Separate Widget for Booking Card for better performance
 class BookingCard extends StatelessWidget {
@@ -553,7 +532,7 @@ class BookingCard extends StatelessWidget {
                     onTap: () {
                       // FIX: Convert ID to string before passing
                       String bookingId = bookingData['id'].toString();
-                      assignRideViewModel.assignRideApi(context, 1, bookingId);
+                      assignRideViewModel.assignRideApi(context, 1, bookingId,bookingData);
                     },
                     child: Container(
                       padding: EdgeInsets.symmetric(

@@ -223,18 +223,23 @@ class _RideHistoryState extends State<RideHistory> {
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                         decoration: BoxDecoration(
                           color: ride.rideStatus == 6
-                              ? Colors.red.withOpacity(0.1)
+                              ? Colors.green.withOpacity(0.1)
                               : ride.rideStatus == 7
-                              ? Colors.orange.withOpacity(0.1)
+                              ? Colors.red.withOpacity(0.1)
+                              : ride.rideStatus == 8
+                              ? Colors.red.withOpacity(0.1)
                               : Colors.grey.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
                           ride.rideStatus == 6
-                              ? "Cancelled by User"
+                              ? "Ride Completed"
                               : ride.rideStatus == 7
-                              ? "Cancelled by Driver"
-                              : "No",
+                              ? "Cancelled by User"
+                              : ride.rideStatus == 8
+                          ?"Cancelled by Driver"
+                              :"None"
+                          ,
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,

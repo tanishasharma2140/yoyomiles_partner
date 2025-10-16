@@ -12,7 +12,7 @@ class RoutesName {
   static const reward = "/reward";
   static const bank = "/bank";
   static const bankDetail = "/bankDetail";
-  static const liveRide = "/liveRide";
+  // static const liveRide = "/liveRide";
   static const vehicleDetail = "/vehicleDetail";
   static const addDriverDetail = "/addDriverDetail";
   static const walletHome = "/walletHome";

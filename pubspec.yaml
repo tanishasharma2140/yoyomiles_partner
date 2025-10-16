@@ -36,6 +36,10 @@ dependencies:
   image:
   pull_to_refresh: ^2.0.0
   flutter_widget_from_html:
+  flutter_polyline_points: ^2.1.0
+  geocoding:
+  location:
+
 
 dev_dependencies:
   flutter_test:
@@ -43,6 +47,8 @@ dev_dependencies:
 
 
   flutter_lints: ^5.0.0
+
+
 
 
 flutter:

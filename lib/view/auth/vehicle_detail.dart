@@ -26,12 +26,21 @@ class VehicleDetail extends StatefulWidget {
 
 class _VehicleDetailState extends State<VehicleDetail> {
   final TextEditingController _vehicleNumberController = TextEditingController();
-  String? _selectedCity;
-  String? _selectedVehicleType;
+
+  // Variables to store IDs
+  String? _selectedCityId;
+  String? _selectedVehicleTypeId;
   String? _selectedVehicleId;
-  String? _selectedVehicleBodyDetail;
-  String? _selectedBodyType;
-  String? _selectedFuelType;
+  String? _selectedVehicleBodyDetailId;
+  String? _selectedBodyTypeId;
+  String? _selectedFuelTypeId;
+
+  // Variables to store display names
+  String? _selectedCityName;
+  String? _selectedVehicleTypeName;
+  String? _selectedVehicleBodyDetailName;
+  String? _selectedBodyTypeName;
+  String? _selectedFuelTypeName;
 
   bool _isLoadingBodyDetails = false;
   bool _isLoadingBodyTypes = false;
@@ -57,14 +66,6 @@ class _VehicleDetailState extends State<VehicleDetail> {
 
   @override
   Widget build(BuildContext context) {
-    // final args = ModalRoute
-    //     .of(context)!
-    //     .settings
-    //     .arguments as Map<String, dynamic>;
-    //
-    // final id = args['user_id'] ?? '';
-
-
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -75,8 +76,7 @@ class _VehicleDetailState extends State<VehicleDetail> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             TextConst(
-              title:
-              "Vehicle Detail",
+              title: "Vehicle Detail",
               size: Sizes.fontSizeSeven,
               fontWeight: FontWeight.bold,
             ),
@@ -109,24 +109,22 @@ class _VehicleDetailState extends State<VehicleDetail> {
               const SizedBox(height: 16),
 
               // Vehicle Body Detail (only for vehicles that have body details)
-              if (_selectedVehicleType != null &&
+              if (_selectedVehicleTypeName != null &&
                   _shouldShowBodyDetailSection())
                 _buildVehicleBodyDetailSection(),
 
               // Body Type Selection (show directly for vehicle ID 3, or after body detail selection for others)
-              if (_selectedVehicleType != null && _shouldShowBodyTypeSection())
+              if (_selectedVehicleTypeName != null && _shouldShowBodyTypeSection())
                 _buildBodyTypeSection(),
-              if (_selectedBodyType != null) const SizedBox(height: 16),
+              if (_selectedBodyTypeName != null) const SizedBox(height: 16),
 
               // Fuel Type Selection (if body type selected)
-              if (_selectedBodyType != null) _buildFuelTypeSection(),
-              if (_selectedFuelType != null) const SizedBox(height: 24),
+              if (_selectedBodyTypeName != null) _buildFuelTypeSection(),
+              if (_selectedFuelTypeName != null) const SizedBox(height: 24),
 
               // Continue Button
-              if (_selectedFuelType != null)
-                _buildContinueButton(
-                    ""
-                ),
+              if (_selectedFuelTypeName != null)
+                _buildContinueButton(""),
             ],
           ),
         ),
@@ -145,8 +143,7 @@ class _VehicleDetailState extends State<VehicleDetail> {
   bool _shouldShowBodyTypeSection() {
     if (_selectedVehicleId == null) return false;
     if (_selectedVehicleId == "3") return true; // Show directly for scooter
-    return _selectedVehicleBodyDetail !=
-        null; // Show after body detail for others
+    return _selectedVehicleBodyDetailName != null; // Show after body detail for others
   }
 
   Widget _buildVehicleTypeSection() {
@@ -164,8 +161,7 @@ class _VehicleDetailState extends State<VehicleDetail> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const TextConst(
-          title:
-          'Select Vehicle Type',
+          title: 'Select Vehicle Type',
           fontWeight: FontWeight.w600,
         ),
         const SizedBox(height: 10),
@@ -179,7 +175,7 @@ class _VehicleDetailState extends State<VehicleDetail> {
                   imageUrl: vehicle.image ?? "",
                   title: vehicle.name ?? "Unknown",
                   color: Colors.blue,
-                  isSelected: _selectedVehicleType == vehicle.name,
+                  isSelected: _selectedVehicleTypeName == vehicle.name,
                   onTap: () =>
                       _selectVehicleType(
                         vehicle.name ?? "",
@@ -251,8 +247,7 @@ class _VehicleDetailState extends State<VehicleDetail> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const TextConst(
-          title:
-          'Select Vehicle Body Detail',
+          title: 'Select Vehicle Body Detail',
           fontWeight: FontWeight.w600,
         ),
         const SizedBox(height: 10),
@@ -277,11 +272,11 @@ class _VehicleDetailState extends State<VehicleDetail> {
                   )
                 else
                   Text(
-                    _selectedVehicleBodyDetail ?? "Select Vehicle Body Detail",
+                    _selectedVehicleBodyDetailName ?? "Select Vehicle Body Detail",
                     style: TextStyle(
                       fontFamily: 'Poppins',
                       fontSize: 14,
-                      color: _selectedVehicleBodyDetail == null
+                      color: _selectedVehicleBodyDetailName == null
                           ? Colors.grey.shade600
                           : Colors.black,
                     ),
@@ -311,8 +306,7 @@ class _VehicleDetailState extends State<VehicleDetail> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const TextConst(
-          title:
-          'Select Vehicle Body Type',
+          title: 'Select Vehicle Body Type',
           fontWeight: FontWeight.w600,
         ),
         const SizedBox(height: 10),
@@ -331,11 +325,11 @@ class _VehicleDetailState extends State<VehicleDetail> {
                 child: _buildBodyTypeCard(
                   imageUrl: bodyType.image ?? "",
                   title: bodyType.bodyType ?? "Unknown",
-                  isSelected: _selectedBodyType == bodyType.bodyType,
+                  isSelected: _selectedBodyTypeName == bodyType.bodyType,
                   onTap: () =>
                       _selectBodyType(
                         bodyType.bodyType ?? "",
-                        // bodyType.id?.toString() ?? "",
+                        bodyType.id?.toString() ?? "",
                       ),
                 ),
               );
@@ -430,8 +424,7 @@ class _VehicleDetailState extends State<VehicleDetail> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const TextConst(
-          title:
-          'Select Vehicle Fuel Type',
+          title: 'Select Vehicle Fuel Type',
           fontWeight: FontWeight.w600,
         ),
         const SizedBox(height: 10),
@@ -461,11 +454,11 @@ class _VehicleDetailState extends State<VehicleDetail> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      _selectedFuelType ?? "Select Vehicle Fuel Type",
+                      _selectedFuelTypeName ?? "Select Vehicle Fuel Type",
                       style: TextStyle(
                         fontFamily: 'Poppins',
                         fontSize: 14,
-                        color: _selectedFuelType == null
+                        color: _selectedFuelTypeName == null
                             ? Colors.grey.shade600
                             : Colors.black,
                       ),
@@ -481,19 +474,21 @@ class _VehicleDetailState extends State<VehicleDetail> {
 
   void _selectVehicleType(String type, String id) {
     setState(() {
-      _selectedVehicleType = type;
+      _selectedVehicleTypeName = type;
       _selectedVehicleId = id;
       // Reset dependent selections when vehicle type changes
-      _selectedVehicleBodyDetail = null;
-      _selectedBodyType = null;
-      _selectedFuelType = null;
+      _selectedVehicleBodyDetailId = null;
+      _selectedVehicleBodyDetailName = null;
+      _selectedBodyTypeId = null;
+      _selectedBodyTypeName = null;
+      _selectedFuelTypeId = null;
+      _selectedFuelTypeName = null;
       _isLoadingBodyDetails = false;
       _isLoadingBodyTypes = false;
       _isLoadingFuelTypes = false;
     });
 
-    print("Selected Vehicle Type: $type");
-    print("Selected Vehicle ID: $id");
+    print("Selected Vehicle Type ID: $id, Name: $type");
 
     // Load body types and fuel types for selected vehicle
     _loadBodyTypesForVehicle(id);
@@ -505,12 +500,15 @@ class _VehicleDetailState extends State<VehicleDetail> {
     }
   }
 
-  void _selectBodyType(String type) {
+  void _selectBodyType(String type, String id) {
     setState(() {
-      _selectedBodyType = type;
+      _selectedBodyTypeId = id;
+      _selectedBodyTypeName = type;
       // Reset fuel type when body type changes
-      _selectedFuelType = null;
+      _selectedFuelTypeId = null;
+      _selectedFuelTypeName = null;
     });
+    print("Selected Body Type ID: $id, Name: $type");
   }
 
   // Load body types based on vehicle ID
@@ -623,10 +621,7 @@ class _VehicleDetailState extends State<VehicleDetail> {
             builder: (context, vehicleBodyDetailVm, child) {
               return Container(
                 color: PortColor.white,
-                height: MediaQuery
-                    .of(context)
-                    .size
-                    .height * 0.5,
+                height: MediaQuery.of(context).size.height * 0.5,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -661,9 +656,10 @@ class _VehicleDetailState extends State<VehicleDetail> {
                             onTap: () {
                               Navigator.pop(context);
                               setState(() {
-                                _selectedVehicleBodyDetail =
-                                    vehicleBody.bodyDetail;
+                                _selectedVehicleBodyDetailId = vehicleBody.id?.toString();
+                                _selectedVehicleBodyDetailName = vehicleBody.bodyDetail;
                               });
+                              print("Selected Vehicle Body Detail ID: $_selectedVehicleBodyDetailId, Name: $_selectedVehicleBodyDetailName");
                             },
                           );
                         },
@@ -739,8 +735,10 @@ class _VehicleDetailState extends State<VehicleDetail> {
                       onTap: () {
                         Navigator.pop(context);
                         setState(() {
-                          _selectedFuelType = fuelVehicle.fuelType;
+                          _selectedFuelTypeId = fuelVehicle.id?.toString();
+                          _selectedFuelTypeName = fuelVehicle.fuelType;
                         });
+                        print("Selected Fuel Type ID: $_selectedFuelTypeId, Name: $_selectedFuelTypeName");
                       },
                     );
                   },
@@ -758,8 +756,7 @@ class _VehicleDetailState extends State<VehicleDetail> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const TextConst(
-          title:
-          'Vehicle Number *',
+          title: 'Vehicle Number *',
           color: Colors.black54,
           fontWeight: FontWeight.w600,
           size: 15,
@@ -791,24 +788,18 @@ class _VehicleDetailState extends State<VehicleDetail> {
         const SizedBox(height: 8),
         InkWell(
           onTap: () async {
-            // FIXED: Added listen: false
-            final citiesVm =
-            Provider.of<CitiesViewModel>(context, listen: false);
-            final selected = await showModalBottomSheet<String>(
+            final citiesVm = Provider.of<CitiesViewModel>(context, listen: false);
+            final selected = await showModalBottomSheet<Map<String, dynamic>>(
               context: context,
               builder: (context) {
                 return Container(
                   color: PortColor.white,
-                  height: MediaQuery
-                      .of(context)
-                      .size
-                      .height * 0.4,
+                  height: MediaQuery.of(context).size.height * 0.4,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Padding(
-                        padding:
-                        EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                         child: Text(
                           "Select the city of operation",
                           style: TextStyle(
@@ -824,7 +815,7 @@ class _VehicleDetailState extends State<VehicleDetail> {
                           itemCount: citiesVm.citiesModel?.data?.length ?? 0,
                           itemBuilder: (context, index) {
                             final city = citiesVm.citiesModel!.data![index];
-                            final isSelected = city.cityName == _selectedCity;
+                            final isSelected = city.id == _selectedCityId;
                             return Container(
                               color: isSelected
                                   ? Colors.blue.shade50
@@ -838,12 +829,14 @@ class _VehicleDetailState extends State<VehicleDetail> {
                                     fontWeight: isSelected
                                         ? FontWeight.w600
                                         : FontWeight.normal,
-                                    color:
-                                    isSelected ? Colors.blue : Colors.black,
+                                    color: isSelected ? Colors.blue : Colors.black,
                                   ),
                                 ),
                                 onTap: () {
-                                  Navigator.pop(context, city.cityName);
+                                  Navigator.pop(context, {
+                                    'id': city.id.toString(),
+                                    'name': city.cityName
+                                  });
                                 },
                               ),
                             );
@@ -857,8 +850,10 @@ class _VehicleDetailState extends State<VehicleDetail> {
             );
             if (selected != null) {
               setState(() {
-                _selectedCity = selected;
+                _selectedCityId = selected['id'];
+                _selectedCityName = selected['name'];
               });
+              print("Selected City ID: $_selectedCityId, Name: $_selectedCityName");
             }
           },
           child: Container(
@@ -871,11 +866,11 @@ class _VehicleDetailState extends State<VehicleDetail> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  _selectedCity ?? "Select the city of operation",
+                  _selectedCityName ?? "Select the city of operation",
                   style: TextStyle(
                     fontFamily: 'Poppins',
                     fontSize: 14,
-                    color: _selectedCity == null
+                    color: _selectedCityName == null
                         ? Colors.grey.shade600
                         : Colors.black,
                   ),
@@ -894,8 +889,7 @@ class _VehicleDetailState extends State<VehicleDetail> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const TextConst(
-          title:
-          'Upload RC Document *',
+          title: 'Upload RC Document *',
           color: Colors.black54,
           fontWeight: FontWeight.w600,
           size: 15,
@@ -959,16 +953,14 @@ class _VehicleDetailState extends State<VehicleDetail> {
   Widget _buildRCStatusIndicator() {
     if (_rcFrontFile != null && _rcBackFile != null) {
       return const TextConst(
-        title:
-        'Uploaded',
+        title: 'Uploaded',
         color: Colors.green,
         fontWeight: FontWeight.w600,
         size: 14,
       );
     } else {
       return const TextConst(
-        title:
-        'Pending',
+        title: 'Pending',
         color: Colors.red,
         fontWeight: FontWeight.w500,
         size: 14,
@@ -976,7 +968,7 @@ class _VehicleDetailState extends State<VehicleDetail> {
     }
   }
 
-  Widget _buildContinueButton(String userId,) {
+  Widget _buildContinueButton(String userId) {
     return _isSubmitting
         ? const Center(child: CircularProgressIndicator())
         : GestureDetector(
@@ -992,8 +984,7 @@ class _VehicleDetailState extends State<VehicleDetail> {
         ),
         alignment: Alignment.center,
         child: const TextConst(
-          title:
-          'Continue',
+          title: 'Continue',
           size: 15,
           fontWeight: FontWeight.w600,
           color: Colors.white,
@@ -1020,12 +1011,6 @@ class _VehicleDetailState extends State<VehicleDetail> {
 
   // API Call to submit vehicle details
   Future<void> _submitVehicleDetails(String userId) async {
-
-    final cities = Provider.of<CitiesViewModel>(context,listen: false);
-    final driverVehicle = Provider.of<DriverVehicleViewModel>(context,listen: false);
-    final vehicleBodyDetail = Provider.of<VehicleBodyDetailViewModel>(context,listen: false);
-    final vehicleBodyType = Provider.of<BodyTypeViewModel>(context,listen: false);
-    final fuelType = Provider.of<FuelTypeViewModel>(context,listen: false);
     UserViewModel userViewModel = UserViewModel();
     int? userId = (await userViewModel.getUser());
 
@@ -1044,7 +1029,7 @@ class _VehicleDetailState extends State<VehicleDetail> {
       return;
     }
 
-    if (_selectedCity == null) {
+    if (_selectedCityId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Please select city")),
       );
@@ -1058,26 +1043,39 @@ class _VehicleDetailState extends State<VehicleDetail> {
       return;
     }
 
-    if (_selectedVehicleBodyDetail == null && _selectedVehicleId != "3") {
+    if (_selectedVehicleBodyDetailId == null && _selectedVehicleId != "3") {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Please select vehicle body detail")),
       );
       return;
     }
 
-    if (_selectedBodyType == null) {
+    if (_selectedBodyTypeId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Please select body type")),
       );
       return;
     }
 
-    if (_selectedFuelType == null) {
+    if (_selectedFuelTypeId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Please select fuel type")),
       );
       return;
     }
+
+    // Print all selected IDs before API call
+    print("=== SUBMITTING VEHICLE DETAILS ===");
+    print("User ID: $userId");
+    print("Vehicle Number: ${_vehicleNumberController.text}");
+    print("City ID: $_selectedCityId");
+    print("Vehicle Type ID: $_selectedVehicleId");
+    print("Vehicle Body Detail ID: $_selectedVehicleBodyDetailId");
+    print("Body Type ID: $_selectedBodyTypeId");
+    print("Fuel Type ID: $_selectedFuelTypeId");
+    print("RC Front: ${_rcFrontFile?.path}");
+    print("RC Back: ${_rcBackFile?.path}");
+    print("===================================");
 
     setState(() {
       _isSubmitting = true;
@@ -1091,24 +1089,23 @@ class _VehicleDetailState extends State<VehicleDetail> {
 
       print("📤 Sending User ID in API request: $userId");
 
-      // Add text fields
       request.fields['id'] = userId.toString();
       request.fields['owner_doc_status'] = '2';
       request.fields['vehicle_doc_status'] = '1';
       request.fields['driver_doc_status'] = '2';
       request.fields['vehicle_no'] = _vehicleNumberController.text;
-      request.fields['city_id'] = cities.citiesModel!.data!.first.id.toString();
-      request.fields['vehicle_type'] = driverVehicle.driverVehicleModel!.data!.first.id.toString();
+      request.fields['city_id'] = _selectedCityId!; // ID भेजें
+      request.fields['vehicle_type'] = _selectedVehicleId!; // ID भेजें
 
-      // For scooter (vehicle ID 3), we might not have body details
-      if (_selectedVehicleBodyDetail != null) {
-        request.fields['vehicle_body_details_type'] = vehicleBodyDetail.vehicleBodyDetailModel!.data!.first.id.toString();
+      // For scooter, we might not have body details
+      if (_selectedVehicleBodyDetailId != null) {
+        request.fields['vehicle_body_details_type'] = _selectedVehicleBodyDetailId!; // ID भेजें
       } else {
-        request.fields['vehicle_body_details_type'] = '0'; // Default value for scooters
+        request.fields['vehicle_body_details_type'] = '0';
       }
 
-      request.fields['vehicle_body_type'] = vehicleBodyType.bodyTypeModel!.data!.first.id.toString();
-      request.fields['fuel_type'] = fuelType.fuelTypeModel!.data!.first.id.toString();
+      request.fields['vehicle_body_type'] = _selectedBodyTypeId!; // ID भेजें
+      request.fields['fuel_type'] = _selectedFuelTypeId!; // ID भेजें
 
       // Add RC front file
       if (_rcFrontFile != null) {
@@ -1129,7 +1126,6 @@ class _VehicleDetailState extends State<VehicleDetail> {
       }
 
       // Send request
-// Send request
       var response = await request.send();
       var responseData = await response.stream.bytesToString();
       var jsonResponse = json.decode(responseData);

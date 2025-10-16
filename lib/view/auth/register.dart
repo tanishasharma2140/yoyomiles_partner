@@ -10,6 +10,7 @@ import 'package:yoyomiles_partner/view/auth/owner_detail.dart';
 import 'package:yoyomiles_partner/view/auth/vehicle_detail.dart';
 import 'package:yoyomiles_partner/view/controller/yoyomiles_partner_con.dart';
 import 'package:yoyomiles_partner/view/earning/wallet_settlement.dart';
+import 'package:yoyomiles_partner/view/live_ride_screen.dart';
 import 'package:yoyomiles_partner/view_model/active_ride_view_model.dart';
 import 'package:yoyomiles_partner/view_model/online_status_view_model.dart';
 import 'package:yoyomiles_partner/view_model/profile_view_model.dart';
@@ -89,9 +90,16 @@ class _RegisterState extends State<Register> {
       activeRideVm.addListener(() {
         final model = activeRideVm.activeRideModel;
         if (model != null && model.data != null) {
-          // ✅ Navigate automatically to Active Ride Screen
-          Navigator.pushReplacementNamed(
-              context, RoutesName.liveRide, arguments: model);
+          // Navigate automatically to Active Ride Screen
+          // Navigator.
+          // Navigator.pushReplacementNamed(
+          //     context, RoutesName.liveRide, arguments: model);
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => LiveRideScreen(booking: model.data!.toJson()),
+            ),
+          );
         }
       });
       // print("hello");

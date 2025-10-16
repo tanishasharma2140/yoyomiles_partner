@@ -485,12 +485,16 @@ class _OwnerDetailState extends State<OwnerDetail> {
       final url = Uri.parse("https://yoyomiles.codescarts.com/api/driver_register");
       final request = http.MultipartRequest('POST', url);
 
+      UserViewModel userViewModel = UserViewModel();
+      int? userId = (await userViewModel.getUser());
+
       // Add form fields
       request.fields.addAll({
         "owner_name": _nameController.text.trim(),
         "owner_doc_status": '1',
         "vehicle_doc_status": '2',
         "driver_doc_status": '2',
+        "id":userId.toString(),
       });
 
       // Compress and attach files
