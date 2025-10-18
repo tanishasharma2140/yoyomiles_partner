@@ -94,12 +94,14 @@ class _RegisterState extends State<Register> {
           // Navigator.
           // Navigator.pushReplacementNamed(
           //     context, RoutesName.liveRide, arguments: model);
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => LiveRideScreen(booking: model.data!.toJson()),
-            ),
-          );
+          if (context.mounted) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => LiveRideScreen(booking: model.data!.toJson()),
+              ),
+            );
+          }
         }
       });
       // print("hello");

@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:image/image.dart' as img;
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:yoyomiles_partner/main.dart';
 import 'package:yoyomiles_partner/res/constant_color.dart';
 import 'package:yoyomiles_partner/res/custom_text_field.dart';
 import 'package:yoyomiles_partner/res/sizing_const.dart';
@@ -107,7 +108,7 @@ class _AddDriverDetailState extends State<AddDriverDetail> {
         "driver_doc_status": "1",
         "driver_name": driverName,
         "phone": phone,
-        "fcm": "dcftvgybhunjfcvgbhnjfvgbh",
+        "fcm": fcmToken.toString(),
         "drive_operator": driveOperator,
       });
 

@@ -33,7 +33,12 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
         context,
         listen: false,
       );
-      liveRideViewModel.liveRideApi();
+      liveRideViewModel.liveRideApi().then((_) {
+        // ✅ YEH LINE ADD KARO - Listener start karo after data load
+        if (liveRideViewModel.liveOrderModel?.data?.id != null) {
+          _startRideStatusListener(liveRideViewModel.liveOrderModel!.data!.id.toString());
+        }
+      });
     });
   }
 
@@ -43,8 +48,11 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
   // 🔥 ALAG-ALAG FLAGS FOR DIFFERENT DIALOGS
   bool _showWaitingForPaymentDialog = false;
   bool _showPaymentSuccessDialog = false;
+  bool _showRideCompletedDialog = false;
+  bool _showRideCancelledDialog = false;
 
   StreamSubscription<DocumentSnapshot>? _paymentSubscription;
+  StreamSubscription<DocumentSnapshot>? _rideStatusSubscription;
 
   // 🔥 WAITING FOR PAYMENT DIALOG - ALAG FUNCTION
   void _showWaitingForPaymentDialogMethod() {
@@ -104,6 +112,66 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
       setState(() {
         _showPaymentSuccessDialog = false;
       });
+    });
+  }
+
+  // 🔥 RIDE COMPLETED DIALOG FOR CASH PAYMENT
+  void _showRideCompletedDialogMethod() {
+    if (_showRideCompletedDialog) {
+      print("⚠️ Ride completed dialog already showing");
+      return;
+    }
+
+    print("✅ Showing RIDE COMPLETED dialog for cash payment");
+
+    setState(() {
+      _showRideCompletedDialog = true;
+    });
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return _buildRideCompletedDialog();
+      },
+    ).then((_) {
+      print("🔒 Ride completed dialog closed");
+      setState(() {
+        _showRideCompletedDialog = false;
+      });
+    });
+  }
+
+  // 🔥 NEW: RIDE CANCELLED DIALOG
+  void _showRideCancelledDialogMethod(String userName) {
+    if (_showRideCancelledDialog) {
+      print("⚠️ Ride cancelled dialog already showing");
+      return;
+    }
+
+    print("❌ Showing RIDE CANCELLED dialog by user: $userName");
+
+    setState(() {
+      _showRideCancelledDialog = true;
+    });
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return _buildRideCancelledDialog(userName);
+      },
+    ).then((_) {
+      print("🔒 Ride cancelled dialog closed");
+      setState(() {
+        _showRideCancelledDialog = false;
+      });
+
+      // ✅ Register screen par navigate karo
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (context) => Register()),
+            (route) => false,
+      );
     });
   }
 
@@ -226,6 +294,134 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
     );
   }
 
+  // NEW: Ride Completed Dialog for Cash Payment
+  Widget _buildRideCompletedDialog() {
+ final liveRideVm = Provider.of<LiveRideViewModel>(context);
+    return WillPopScope(
+      onWillPop: () async => false,
+      child: Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        backgroundColor: Colors.white,
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.check_circle,
+                color: Colors.green,
+                size: 50,
+              ),
+              const SizedBox(height: 15),
+              Text(
+                "Ride Completed!🎉🎉",
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: PortColor.gold,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                "Your ride has been completed successfully. Thank you!",
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.grey),
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: PortColor.gold,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  minimumSize: const Size(120, 45),
+                ),
+                onPressed: () {
+                  print("🏠 OK pressed from ride completed - Navigating to Register");
+                  Navigator.pop(context);
+                  Provider.of<UpdateRideStatusViewModel>(context,listen: false).updateRideApi(context, liveRideVm.liveOrderModel!.data!.id.toString(), "6");
+                  Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute(builder: (context) => Register()),
+                        (route) => false,
+                  );
+                },
+                child: const Text(
+                  "OK",
+                  style: TextStyle(color: Colors.white, fontSize: 16),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // NEW: Ride Cancelled Dialog
+  Widget _buildRideCancelledDialog(String userName) {
+    return WillPopScope(
+      onWillPop: () async => false,
+      child: Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        backgroundColor: Colors.white,
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.cancel,
+                color: Colors.red,
+                size: 50,
+              ),
+              const SizedBox(height: 15),
+              Text(
+                "Ride Cancelled!",
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.red,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                "Ride has been cancelled by $userName",
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.grey),
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  minimumSize: const Size(120, 45),
+                ),
+                onPressed: () {
+                  print("🏠 OK pressed from cancelled - Navigating to Register");
+                  Navigator.pop(context);
+                  Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute(builder: (context) => Register()),
+                        (route) => false,
+                  );
+                },
+                child: const Text(
+                  "OK",
+                  style: TextStyle(color: Colors.white, fontSize: 16),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   // Listen for ride_status changes for payment flow
   void _startPaymentListener(String orderId) {
     print("🔔 Starting payment listener for order: $orderId");
@@ -259,6 +455,41 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
       });
     } catch (e) {
       print("❌ Error starting payment listener: $e");
+    }
+  }
+
+  // ✅ FIXED: Listen for ride status changes (specifically for status 7 - cancelled)
+  void _startRideStatusListener(String orderId) {
+    print("🔔 Starting ride status listener for order: $orderId");
+
+    try {
+      _rideStatusSubscription = FirebaseFirestore.instance
+          .collection('order')
+          .doc(orderId)
+          .snapshots()
+          .listen((DocumentSnapshot snapshot) {
+        if (snapshot.exists && snapshot.data() != null) {
+          final data = snapshot.data() as Map<String, dynamic>;
+          final rideStatus = data['ride_status'] ?? 0;
+          final userName = data['sender_name'] ?? 'User';
+
+          print("📢 Ride Status Listener - ride_status: $rideStatus, user: $userName");
+
+          // 🔥 AGAR RIDE STATUS 7 HO GAYA (CANCELLED)
+          if (rideStatus == 7 && !_showRideCancelledDialog) {
+            print("❌ Ride cancelled detected! Showing cancelled dialog");
+
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              // Cancel dialog show karo
+              _showRideCancelledDialogMethod(userName);
+            });
+          }
+        }
+      }, onError: (error) {
+        print("🔥 Ride status listener error: $error");
+      });
+    } catch (e) {
+      print("❌ Error starting ride status listener: $e");
     }
   }
 
@@ -306,10 +537,67 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
     });
   }
 
+  // NEW: Handle Reached button click with paymode condition
+  void _handleReachedButtonClick() async {
+    final liveRideViewModel = Provider.of<LiveRideViewModel>(context, listen: false);
+    final orderId = liveRideViewModel.liveOrderModel!.data!.id.toString();
+
+    try {
+      // First get current order data to check paymode
+      final doc = await FirebaseFirestore.instance
+          .collection('order')
+          .doc(orderId)
+          .get();
+
+      if (doc.exists) {
+        final data = doc.data() as Map<String, dynamic>;
+        final payMode = data['paymode'] ?? 0;
+
+        print("💰 Reached button clicked - paymode: $payMode");
+
+        if (payMode == 1) {
+          // Cash payment - update to status 6 and show ride completed dialog
+          print("💵 Cash payment detected - updating to status 6");
+          await FirebaseFirestore.instance
+              .collection('order')
+              .doc(orderId)
+              .update({'ride_status': 6});
+
+          liveRideViewModel.liveOrderModel!.data!.rideStatus = 6;
+          Utils.showSuccessMessage(context, "Ride completed successfully!");
+
+          // Show ride completed dialog
+          Future.delayed(const Duration(milliseconds: 500), () {
+            _showRideCompletedDialogMethod();
+          });
+        } else {
+          // Online payment - update to status 5 and show waiting for payment
+          print("💳 Online payment detected - updating to status 5");
+          await FirebaseFirestore.instance
+              .collection('order')
+              .doc(orderId)
+              .update({'ride_status': 5});
+
+          liveRideViewModel.liveOrderModel!.data!.rideStatus = 5;
+          Utils.showSuccessMessage(context, "Ride status updated: Reached destination");
+
+          // Show waiting for payment dialog
+          Future.delayed(const Duration(milliseconds: 500), () {
+            _showWaitingForPaymentDialogMethod();
+          });
+        }
+        setState(() {});
+      }
+    } catch (e) {
+      Utils.showErrorMessage(context, "Failed to update ride status: $e");
+    }
+  }
+
   @override
   void dispose() {
     print("🗑️ Disposing LiveRideScreen - Cancelling listeners");
     _paymentSubscription?.cancel();
+    _rideStatusSubscription?.cancel();
     super.dispose();
   }
 
@@ -317,9 +605,6 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
   Widget build(BuildContext context) {
     final profileViewModel = Provider.of<ProfileViewModel>(context);
     final liveRideViewModel = Provider.of<LiveRideViewModel>(context);
-
-    // Get orderId from booking data directly
-    final orderId = widget.booking['document_id']?.toString();
 
     return SafeArea(
       top: false,
@@ -336,6 +621,7 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
               height: double.infinity,
               child: ConstMap(
                 data: [widget.booking],
+                rideStatus: liveRideViewModel.liveOrderModel?.data?.rideStatus, // ✅ NEW: Ride status pass karo
                 onAddressFetched: (address) {
                   setState(() {
                     _currentAddress = address;
@@ -344,57 +630,26 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
               ),
             ),
 
-            // 🔥 STREAMBUILDER FOR REAL-TIME STATUS UPDATES
-            if (orderId != null)
+            // ✅ SIMPLIFIED STREAMBUILDER - Sirf UI update ke liye
+            if (liveRideViewModel.liveOrderModel?.data?.id != null)
               StreamBuilder<DocumentSnapshot>(
                 stream: FirebaseFirestore.instance
                     .collection('order')
-                    .doc(orderId)
+                    .doc(liveRideViewModel.liveOrderModel!.data!.id.toString())
                     .snapshots(),
                 builder: (context, snapshot) {
                   if (snapshot.hasData && snapshot.data!.exists) {
                     final data = snapshot.data!.data() as Map<String, dynamic>;
                     final rideStatus = data['ride_status'] ?? 0;
-                    final payMode = data['paymode'] ?? 0;
 
-                    print("🎯 STREAMBUILDER - ride_status: $rideStatus, paymode: $payMode");
-
-                    // 🔥 ALAG CONDITIONS FOR DIFFERENT DIALOGS
-
-                    // Condition 1: Ride completed with cash payment - show waiting dialog
-                    if (rideStatus == 5 && payMode == 2 &&
-                        !_showWaitingForPaymentDialog && !_showPaymentSuccessDialog) {
-                      print("💵 STREAMBUILDER: Ride completed with cash payment!");
-                      Future.delayed(const Duration(milliseconds: 500), () {
-                        if (!_showWaitingForPaymentDialog && !_showPaymentSuccessDialog) {
-                          _showWaitingForPaymentDialogMethod();
-                        }
-                      });
-                    }
-
-                    // Condition 2: Payment completed - show success dialog
-                    if (rideStatus == 6 &&
-                        !_showPaymentSuccessDialog && !_showWaitingForPaymentDialog) {
-                      print("💰 STREAMBUILDER: Payment completed detected!");
-                      Future.delayed(const Duration(milliseconds: 500), () {
-                        if (!_showPaymentSuccessDialog && !_showWaitingForPaymentDialog) {
-                          _showPaymentSuccessDialogMethod();
-                        }
-                      });
-                    }
-
-                    // Condition 3: If payment completes while waiting dialog is shown
-                    if (rideStatus == 6 && _showWaitingForPaymentDialog) {
-                      print("🔄 STREAMBUILDER: Payment completed while waiting dialog shown");
-                      Future.delayed(const Duration(milliseconds: 500), () {
-                        if (_showWaitingForPaymentDialog) {
-                          Navigator.of(context).pop(); // Close waiting dialog
-                          _showPaymentSuccessDialogMethod(); // Show success dialog
-                        }
+                    // ✅ UI update ke liye status refresh karo
+                    if (liveRideViewModel.liveOrderModel!.data!.rideStatus != rideStatus) {
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        liveRideViewModel.liveOrderModel!.data!.rideStatus = rideStatus;
+                        setState(() {});
                       });
                     }
                   }
-
                   return const SizedBox.shrink();
                 },
               ),
@@ -429,7 +684,264 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
     );
   }
 
-  // ... (Rest of your code remains exactly the same - _buildSheetContent, _showOtpDialog, etc.)
+  // ... (Rest of the methods remain the same - _getButtonColor, _getButtonText, _showOtpDialog, _buildSectionHeader, _buildDetailRow, _getStatusText, _buildSheetContent)
+  Color _getButtonColor(int? rideStatus) {
+    switch (rideStatus) {
+      case 1:
+        return PortColor.gold;
+      case 2:
+        return PortColor.buttonBlue;
+      case 3:
+        return Colors.purple;
+      case 4:
+        return Colors.green;
+      case 5:
+        return Colors.teal;
+      default:
+        return PortColor.gold;
+    }
+  }
+
+  String _getButtonText(int? status) {
+    switch (status) {
+      case 1:
+        return "Start for Pickup";
+      case 2:
+        return "Arrived at Pickup Point";
+      case 3:
+        return "Start Ride";
+      case 4:
+        return "Reached";
+      case 5:
+        return "Ride Completed";
+      default:
+        return "Start for Pickup";
+    }
+  }
+
+  void _showOtpDialog(String orderId) {
+    final TextEditingController _otpController = TextEditingController();
+    final liveRideViewModel = Provider.of<LiveRideViewModel>(
+      context,
+      listen: false,
+    );
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => WillPopScope(
+        onWillPop: () async => false,
+        child: Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          backgroundColor: Colors.white,
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.verified_user_rounded,
+                  color: PortColor.gold,
+                  size: 50,
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  "Trip OTP Verification",
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    fontFamily: AppFonts.kanitReg,
+                    color: Colors.black,
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                TextField(
+                  controller: _otpController,
+                  keyboardType: TextInputType.number,
+                  textAlign: TextAlign.center,
+                  decoration: InputDecoration(
+                    hintText: "Enter OTP",
+                    hintStyle: TextStyle(color: Colors.grey),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(
+                        color: Colors.grey,
+                        width: 1,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(
+                        color: Colors.grey,
+                        width: 1,
+                      ),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 20),
+
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(color: Colors.grey),
+                          backgroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        onPressed: () => Navigator.of(context).pop(),
+                        child: const Text(
+                          "Cancel",
+                          style: TextStyle(color: Colors.black),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: PortColor.gold,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        onPressed: () async {
+                          final enteredOtp = _otpController.text.trim();
+                          if (enteredOtp.isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text("Please enter OTP"),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                            return;
+                          }
+
+                          try {
+                            final doc = await FirebaseFirestore.instance
+                                .collection('order')
+                                .doc(orderId)
+                                .get();
+
+                            final firestoreOtp =
+                                doc.data()?['otp']?.toString() ?? "";
+
+                            if (firestoreOtp == enteredOtp) {
+                              await FirebaseFirestore.instance
+                                  .collection('order')
+                                  .doc(orderId)
+                                  .update({'ride_status': 4});
+
+                              liveRideViewModel.liveOrderModel!.data!.rideStatus = 4;
+
+                              Navigator.of(context).pop();
+                              Utils.showSuccessMessage(context, "OTP verified! Ride started.");
+                              setState(() {});
+                            } else {
+                              Utils.showErrorMessage(context, "Invalid OTP. Try again.");
+                            }
+                          } catch (e) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text("Error: $e"),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                          }
+                        },
+                        child: const Text(
+                          "Verify",
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSectionHeader(String title) {
+    return Container(
+      padding: EdgeInsets.symmetric(vertical: Sizes.screenHeight * 0.005),
+      child: TextConst(
+        title: title,
+        size: Sizes.fontSizeSix,
+        fontWeight: FontWeight.bold,
+        color: PortColor.gold,
+      ),
+    );
+  }
+
+  Widget _buildDetailRow({
+    required IconData icon,
+    required String title,
+    required String content,
+    bool isAddress = false,
+    bool isHeader = false,
+  }) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: Sizes.screenHeight * 0.01),
+      child: Row(
+        crossAxisAlignment: isAddress
+            ? CrossAxisAlignment.start
+            : CrossAxisAlignment.center,
+        children: [
+          Icon(icon, color: PortColor.gold, size: 16),
+          SizedBox(width: Sizes.screenWidth * 0.02),
+          Container(
+            width: Sizes.screenWidth * (isHeader ? 0.25 : 0.15),
+            child: TextConst(
+              title: "$title:",
+              size: Sizes.fontSizeFive,
+              fontWeight: FontWeight.w500,
+              color: PortColor.blackLight,
+            ),
+          ),
+          SizedBox(width: Sizes.screenWidth * 0.02),
+          Expanded(
+            child: TextConst(
+              title: content,
+              size: Sizes.fontSizeFour,
+              color: PortColor.black,
+              maxLines: isAddress ? 2 : 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _getStatusText(int? rideStatus) {
+    switch (rideStatus) {
+      case 1:
+        return "Accepted by Driver";
+      case 2:
+        return "Out for PickUp";
+      case 3:
+        return "At Pickup Point";
+      case 4:
+        return "Ride Started";
+      case 5:
+        return "Reached Destination";
+      case 6:
+        return "Payment Completed";
+      case 7:
+        return "Ride Cancelled";
+      default:
+        return "Unknown Status";
+    }
+  }
+
   Widget _buildSheetContent(ScrollController scrollController) {
     final liveRideViewModel = Provider.of<LiveRideViewModel>(context);
     final updateRideStatus = Provider.of<UpdateRideStatusViewModel>(context);
@@ -508,9 +1020,16 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                     _buildDetailRow(
                       icon: Icons.directions_car,
                       title: "Vehicle Type",
-                      content: liveRideViewModel.liveOrderModel!.data!.vehicleType ?? "N/A",
+                      content: liveRideViewModel.liveOrderModel!.data!.vehicleType == "1"
+                          ? "Truck"
+                          : liveRideViewModel.liveOrderModel!.data!.vehicleType == "2"
+                          ? "3 Wheeler"
+                          : liveRideViewModel.liveOrderModel!.data!.vehicleType == "3"
+                          ? "Bike"
+                          : "N/A",
                       isHeader: true,
                     ),
+
                   ],
                 ),
               ),
@@ -676,14 +1195,9 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                                 _showOtpDialog(orderId.toString());
                                 return;
                               } else if (currentStatus == 4) {
-                                await FirebaseFirestore.instance
-                                    .collection('order')
-                                    .doc(orderId.toString())
-                                    .update({'ride_status': 5});
-                                liveRideViewModel.liveOrderModel!.data!.rideStatus = 5;
-                                Utils.showSuccessMessage(context, "Ride status updated: Reached destination");
-
-                                _checkPaymentStatus();
+                                // Use the new function to handle reached button with paymode condition
+                                _handleReachedButtonClick();
+                                return;
                               }
                               setState(() {});
                             } catch (e) {
@@ -764,269 +1278,271 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
       ],
     );
   }
-
-  Color _getButtonColor(int? rideStatus) {
-    switch (rideStatus) {
-      case 1:
-        return PortColor.gold;
-      case 2:
-        return PortColor.buttonBlue;
-      case 3:
-        return Colors.purple;
-      case 4:
-        return Colors.green;
-      case 5:
-        return Colors.teal;
-      default:
-        return PortColor.gold;
-    }
-  }
-
-  String _getButtonText(int? status) {
-    switch (status) {
-      case 1:
-        return "Start for Pickup";
-      case 2:
-        return "Arrived at Pickup Point";
-      case 3:
-        return "Start Ride";
-      case 4:
-        return "Reached";
-      case 5:
-        return "Ride Completed";
-      default:
-        return "Start for Pickup";
-    }
-  }
-
-  void _showOtpDialog(String orderId) {
-    final TextEditingController _otpController = TextEditingController();
-    final liveRideViewModel = Provider.of<LiveRideViewModel>(
-      context,
-      listen: false,
-    );
-
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => WillPopScope(
-        onWillPop: () async => false,
-        child: Dialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          backgroundColor: Colors.white,
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.verified_user_rounded,
-                  color: PortColor.gold,
-                  size: 50,
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  "Trip OTP Verification",
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    fontFamily: AppFonts.kanitReg,
-                    color: Colors.black,
-                  ),
-                ),
-                const SizedBox(height: 20),
-
-                TextField(
-                  controller: _otpController,
-                  keyboardType: TextInputType.number,
-                  textAlign: TextAlign.center,
-                  decoration: InputDecoration(
-                    hintText: "Enter OTP",
-                    hintStyle: TextStyle(color: Colors.grey),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: const BorderSide(
-                        color: Colors.grey,
-                        width: 1,
-                      ),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: const BorderSide(
-                        color: Colors.grey,
-                        width: 1,
-                      ),
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 20),
-
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton(
-                        style: OutlinedButton.styleFrom(
-                          side: const BorderSide(color: Colors.grey),
-                          backgroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        onPressed: () => Navigator.of(context).pop(),
-                        child: const Text(
-                          "Cancel",
-                          style: TextStyle(color: Colors.black),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: PortColor.gold,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        onPressed: () async {
-                          final enteredOtp = _otpController.text.trim();
-                          if (enteredOtp.isEmpty) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text("Please enter OTP"),
-                                backgroundColor: Colors.red,
-                              ),
-                            );
-                            return;
-                          }
-
-                          try {
-                            final doc = await FirebaseFirestore.instance
-                                .collection('order')
-                                .doc(orderId)
-                                .get();
-
-                            final firestoreOtp =
-                                doc.data()?['otp']?.toString() ?? "";
-
-                            if (firestoreOtp == enteredOtp) {
-                              await FirebaseFirestore.instance
-                                  .collection('order')
-                                  .doc(orderId)
-                                  .update({'ride_status': 4});
-
-                              liveRideViewModel.liveOrderModel!.data!.rideStatus = 4;
-
-                              Navigator.of(context).pop();
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text("OTP verified! Ride started."),
-                                  backgroundColor: Colors.green,
-                                ),
-                              );
-                              setState(() {});
-                            } else {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text("Invalid OTP. Try again."),
-                                  backgroundColor: Colors.red,
-                                ),
-                              );
-                            }
-                          } catch (e) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text("Error: $e"),
-                                backgroundColor: Colors.red,
-                              ),
-                            );
-                          }
-                        },
-                        child: const Text(
-                          "Verify",
-                          style: TextStyle(color: Colors.white),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSectionHeader(String title) {
-    return Container(
-      padding: EdgeInsets.symmetric(vertical: Sizes.screenHeight * 0.005),
-      child: TextConst(
-        title: title,
-        size: Sizes.fontSizeSix,
-        fontWeight: FontWeight.bold,
-        color: PortColor.gold,
-      ),
-    );
-  }
-
-  Widget _buildDetailRow({
-    required IconData icon,
-    required String title,
-    required String content,
-    bool isAddress = false,
-    bool isHeader = false,
-  }) {
-    return Padding(
-      padding: EdgeInsets.only(bottom: Sizes.screenHeight * 0.01),
-      child: Row(
-        crossAxisAlignment: isAddress
-            ? CrossAxisAlignment.start
-            : CrossAxisAlignment.center,
-        children: [
-          Icon(icon, color: PortColor.gold, size: 16),
-          SizedBox(width: Sizes.screenWidth * 0.02),
-          Container(
-            width: Sizes.screenWidth * (isHeader ? 0.25 : 0.15),
-            child: TextConst(
-              title: "$title:",
-              size: Sizes.fontSizeFive,
-              fontWeight: FontWeight.w500,
-              color: PortColor.blackLight,
-            ),
-          ),
-          SizedBox(width: Sizes.screenWidth * 0.02),
-          Expanded(
-            child: TextConst(
-              title: content,
-              size: Sizes.fontSizeFour,
-              color: PortColor.black,
-              maxLines: isAddress ? 2 : 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  String _getStatusText(int? rideStatus) {
-    switch (rideStatus) {
-      case 1:
-        return "Accepted by Driver";
-      case 2:
-        return "Out for PickUp";
-      case 3:
-        return "At Pickup Point";
-      case 4:
-        return "Ride Started";
-      case 5:
-        return "Reached Destination";
-      case 6:
-        return "Payment Completed";
-      default:
-        return "Unknown Status";
-    }
-  }
 }
+
+//   // ... (Rest of your existing methods remain exactly the same - _getButtonColor, _getButtonText, _showOtpDialog, _buildSectionHeader, _buildDetailRow, _getStatusText)
+//   Color _getButtonColor(int? rideStatus) {
+//     switch (rideStatus) {
+//       case 1:
+//         return PortColor.gold;
+//       case 2:
+//         return PortColor.buttonBlue;
+//       case 3:
+//         return Colors.purple;
+//       case 4:
+//         return Colors.green;
+//       case 5:
+//         return Colors.teal;
+//       default:
+//         return PortColor.gold;
+//     }
+//   }
+//
+//   String _getButtonText(int? status) {
+//     switch (status) {
+//       case 1:
+//         return "Start for Pickup";
+//       case 2:
+//         return "Arrived at Pickup Point";
+//       case 3:
+//         return "Start Ride";
+//       case 4:
+//         return "Reached";
+//       case 5:
+//         return "Ride Completed";
+//       default:
+//         return "Start for Pickup";
+//     }
+//   }
+//
+//   void _showOtpDialog(String orderId) {
+//     final TextEditingController _otpController = TextEditingController();
+//     final liveRideViewModel = Provider.of<LiveRideViewModel>(
+//       context,
+//       listen: false,
+//     );
+//
+//     showDialog(
+//       context: context,
+//       barrierDismissible: false,
+//       builder: (context) => WillPopScope(
+//         onWillPop: () async => false,
+//         child: Dialog(
+//           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+//           backgroundColor: Colors.white,
+//           child: Padding(
+//             padding: const EdgeInsets.all(20),
+//             child: Column(
+//               mainAxisSize: MainAxisSize.min,
+//               children: [
+//                 Icon(
+//                   Icons.verified_user_rounded,
+//                   color: PortColor.gold,
+//                   size: 50,
+//                 ),
+//                 const SizedBox(height: 10),
+//                 Text(
+//                   "Trip OTP Verification",
+//                   style: TextStyle(
+//                     fontSize: 18,
+//                     fontWeight: FontWeight.bold,
+//                     fontFamily: AppFonts.kanitReg,
+//                     color: Colors.black,
+//                   ),
+//                 ),
+//                 const SizedBox(height: 20),
+//
+//                 TextField(
+//                   controller: _otpController,
+//                   keyboardType: TextInputType.number,
+//                   textAlign: TextAlign.center,
+//                   decoration: InputDecoration(
+//                     hintText: "Enter OTP",
+//                     hintStyle: TextStyle(color: Colors.grey),
+//                     enabledBorder: OutlineInputBorder(
+//                       borderRadius: BorderRadius.circular(8),
+//                       borderSide: const BorderSide(
+//                         color: Colors.grey,
+//                         width: 1,
+//                       ),
+//                     ),
+//                     focusedBorder: OutlineInputBorder(
+//                       borderRadius: BorderRadius.circular(8),
+//                       borderSide: const BorderSide(
+//                         color: Colors.grey,
+//                         width: 1,
+//                       ),
+//                     ),
+//                   ),
+//                 ),
+//
+//                 const SizedBox(height: 20),
+//
+//                 Row(
+//                   children: [
+//                     Expanded(
+//                       child: OutlinedButton(
+//                         style: OutlinedButton.styleFrom(
+//                           side: const BorderSide(color: Colors.grey),
+//                           backgroundColor: Colors.white,
+//                           shape: RoundedRectangleBorder(
+//                             borderRadius: BorderRadius.circular(8),
+//                           ),
+//                         ),
+//                         onPressed: () => Navigator.of(context).pop(),
+//                         child: const Text(
+//                           "Cancel",
+//                           style: TextStyle(color: Colors.black),
+//                         ),
+//                       ),
+//                     ),
+//                     const SizedBox(width: 10),
+//                     Expanded(
+//                       child: ElevatedButton(
+//                         style: ElevatedButton.styleFrom(
+//                           backgroundColor: PortColor.gold,
+//                           shape: RoundedRectangleBorder(
+//                             borderRadius: BorderRadius.circular(8),
+//                           ),
+//                         ),
+//                         onPressed: () async {
+//                           final enteredOtp = _otpController.text.trim();
+//                           if (enteredOtp.isEmpty) {
+//                             ScaffoldMessenger.of(context).showSnackBar(
+//                               const SnackBar(
+//                                 content: Text("Please enter OTP"),
+//                                 backgroundColor: Colors.red,
+//                               ),
+//                             );
+//                             return;
+//                           }
+//
+//                           try {
+//                             final doc = await FirebaseFirestore.instance
+//                                 .collection('order')
+//                                 .doc(orderId)
+//                                 .get();
+//
+//                             final firestoreOtp =
+//                                 doc.data()?['otp']?.toString() ?? "";
+//
+//                             if (firestoreOtp == enteredOtp) {
+//                               await FirebaseFirestore.instance
+//                                   .collection('order')
+//                                   .doc(orderId)
+//                                   .update({'ride_status': 4});
+//
+//                               liveRideViewModel.liveOrderModel!.data!.rideStatus = 4;
+//
+//                               Navigator.of(context).pop();
+//                               ScaffoldMessenger.of(context).showSnackBar(
+//                                 const SnackBar(
+//                                   content: Text("OTP verified! Ride started."),
+//                                   backgroundColor: Colors.green,
+//                                 ),
+//                               );
+//                               setState(() {});
+//                             } else {
+//                               ScaffoldMessenger.of(context).showSnackBar(
+//                                 const SnackBar(
+//                                   content: Text("Invalid OTP. Try again."),
+//                                   backgroundColor: Colors.red,
+//                                 ),
+//                               );
+//                             }
+//                           } catch (e) {
+//                             ScaffoldMessenger.of(context).showSnackBar(
+//                               SnackBar(
+//                                 content: Text("Error: $e"),
+//                                 backgroundColor: Colors.red,
+//                               ),
+//                             );
+//                           }
+//                         },
+//                         child: const Text(
+//                           "Verify",
+//                           style: TextStyle(color: Colors.white),
+//                         ),
+//                       ),
+//                     ),
+//                   ],
+//                 ),
+//               ],
+//             ),
+//           ),
+//         ),
+//       ),
+//     );
+//   }
+//
+//   Widget _buildSectionHeader(String title) {
+//     return Container(
+//       padding: EdgeInsets.symmetric(vertical: Sizes.screenHeight * 0.005),
+//       child: TextConst(
+//         title: title,
+//         size: Sizes.fontSizeSix,
+//         fontWeight: FontWeight.bold,
+//         color: PortColor.gold,
+//       ),
+//     );
+//   }
+//
+//   Widget _buildDetailRow({
+//     required IconData icon,
+//     required String title,
+//     required String content,
+//     bool isAddress = false,
+//     bool isHeader = false,
+//   }) {
+//     return Padding(
+//       padding: EdgeInsets.only(bottom: Sizes.screenHeight * 0.01),
+//       child: Row(
+//         crossAxisAlignment: isAddress
+//             ? CrossAxisAlignment.start
+//             : CrossAxisAlignment.center,
+//         children: [
+//           Icon(icon, color: PortColor.gold, size: 16),
+//           SizedBox(width: Sizes.screenWidth * 0.02),
+//           Container(
+//             width: Sizes.screenWidth * (isHeader ? 0.25 : 0.15),
+//             child: TextConst(
+//               title: "$title:",
+//               size: Sizes.fontSizeFive,
+//               fontWeight: FontWeight.w500,
+//               color: PortColor.blackLight,
+//             ),
+//           ),
+//           SizedBox(width: Sizes.screenWidth * 0.02),
+//           Expanded(
+//             child: TextConst(
+//               title: content,
+//               size: Sizes.fontSizeFour,
+//               color: PortColor.black,
+//               maxLines: isAddress ? 2 : 1,
+//               overflow: TextOverflow.ellipsis,
+//             ),
+//           ),
+//         ],
+//       ),
+//     );
+//   }
+//
+//   String _getStatusText(int? rideStatus) {
+//     switch (rideStatus) {
+//       case 1:
+//         return "Accepted by Driver";
+//       case 2:
+//         return "Out for PickUp";
+//       case 3:
+//         return "At Pickup Point";
+//       case 4:
+//         return "Ride Started";
+//       case 5:
+//         return "Reached Destination";
+//       case 6:
+//         return "Payment Completed";
+//       default:
+//         return "Unknown Status";
+//     }
+//   }
+// }

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:yoyomiles_partner/generated/assets.dart';
 import 'package:yoyomiles_partner/res/const_map.dart';
+import 'package:yoyomiles_partner/res/const_without_polyline_map.dart';
 import 'package:yoyomiles_partner/res/constant_color.dart';
 import 'package:yoyomiles_partner/res/custom_appbar.dart';
 import 'package:yoyomiles_partner/res/launcher.dart';
@@ -193,13 +194,20 @@ class _TripStatusState extends State<TripStatus> {
               Positioned.fill(
                 top: 0,
                 bottom: MediaQuery.of(context).size.height * 0.25,
-                child: ConstMap(
-                  onAddressFetched: (address) {
-                    setState(() {
-                      _currentAddress = address;
-                    });
-                  },
-                  data: bookingList,
+                child: SizedBox(
+                  height: Sizes.screenHeight * 0.4,
+                  child: ConstWithoutPolylineMap(
+                    backIconAllowed: false,
+                    onAddressFetched: (address) {
+                      if (_currentAddress != address) {
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          setState(() {
+                            _currentAddress = address;
+                          });
+                        });
+                      }
+                    },
+                  ),
                 ),
               ),
 
@@ -330,56 +338,74 @@ class _TripStatusState extends State<TripStatus> {
   }
 }
 
-/// ✅ Stream for matching bookings
-  Stream<List<Map<String, dynamic>>> fetchBookings(String driverVehicleType,context) {
-    final profileViewModel = Provider.of<ProfileViewModel>(
-      context,
-      listen: false,
-    );
-    final driverId = profileViewModel.profileModel!.data!.id;
-    final driverIdStr = driverId.toString();
+/// ✅ CORRECTED Stream for matching bookings with ride_status filter
+Stream<List<Map<String, dynamic>>> fetchBookings(String driverVehicleType, context) {
+  final profileViewModel = Provider.of<ProfileViewModel>(
+    context,
+    listen: false,
+  );
+  final driverId = profileViewModel.profileModel!.data!.id;
+  final driverIdStr = driverId.toString();
 
-    final bookings = FirebaseFirestore.instance.collection('order');
+  final bookings = FirebaseFirestore.instance.collection('order');
 
-    return bookings.snapshots().map((snapshot) {
-      final filtered = snapshot.docs
-          .where((doc) {
-            final data = doc.data() as Map<String, dynamic>;
-            final raw = data['available_driver_id'];
+  return bookings.snapshots().map((snapshot) {
+    final filtered = snapshot.docs
+        .where((doc) {
+      final data = doc.data() as Map<String, dynamic>;
 
-            List<dynamic> ids = [];
-            if (raw is List) {
-              ids = raw;
-            } else if (raw is String && raw.isNotEmpty) {
-              ids = [raw];
-            } else if (raw is int) {
-              ids = [raw];
-            }
+      // ✅ CHECK 1: Ride status should be 1, 2, 3, or 4 ONLY
+      final rideStatus = data['ride_status'] ?? 0;
+      final isActiveStatus = rideStatus == 0 || rideStatus == 1 || rideStatus == 2 || rideStatus == 3;
 
-            final idStrings = ids.map((e) => e.toString()).toList();
-            return idStrings.contains(driverIdStr);
-          })
-          .map((doc) {
-            final data = doc.data() as Map<String, dynamic>;
-            // Convert all fields to proper types
-            return {
-              'id': data['id']?.toString() ?? '', // Convert to string
-              'sender_name': data['sender_name']?.toString() ?? 'N/A',
-              'sender_phone': data['sender_phone']?.toString() ?? 'N/A',
-              'pickup_address': data['pickup_address']?.toString() ?? 'N/A',
-              'reciver_name': data['reciver_name']?.toString() ?? 'N/A',
-              'reciver_phone': data['reciver_phone']?.toString() ?? 'N/A',
-              'drop_address': data['drop_address']?.toString() ?? 'N/A',
-              'available_driver_id': data['available_driver_id'],
-            };
-          })
-          .toList();
+      if (!isActiveStatus) {
+        return false; // Skip if ride status is NOT 1,2,3,4
+      }
 
-      print('📦 Matched bookings: ${filtered.length}');
-      return filtered;
-    });
-  }
+      // ✅ CHECK 2: Driver should be in available_driver_id list
+      final raw = data['available_driver_id'];
+      List<dynamic> ids = [];
 
+      if (raw is List) {
+        ids = raw;
+      } else if (raw is String && raw.isNotEmpty) {
+        ids = [raw];
+      } else if (raw is int) {
+        ids = [raw];
+      }
+
+      final idStrings = ids.map((e) => e.toString()).toList();
+      final isDriverAvailable = idStrings.contains(driverIdStr);
+
+      return isDriverAvailable;
+    })
+        .map((doc) {
+      final data = doc.data() as Map<String, dynamic>;
+      // Convert all fields to proper types
+      return {
+        'id': data['id']?.toString() ?? '', // Convert to string
+        'sender_name': data['sender_name']?.toString() ?? 'N/A',
+        'sender_phone': data['sender_phone']?.toString() ?? 'N/A',
+        'pickup_address': data['pickup_address']?.toString() ?? 'N/A',
+        'reciver_name': data['reciver_name']?.toString() ?? 'N/A',
+        'reciver_phone': data['reciver_phone']?.toString() ?? 'N/A',
+        'drop_address': data['drop_address']?.toString() ?? 'N/A',
+        'available_driver_id': data['available_driver_id'],
+        'document_id': doc.id, // Add document ID for reference
+      };
+    })
+        .toList();
+
+    print('📦 Available bookings (ONLY status 1,2,3,4): ${filtered.length}');
+
+    // Debug: Print status of filtered bookings
+    for (var booking in filtered) {
+      print('🎯 Booking ID: ${booking['id']}');
+    }
+
+    return filtered;
+  });
+}
 
 /// ✅ Separate Widget for Booking Card for better performance
 class BookingCard extends StatelessWidget {
@@ -391,6 +417,7 @@ class BookingCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final assignRideViewModel = Provider.of<AssignRideViewModel>(context);
     final updateRideStatus = Provider.of<UpdateRideStatusViewModel>(context);
+
     return Container(
       margin: EdgeInsets.symmetric(
         horizontal: Sizes.screenWidth * 0.03,
@@ -418,7 +445,7 @@ class BookingCard extends StatelessWidget {
                     vertical: Sizes.screenHeight * 0.005,
                   ),
                   decoration: BoxDecoration(
-                    color: PortColor.gold.withOpacity(0.1), // Changed to gold
+                    color: PortColor.gold.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Row(
@@ -427,13 +454,13 @@ class BookingCard extends StatelessWidget {
                         Icons.confirmation_number,
                         color: PortColor.gold,
                         size: 16,
-                      ), // Changed to gold
+                      ),
                       SizedBox(width: Sizes.screenWidth * 0.01),
                       TextConst(
                         title: 'Booking ID',
                         size: Sizes.fontSizeFour,
                         fontWeight: FontWeight.bold,
-                        color: PortColor.gold, // Changed to gold
+                        color: PortColor.gold,
                       ),
                     ],
                   ),
@@ -525,7 +552,7 @@ class BookingCard extends StatelessWidget {
 
             // Action Buttons
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              // mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Expanded(
                   child: GestureDetector(
@@ -539,64 +566,64 @@ class BookingCard extends StatelessWidget {
                         vertical: Sizes.screenHeight * 0.012,
                       ),
                       decoration: BoxDecoration(
-                        color: PortColor.gold, // Changed to gold
+                        color: PortColor.gold,
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Center(
                         child: !assignRideViewModel.loading
                             ? Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  TextConst(
-                                    title: 'Accept',
-                                    color: PortColor.blackLight,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ],
-                              )
-                            : SizedBox(
-                                height: 20,
-                                width: 20,
-                                child: CircularProgressIndicator(
-                                  color: Colors.white,
-                                  strokeWidth: 2,
-                                ),
-                              ),
-                      ),
-                    ),
-                  ),
-                ),
-                SizedBox(width: Sizes.screenWidth * 0.03),
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () {
-                      updateRideStatus.updateRideApi(context, bookingData['id'].toString(), "8");
-                    },
-                    child: Container(
-                      padding: EdgeInsets.symmetric(
-                        vertical: Sizes.screenHeight * 0.012,
-                      ),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: PortColor.red),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Center(
-                        child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.cancel, color: PortColor.red, size: 18),
-                            SizedBox(width: Sizes.screenWidth * 0.02),
                             TextConst(
-                              title: 'Reject',
-                              color: PortColor.red,
-                              fontWeight: FontWeight.w600,
+                              title: 'Accept',
+                              color: PortColor.blackLight,
+                              fontWeight: FontWeight.w500,
                             ),
                           ],
+                        )
+                            : SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
                         ),
                       ),
                     ),
                   ),
                 ),
+                // SizedBox(width: Sizes.screenWidth * 0.03),
+                // Expanded(
+                //   child: GestureDetector(
+                //     onTap: () {
+                //       updateRideStatus.updateRideApi(context, bookingData['id'].toString(), "8");
+                //     },
+                //     child: Container(
+                //       padding: EdgeInsets.symmetric(
+                //         vertical: Sizes.screenHeight * 0.012,
+                //       ),
+                //       decoration: BoxDecoration(
+                //         border: Border.all(color: PortColor.red),
+                //         borderRadius: BorderRadius.circular(8),
+                //       ),
+                //       child: Center(
+                //         child: Row(
+                //           mainAxisAlignment: MainAxisAlignment.center,
+                //           children: [
+                //             Icon(Icons.cancel, color: PortColor.red, size: 18),
+                //             SizedBox(width: Sizes.screenWidth * 0.02),
+                //             TextConst(
+                //               title: 'Reject',
+                //               color: PortColor.red,
+                //               fontWeight: FontWeight.w600,
+                //             ),
+                //           ],
+                //         ),
+                //       ),
+                //     ),
+                //   ),
+                // ),
               ],
             ),
           ],
@@ -618,7 +645,7 @@ class BookingCard extends StatelessWidget {
             ? CrossAxisAlignment.start
             : CrossAxisAlignment.center,
         children: [
-          Icon(icon, color: PortColor.gold, size: 16), // Changed to gold
+          Icon(icon, color: PortColor.gold, size: 16),
           SizedBox(width: Sizes.screenWidth * 0.02),
           SizedBox(
             width: Sizes.screenWidth * 0.15,
