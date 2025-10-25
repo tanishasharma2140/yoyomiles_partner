@@ -308,7 +308,7 @@ class _LoginState extends State<Login> {
                         size: Sizes.fontSizeSeven,
                         fontWeight: FontWeight.w400,
                       )
-                    : CupertinoActivityIndicator(color: PortColor.black, radius: 12),
+                    : CupertinoActivityIndicator(color: PortColor.white, radius: 12),
               ),
             ),
           ],

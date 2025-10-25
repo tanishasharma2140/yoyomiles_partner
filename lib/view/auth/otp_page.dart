@@ -8,6 +8,7 @@ import 'package:yoyomiles_partner/res/app_fonts.dart';
 import 'package:yoyomiles_partner/res/constant_color.dart';
 import 'package:yoyomiles_partner/res/sizing_const.dart';
 import 'package:yoyomiles_partner/res/text_const.dart';
+import 'package:yoyomiles_partner/view/auth/login.dart';
 import 'package:yoyomiles_partner/view_model/auth_view_model.dart';
 import 'package:provider/provider.dart';
 
@@ -83,11 +84,21 @@ class _OtpPageState extends State<OtpPage> {
               children: [
                 TextConst(title: arguments["mobileNumber"]),
                 SizedBox(width: Sizes.screenWidth * 0.02),
-                const TextConst(
-                  title:
-                  "Change",
-                  color: PortColor.blue,
-                  fontWeight: FontWeight.bold,
+                GestureDetector(
+                  onTap: (){
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>  Login(),
+                      ),
+                    );
+                  },
+                  child: const TextConst(
+                    title:
+                    "Change",
+                    color: PortColor.blue,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ],
             ),
@@ -155,7 +166,7 @@ class _OtpPageState extends State<OtpPage> {
                       : Colors.black,
                   size: Sizes.fontSizeSeven,
                   fontWeight: FontWeight.w400,
-                ):  CupertinoActivityIndicator(color: PortColor.black, radius: 12),
+                ):  CupertinoActivityIndicator(color: PortColor.white, radius: 12),
               ),
             ),
 

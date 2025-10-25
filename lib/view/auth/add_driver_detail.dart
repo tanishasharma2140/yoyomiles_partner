@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/services.dart';
 import 'package:image/image.dart' as img;
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -519,6 +520,9 @@ class _AddDriverDetailState extends State<AddDriverDetail> {
           controller: _driverNameController,
           hintText: "Enter Name",
           hintStyle: TextStyle(color: PortColor.gray),
+          inputFormatters: [
+            FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]')),
+          ],
         )
       ],
     );
@@ -541,6 +545,10 @@ class _AddDriverDetailState extends State<AddDriverDetail> {
           hintText: "Driver Phone Number",
           hintStyle: TextStyle(color: PortColor.gray),
           keyboardType: TextInputType.phone,
+          maxLength: 10,
+          inputFormatters: [
+            FilteringTextInputFormatter.digitsOnly,
+          ],
         )
       ],
     );

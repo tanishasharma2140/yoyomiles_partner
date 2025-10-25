@@ -33,13 +33,41 @@ class OnlineStatusViewModel with ChangeNotifier {
       setLoading(false);
       if (value['success'] == true) {
         final profileViewModel = Provider.of<ProfileViewModel>(context, listen: false);
-        profileViewModel.profileApi();
+
+        print("🟢 Calling profileApi()...");
+        await profileViewModel.profileApi(); // make sure profileApi() is async
+        print("✅ profileApi() completed");
+
+        // 🟢 Print the received data
+        print("📦 Profile Data Received:");
+        print(profileViewModel.profileModel!.data!.toJson());
 
         if (status ==1){
-          FirebaseServices().saveOrUpdateDocument(driverId: userId.toString(), data: profileViewModel.profileModel!.data!.toJson());
+          print("✅ Status = 1 → Navigating to Map and saving driver data to Firebase...");
+
+          print("📦 Driver ID: $userId");
+          print("🧾 Driver Data (to be saved): ${profileViewModel.profileModel!.data!.toJson()}");
+
+          FirebaseServices().saveOrUpdateDocument(
+            driverId: userId.toString(),
+            data: profileViewModel.profileModel!.data!.toJson(),
+          );
+
+          print("🔥 Firebase saveOrUpdateDocument() called successfully!");
           Navigator.pushNamed(context, RoutesName.map);
         } else if (status == 0){
-          Navigator.pushNamed(context, RoutesName.register);
+          print("aman");
+          FirebaseServices().saveOrUpdateDocument(
+            driverId: userId.toString(),
+            data: profileViewModel.profileModel!.data!.toJson(),
+          );
+          Navigator.pushNamedAndRemoveUntil(
+            context,
+            RoutesName.register,
+                (Route<dynamic> route) => false, // removes all previous routes
+          );
+          // Navigator.of(context).pop();
+          // Navigator.pushReplacementNamed(context, RoutesName.register);
         }
       } else {
         Utils.showSuccessMessage(context, value["message"]);

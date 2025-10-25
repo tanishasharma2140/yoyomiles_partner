@@ -1003,64 +1003,124 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
 
         Padding(
           padding: EdgeInsets.symmetric(horizontal: Sizes.screenWidth * 0.04),
-          child: Row(
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildDetailRow(
-                      icon: Icons.confirmation_number,
-                      title: "Booking ID",
-                      content: liveRideViewModel.liveOrderModel!.data!.id.toString(),
-                      isHeader: true,
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildDetailRow(
+                          icon: Icons.confirmation_number,
+                          title: "Booking ID",
+                          content: liveRideViewModel.liveOrderModel!.data!.id.toString(),
+                          isHeader: true,
+                        ),
+                        SizedBox(height: Sizes.screenHeight * 0.008),
+                        _buildDetailRow(
+                          icon: Icons.directions_car,
+                          title: "Vehicle Type",
+                          content: liveRideViewModel.liveOrderModel!.data!.vehicleType == "1"
+                              ? "Truck"
+                              : liveRideViewModel.liveOrderModel!.data!.vehicleType == "2"
+                              ? "3 Wheeler"
+                              : liveRideViewModel.liveOrderModel!.data!.vehicleType == "3"
+                              ? "Bike"
+                              : "N/A",
+                          isHeader: true,
+                        ),
+                      ],
                     ),
-                    SizedBox(height: Sizes.screenHeight * 0.008),
-                    _buildDetailRow(
-                      icon: Icons.directions_car,
-                      title: "Vehicle Type",
-                      content: liveRideViewModel.liveOrderModel!.data!.vehicleType == "1"
-                          ? "Truck"
-                          : liveRideViewModel.liveOrderModel!.data!.vehicleType == "2"
-                          ? "3 Wheeler"
-                          : liveRideViewModel.liveOrderModel!.data!.vehicleType == "3"
-                          ? "Bike"
-                          : "N/A",
-                      isHeader: true,
-                    ),
+                  ),
 
-                  ],
-                ),
-              ),
-              SizedBox(width: Sizes.screenWidth * 0.02),
-              GestureDetector(
-                onTap: () => Launcher.launchDialPad(
-                  context,
-                  liveRideViewModel.liveOrderModel!.data!.senderPhone?.toString() ?? '9876543210',
-                ),
-                child: Container(
-                  padding: EdgeInsets.symmetric(
-                    vertical: Sizes.screenHeight * 0.008,
-                    horizontal: Sizes.screenWidth * 0.03,
-                  ),
-                  decoration: BoxDecoration(
-                    color: PortColor.gold,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
+                  // Amount and Distance as small badges
+                  Column(
                     children: [
-                      Icon(Icons.call, color: Colors.black, size: 16),
-                      SizedBox(width: Sizes.screenWidth * 0.01),
-                      TextConst(
-                        title: 'Call',
-                        color: Colors.black,
-                        size: Sizes.fontSizeFour,
+                      // Amount Badge
+                      Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: Sizes.screenWidth * 0.025,
+                          vertical: Sizes.screenHeight * 0.006,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.green.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(color: Colors.green.withOpacity(0.3)),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(Icons.currency_rupee, color: Colors.green, size: 14),
+                            SizedBox(width: Sizes.screenWidth * 0.006),
+                            TextConst(
+                              title: '${liveRideViewModel.liveOrderModel!.data!.amount ?? '0'}',
+                              size: Sizes.fontSizeFour - 1,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.green,
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(height: Sizes.screenHeight * 0.005),
+                      // Distance Badge
+                      Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: Sizes.screenWidth * 0.025,
+                          vertical: Sizes.screenHeight * 0.006,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.blue.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(color: Colors.blue.withOpacity(0.3)),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(Icons.space_dashboard, color: Colors.blue, size: 14),
+                            SizedBox(width: Sizes.screenWidth * 0.006),
+                            TextConst(
+                              title: '${liveRideViewModel.liveOrderModel!.data!.distance ?? '0'} km',
+                              size: Sizes.fontSizeFour - 1,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.blue,
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),
-                ),
+
+                  SizedBox(width: Sizes.screenWidth * 0.02),
+                  GestureDetector(
+                    onTap: () => Launcher.launchDialPad(
+                      context,
+                      liveRideViewModel.liveOrderModel!.data!.senderPhone?.toString() ?? '9876543210',
+                    ),
+                    child: Container(
+                      padding: EdgeInsets.symmetric(
+                        vertical: Sizes.screenHeight * 0.008,
+                        horizontal: Sizes.screenWidth * 0.03,
+                      ),
+                      decoration: BoxDecoration(
+                        color: PortColor.gold,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.call, color: Colors.black, size: 16),
+                          SizedBox(width: Sizes.screenWidth * 0.01),
+                          TextConst(
+                            title: 'Call',
+                            color: Colors.black,
+                            size: Sizes.fontSizeFour,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -1279,270 +1339,3 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
     );
   }
 }
-
-//   // ... (Rest of your existing methods remain exactly the same - _getButtonColor, _getButtonText, _showOtpDialog, _buildSectionHeader, _buildDetailRow, _getStatusText)
-//   Color _getButtonColor(int? rideStatus) {
-//     switch (rideStatus) {
-//       case 1:
-//         return PortColor.gold;
-//       case 2:
-//         return PortColor.buttonBlue;
-//       case 3:
-//         return Colors.purple;
-//       case 4:
-//         return Colors.green;
-//       case 5:
-//         return Colors.teal;
-//       default:
-//         return PortColor.gold;
-//     }
-//   }
-//
-//   String _getButtonText(int? status) {
-//     switch (status) {
-//       case 1:
-//         return "Start for Pickup";
-//       case 2:
-//         return "Arrived at Pickup Point";
-//       case 3:
-//         return "Start Ride";
-//       case 4:
-//         return "Reached";
-//       case 5:
-//         return "Ride Completed";
-//       default:
-//         return "Start for Pickup";
-//     }
-//   }
-//
-//   void _showOtpDialog(String orderId) {
-//     final TextEditingController _otpController = TextEditingController();
-//     final liveRideViewModel = Provider.of<LiveRideViewModel>(
-//       context,
-//       listen: false,
-//     );
-//
-//     showDialog(
-//       context: context,
-//       barrierDismissible: false,
-//       builder: (context) => WillPopScope(
-//         onWillPop: () async => false,
-//         child: Dialog(
-//           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-//           backgroundColor: Colors.white,
-//           child: Padding(
-//             padding: const EdgeInsets.all(20),
-//             child: Column(
-//               mainAxisSize: MainAxisSize.min,
-//               children: [
-//                 Icon(
-//                   Icons.verified_user_rounded,
-//                   color: PortColor.gold,
-//                   size: 50,
-//                 ),
-//                 const SizedBox(height: 10),
-//                 Text(
-//                   "Trip OTP Verification",
-//                   style: TextStyle(
-//                     fontSize: 18,
-//                     fontWeight: FontWeight.bold,
-//                     fontFamily: AppFonts.kanitReg,
-//                     color: Colors.black,
-//                   ),
-//                 ),
-//                 const SizedBox(height: 20),
-//
-//                 TextField(
-//                   controller: _otpController,
-//                   keyboardType: TextInputType.number,
-//                   textAlign: TextAlign.center,
-//                   decoration: InputDecoration(
-//                     hintText: "Enter OTP",
-//                     hintStyle: TextStyle(color: Colors.grey),
-//                     enabledBorder: OutlineInputBorder(
-//                       borderRadius: BorderRadius.circular(8),
-//                       borderSide: const BorderSide(
-//                         color: Colors.grey,
-//                         width: 1,
-//                       ),
-//                     ),
-//                     focusedBorder: OutlineInputBorder(
-//                       borderRadius: BorderRadius.circular(8),
-//                       borderSide: const BorderSide(
-//                         color: Colors.grey,
-//                         width: 1,
-//                       ),
-//                     ),
-//                   ),
-//                 ),
-//
-//                 const SizedBox(height: 20),
-//
-//                 Row(
-//                   children: [
-//                     Expanded(
-//                       child: OutlinedButton(
-//                         style: OutlinedButton.styleFrom(
-//                           side: const BorderSide(color: Colors.grey),
-//                           backgroundColor: Colors.white,
-//                           shape: RoundedRectangleBorder(
-//                             borderRadius: BorderRadius.circular(8),
-//                           ),
-//                         ),
-//                         onPressed: () => Navigator.of(context).pop(),
-//                         child: const Text(
-//                           "Cancel",
-//                           style: TextStyle(color: Colors.black),
-//                         ),
-//                       ),
-//                     ),
-//                     const SizedBox(width: 10),
-//                     Expanded(
-//                       child: ElevatedButton(
-//                         style: ElevatedButton.styleFrom(
-//                           backgroundColor: PortColor.gold,
-//                           shape: RoundedRectangleBorder(
-//                             borderRadius: BorderRadius.circular(8),
-//                           ),
-//                         ),
-//                         onPressed: () async {
-//                           final enteredOtp = _otpController.text.trim();
-//                           if (enteredOtp.isEmpty) {
-//                             ScaffoldMessenger.of(context).showSnackBar(
-//                               const SnackBar(
-//                                 content: Text("Please enter OTP"),
-//                                 backgroundColor: Colors.red,
-//                               ),
-//                             );
-//                             return;
-//                           }
-//
-//                           try {
-//                             final doc = await FirebaseFirestore.instance
-//                                 .collection('order')
-//                                 .doc(orderId)
-//                                 .get();
-//
-//                             final firestoreOtp =
-//                                 doc.data()?['otp']?.toString() ?? "";
-//
-//                             if (firestoreOtp == enteredOtp) {
-//                               await FirebaseFirestore.instance
-//                                   .collection('order')
-//                                   .doc(orderId)
-//                                   .update({'ride_status': 4});
-//
-//                               liveRideViewModel.liveOrderModel!.data!.rideStatus = 4;
-//
-//                               Navigator.of(context).pop();
-//                               ScaffoldMessenger.of(context).showSnackBar(
-//                                 const SnackBar(
-//                                   content: Text("OTP verified! Ride started."),
-//                                   backgroundColor: Colors.green,
-//                                 ),
-//                               );
-//                               setState(() {});
-//                             } else {
-//                               ScaffoldMessenger.of(context).showSnackBar(
-//                                 const SnackBar(
-//                                   content: Text("Invalid OTP. Try again."),
-//                                   backgroundColor: Colors.red,
-//                                 ),
-//                               );
-//                             }
-//                           } catch (e) {
-//                             ScaffoldMessenger.of(context).showSnackBar(
-//                               SnackBar(
-//                                 content: Text("Error: $e"),
-//                                 backgroundColor: Colors.red,
-//                               ),
-//                             );
-//                           }
-//                         },
-//                         child: const Text(
-//                           "Verify",
-//                           style: TextStyle(color: Colors.white),
-//                         ),
-//                       ),
-//                     ),
-//                   ],
-//                 ),
-//               ],
-//             ),
-//           ),
-//         ),
-//       ),
-//     );
-//   }
-//
-//   Widget _buildSectionHeader(String title) {
-//     return Container(
-//       padding: EdgeInsets.symmetric(vertical: Sizes.screenHeight * 0.005),
-//       child: TextConst(
-//         title: title,
-//         size: Sizes.fontSizeSix,
-//         fontWeight: FontWeight.bold,
-//         color: PortColor.gold,
-//       ),
-//     );
-//   }
-//
-//   Widget _buildDetailRow({
-//     required IconData icon,
-//     required String title,
-//     required String content,
-//     bool isAddress = false,
-//     bool isHeader = false,
-//   }) {
-//     return Padding(
-//       padding: EdgeInsets.only(bottom: Sizes.screenHeight * 0.01),
-//       child: Row(
-//         crossAxisAlignment: isAddress
-//             ? CrossAxisAlignment.start
-//             : CrossAxisAlignment.center,
-//         children: [
-//           Icon(icon, color: PortColor.gold, size: 16),
-//           SizedBox(width: Sizes.screenWidth * 0.02),
-//           Container(
-//             width: Sizes.screenWidth * (isHeader ? 0.25 : 0.15),
-//             child: TextConst(
-//               title: "$title:",
-//               size: Sizes.fontSizeFive,
-//               fontWeight: FontWeight.w500,
-//               color: PortColor.blackLight,
-//             ),
-//           ),
-//           SizedBox(width: Sizes.screenWidth * 0.02),
-//           Expanded(
-//             child: TextConst(
-//               title: content,
-//               size: Sizes.fontSizeFour,
-//               color: PortColor.black,
-//               maxLines: isAddress ? 2 : 1,
-//               overflow: TextOverflow.ellipsis,
-//             ),
-//           ),
-//         ],
-//       ),
-//     );
-//   }
-//
-//   String _getStatusText(int? rideStatus) {
-//     switch (rideStatus) {
-//       case 1:
-//         return "Accepted by Driver";
-//       case 2:
-//         return "Out for PickUp";
-//       case 3:
-//         return "At Pickup Point";
-//       case 4:
-//         return "Ride Started";
-//       case 5:
-//         return "Reached Destination";
-//       case 6:
-//         return "Payment Completed";
-//       default:
-//         return "Unknown Status";
-//     }
-//   }
-// }

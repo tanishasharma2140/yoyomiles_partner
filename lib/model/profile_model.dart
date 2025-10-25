@@ -27,6 +27,8 @@ class ProfileModel {
 
 class Data {
   int? id;
+  String? wallet;
+  String? duesPayment;
   String? vehicleNo;
   String? rcFront;
   String? rcBack;
@@ -35,7 +37,7 @@ class Data {
   String? vehicleBodyDetailsType;
   String? vehicleBodyType;
   int? fuelType;
-  String? ownerName;
+  dynamic ownerName;
   String? ownerAadhaarBack;
   String? ownerAadhaarFront;
   String? ownerPanFornt;
@@ -44,20 +46,22 @@ class Data {
   String? driverName;
   String? drivingLicenceBack;
   String? drivingLicenceFront;
-  int? verifyDocument;
   int? phone;
   int? driveOperator;
   dynamic deviceId;
   dynamic docRejResion;
   dynamic email;
-  int? onlineStatus;
   String? fcm;
   String? updatedAt;
   String? createdAt;
   int? status;
+  int? verifyDocument;
+  int? onlineStatus;
   int? ownerDocStatus;
   int? vehicleDocStatus;
   int? driverDocStatus;
+  int? ratingSum;
+  int? ratingCount;
   String? vehicleTypeName;
   String? vehicleTypeImage;
   String? vehicleBodyDetail;
@@ -68,6 +72,8 @@ class Data {
 
   Data(
       {this.id,
+        this.wallet,
+        this.duesPayment,
         this.vehicleNo,
         this.rcFront,
         this.rcBack,
@@ -85,20 +91,22 @@ class Data {
         this.driverName,
         this.drivingLicenceBack,
         this.drivingLicenceFront,
-        this.verifyDocument,
         this.phone,
         this.driveOperator,
         this.deviceId,
         this.docRejResion,
         this.email,
-        this.onlineStatus,
         this.fcm,
         this.updatedAt,
         this.createdAt,
         this.status,
+        this.verifyDocument,
+        this.onlineStatus,
         this.ownerDocStatus,
         this.vehicleDocStatus,
         this.driverDocStatus,
+        this.ratingSum,
+        this.ratingCount,
         this.vehicleTypeName,
         this.vehicleTypeImage,
         this.vehicleBodyDetail,
@@ -109,6 +117,8 @@ class Data {
 
   Data.fromJson(Map<String, dynamic> json) {
     id = json['id'];
+    wallet = json['wallet'];
+    duesPayment = json['dues_payment'];
     vehicleNo = json['vehicle_no'];
     rcFront = json['rc_front'];
     rcBack = json['rc_back'];
@@ -126,20 +136,22 @@ class Data {
     driverName = json['driver_name'];
     drivingLicenceBack = json['driving_licence_back'];
     drivingLicenceFront = json['driving_licence_front'];
-    verifyDocument = json['verify_document'];
     phone = json['phone'];
     driveOperator = json['drive_operator'];
     deviceId = json['device_id'];
     docRejResion = json['doc_rej_resion'];
     email = json['email'];
-    onlineStatus = json['online_status'];
     fcm = json['fcm'];
     updatedAt = json['updated_at'];
     createdAt = json['created_at'];
     status = json['status'];
+    verifyDocument = json['verify_document'];
+    onlineStatus = json['online_status'];
     ownerDocStatus = json['owner_doc_status'];
     vehicleDocStatus = json['vehicle_doc_status'];
     driverDocStatus = json['driver_doc_status'];
+    ratingSum = json['rating_sum'];
+    ratingCount = json['rating_count'];
     vehicleTypeName = json['vehicle_type_name'];
     vehicleTypeImage = json['vehicle_type_image'];
     vehicleBodyDetail = json['vehicle_body_detail'];
@@ -152,6 +164,8 @@ class Data {
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = <String, dynamic>{};
     data['id'] = id;
+    data['wallet'] = wallet;
+    data['dues_payment'] = duesPayment;
     data['vehicle_no'] = vehicleNo;
     data['rc_front'] = rcFront;
     data['rc_back'] = rcBack;
@@ -169,20 +183,22 @@ class Data {
     data['driver_name'] = driverName;
     data['driving_licence_back'] = drivingLicenceBack;
     data['driving_licence_front'] = drivingLicenceFront;
-    data['verify_document'] = verifyDocument;
     data['phone'] = phone;
     data['drive_operator'] = driveOperator;
     data['device_id'] = deviceId;
     data['doc_rej_resion'] = docRejResion;
     data['email'] = email;
-    data['online_status'] = onlineStatus;
     data['fcm'] = fcm;
     data['updated_at'] = updatedAt;
     data['created_at'] = createdAt;
     data['status'] = status;
+    data['verify_document'] = verifyDocument;
+    data['online_status'] = onlineStatus;
     data['owner_doc_status'] = ownerDocStatus;
     data['vehicle_doc_status'] = vehicleDocStatus;
     data['driver_doc_status'] = driverDocStatus;
+    data['rating_sum'] = ratingSum;
+    data['rating_count'] = ratingCount;
     data['vehicle_type_name'] = vehicleTypeName;
     data['vehicle_type_image'] = vehicleTypeImage;
     data['vehicle_body_detail'] = vehicleBodyDetail;

@@ -68,7 +68,7 @@ class _TripStatusState extends State<TripStatus> {
                   children: [
                     InkWell(
                       onTap: () {
-                        Navigator.of(context).pop();
+                        // Navigator.of(context).pop();
                         onlineStatusViewModel.onlineStatusApi(context, 0);
                       },
                       child: Container(
@@ -115,7 +115,7 @@ class _TripStatusState extends State<TripStatus> {
     return Scaffold(
       backgroundColor: PortColor.scaffoldBgGrey,
       appBar:  CustomAppBar(
-        name: profileViewModel.profileModel!.data!.driverName!,
+        name: profileViewModel.profileModel!.data!.driverName?? "Known",
         imageUrl: profileViewModel.profileModel!.data!.ownerSelfie ?? "",
         actions: [
           Transform.scale(
@@ -190,7 +190,7 @@ class _TripStatusState extends State<TripStatus> {
 
           return Stack(
             children: [
-              /// ✅ FIXED MAP SECTION
+              ///  FIXED MAP SECTION
               Positioned.fill(
                 top: 0,
                 bottom: MediaQuery.of(context).size.height * 0.25,
@@ -211,7 +211,7 @@ class _TripStatusState extends State<TripStatus> {
                 ),
               ),
 
-              /// ✅ DRAGGABLE SCROLLABLE BOOKING LIST
+              ///  DRAGGABLE SCROLLABLE BOOKING LIST
               DraggableScrollableSheet(
                 initialChildSize: 0.35,
                 minChildSize: 0.28,
@@ -301,7 +301,7 @@ class _TripStatusState extends State<TripStatus> {
                 },
               ),
 
-              /// ✅ TOP CURRENT ADDRESS BANNER
+              ///  TOP CURRENT ADDRESS BANNER
               if (_currentAddress != null)
                 Positioned(
                   top: 40,
@@ -331,6 +331,7 @@ class _TripStatusState extends State<TripStatus> {
                   ),
                 ),
             ],
+
           );
         },
       ),
@@ -392,6 +393,8 @@ Stream<List<Map<String, dynamic>>> fetchBookings(String driverVehicleType, conte
         'drop_address': data['drop_address']?.toString() ?? 'N/A',
         'available_driver_id': data['available_driver_id'],
         'document_id': doc.id, // Add document ID for reference
+        'amount': data['amount'] ?? 0,
+        'distance': data['distance'] ?? 0,
       };
     })
         .toList();
@@ -502,6 +505,62 @@ class BookingCard extends StatelessWidget {
                 ),
               ],
             ),
+
+            // Amount and Distance below header - ALTERNATIVE DESIGN
+            SizedBox(height: Sizes.screenHeight * 0.01),
+            Row(
+              children: [
+                // Amount with rupee icon
+                Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: Sizes.screenWidth * 0.04,
+                    vertical: Sizes.screenHeight * 0.01,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.green.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.green.withOpacity(0.3)),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.currency_rupee, color: Colors.green, size: 18),
+                      SizedBox(width: Sizes.screenWidth * 0.01),
+                      TextConst(
+                        title: '${bookingData['amount'] ?? '0'}',
+                        size: Sizes.fontSizeFour,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.green,
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(width: Sizes.screenWidth * 0.03),
+                // Distance with car icon
+                Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: Sizes.screenWidth * 0.04,
+                    vertical: Sizes.screenHeight * 0.01,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.blue.withOpacity(0.3)),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.directions_car, color: Colors.blue, size: 18),
+                      SizedBox(width: Sizes.screenWidth * 0.01),
+                      TextConst(
+                        title: '${bookingData['distance'] ?? '0'} km',
+                        size: Sizes.fontSizeFour,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blue,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
             SizedBox(height: Sizes.screenHeight * 0.015),
             const Divider(height: 1),
 
@@ -593,37 +652,6 @@ class BookingCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                // SizedBox(width: Sizes.screenWidth * 0.03),
-                // Expanded(
-                //   child: GestureDetector(
-                //     onTap: () {
-                //       updateRideStatus.updateRideApi(context, bookingData['id'].toString(), "8");
-                //     },
-                //     child: Container(
-                //       padding: EdgeInsets.symmetric(
-                //         vertical: Sizes.screenHeight * 0.012,
-                //       ),
-                //       decoration: BoxDecoration(
-                //         border: Border.all(color: PortColor.red),
-                //         borderRadius: BorderRadius.circular(8),
-                //       ),
-                //       child: Center(
-                //         child: Row(
-                //           mainAxisAlignment: MainAxisAlignment.center,
-                //           children: [
-                //             Icon(Icons.cancel, color: PortColor.red, size: 18),
-                //             SizedBox(width: Sizes.screenWidth * 0.02),
-                //             TextConst(
-                //               title: 'Reject',
-                //               color: PortColor.red,
-                //               fontWeight: FontWeight.w600,
-                //             ),
-                //           ],
-                //         ),
-                //       ),
-                //     ),
-                //   ),
-                // ),
               ],
             ),
           ],

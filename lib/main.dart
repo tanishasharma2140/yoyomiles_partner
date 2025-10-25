@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:yoyomiles_partner/firebase_options.dart';
+import 'package:yoyomiles_partner/model/transaction_model.dart';
 import 'package:yoyomiles_partner/res/notification_service.dart';
 import 'package:yoyomiles_partner/res/sizing_const.dart';
 import 'package:yoyomiles_partner/utils/routes/routes.dart';
@@ -25,6 +26,7 @@ import 'package:yoyomiles_partner/view_model/online_status_view_model.dart';
 import 'package:yoyomiles_partner/view_model/policy_view_model.dart';
 import 'package:yoyomiles_partner/view_model/profile_view_model.dart';
 import 'package:yoyomiles_partner/view_model/ride_history_view_model.dart';
+import 'package:yoyomiles_partner/view_model/transaction_view_model.dart';
 import 'package:yoyomiles_partner/view_model/update_ride_status_view_model.dart';
 import 'package:yoyomiles_partner/view_model/vehicle_body_detail_view_model.dart';
 import 'package:yoyomiles_partner/view_model/vehicle_name_view_model.dart';
@@ -113,6 +115,7 @@ class _MyAppState extends State<MyApp> {
           ChangeNotifierProvider(create: (context)=> DeleteBankDetailViewModel()),
           ChangeNotifierProvider(create: (context)=> HelpTopicsViewModel()),
           ChangeNotifierProvider(create: (context)=> ActiveRideViewModel()),
+          ChangeNotifierProvider(create: (context)=> TransactionViewModel()),
 
         ],
         child: MaterialApp(

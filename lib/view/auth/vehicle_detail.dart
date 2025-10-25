@@ -1,6 +1,9 @@
 import 'dart:convert';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:yoyomiles_partner/res/app_fonts.dart';
 import 'package:yoyomiles_partner/res/constant_color.dart';
 import 'package:yoyomiles_partner/res/custom_text_field.dart';
 import 'package:yoyomiles_partner/res/sizing_const.dart';
@@ -25,7 +28,8 @@ class VehicleDetail extends StatefulWidget {
 }
 
 class _VehicleDetailState extends State<VehicleDetail> {
-  final TextEditingController _vehicleNumberController = TextEditingController();
+  final TextEditingController _vehicleNumberController =
+      TextEditingController();
 
   // Variables to store IDs
   String? _selectedCityId;
@@ -46,6 +50,7 @@ class _VehicleDetailState extends State<VehicleDetail> {
   bool _isLoadingBodyTypes = false;
   bool _isLoadingFuelTypes = false;
   bool _isSubmitting = false;
+  bool _isValidated = false;
 
   XFile? _rcFrontFile;
   XFile? _rcBackFile;
@@ -59,7 +64,9 @@ class _VehicleDetailState extends State<VehicleDetail> {
       citiesVm.citiesApi();
 
       final driverVehicleVm = Provider.of<DriverVehicleViewModel>(
-          context, listen: false);
+        context,
+        listen: false,
+      );
       driverVehicleVm.driverVehicleApi();
     });
   }
@@ -114,7 +121,8 @@ class _VehicleDetailState extends State<VehicleDetail> {
                 _buildVehicleBodyDetailSection(),
 
               // Body Type Selection (show directly for vehicle ID 3, or after body detail selection for others)
-              if (_selectedVehicleTypeName != null && _shouldShowBodyTypeSection())
+              if (_selectedVehicleTypeName != null &&
+                  _shouldShowBodyTypeSection())
                 _buildBodyTypeSection(),
               if (_selectedBodyTypeName != null) const SizedBox(height: 16),
 
@@ -123,8 +131,7 @@ class _VehicleDetailState extends State<VehicleDetail> {
               if (_selectedFuelTypeName != null) const SizedBox(height: 24),
 
               // Continue Button
-              if (_selectedFuelTypeName != null)
-                _buildContinueButton(""),
+              if (_selectedFuelTypeName != null) _buildContinueButton(""),
             ],
           ),
         ),
@@ -143,7 +150,8 @@ class _VehicleDetailState extends State<VehicleDetail> {
   bool _shouldShowBodyTypeSection() {
     if (_selectedVehicleId == null) return false;
     if (_selectedVehicleId == "3") return true; // Show directly for scooter
-    return _selectedVehicleBodyDetailName != null; // Show after body detail for others
+    return _selectedVehicleBodyDetailName !=
+        null; // Show after body detail for others
   }
 
   Widget _buildVehicleTypeSection() {
@@ -176,11 +184,10 @@ class _VehicleDetailState extends State<VehicleDetail> {
                   title: vehicle.name ?? "Unknown",
                   color: Colors.blue,
                   isSelected: _selectedVehicleTypeName == vehicle.name,
-                  onTap: () =>
-                      _selectVehicleType(
-                        vehicle.name ?? "",
-                        vehicle.id?.toString() ?? "",
-                      ),
+                  onTap: () => _selectVehicleType(
+                    vehicle.name ?? "",
+                    vehicle.id?.toString() ?? "",
+                  ),
                 ),
               );
             }).toList(),
@@ -222,11 +229,11 @@ class _VehicleDetailState extends State<VehicleDetail> {
               imageUrl,
               width: 40,
               height: 40,
-              errorBuilder: (context, error, stackTrace) =>
-              const Icon(
-                  Icons.directions_car,
-                  size: 40,
-                  color: Colors.grey),
+              errorBuilder: (context, error, stackTrace) => const Icon(
+                Icons.directions_car,
+                size: 40,
+                color: Colors.grey,
+              ),
             ),
             const SizedBox(height: 8),
             Text(
@@ -272,7 +279,8 @@ class _VehicleDetailState extends State<VehicleDetail> {
                   )
                 else
                   Text(
-                    _selectedVehicleBodyDetailName ?? "Select Vehicle Body Detail",
+                    _selectedVehicleBodyDetailName ??
+                        "Select Vehicle Body Detail",
                     style: TextStyle(
                       fontFamily: 'Poppins',
                       fontSize: 14,
@@ -326,11 +334,10 @@ class _VehicleDetailState extends State<VehicleDetail> {
                   imageUrl: bodyType.image ?? "",
                   title: bodyType.bodyType ?? "Unknown",
                   isSelected: _selectedBodyTypeName == bodyType.bodyType,
-                  onTap: () =>
-                      _selectBodyType(
-                        bodyType.bodyType ?? "",
-                        bodyType.id?.toString() ?? "",
-                      ),
+                  onTap: () => _selectBodyType(
+                    bodyType.bodyType ?? "",
+                    bodyType.id?.toString() ?? "",
+                  ),
                 ),
               );
             },
@@ -374,11 +381,11 @@ class _VehicleDetailState extends State<VehicleDetail> {
               width: 40,
               height: 40,
               fit: BoxFit.contain,
-              errorBuilder: (context, error, stackTrace) =>
-              const Icon(
-                  Icons.directions_car,
-                  size: 40,
-                  color: Colors.grey),
+              errorBuilder: (context, error, stackTrace) => const Icon(
+                Icons.directions_car,
+                size: 40,
+                color: Colors.grey,
+              ),
               loadingBuilder: (context, child, loadingProgress) {
                 if (loadingProgress == null) return child;
                 return SizedBox(
@@ -388,7 +395,7 @@ class _VehicleDetailState extends State<VehicleDetail> {
                     child: CircularProgressIndicator(
                       value: loadingProgress.expectedTotalBytes != null
                           ? loadingProgress.cumulativeBytesLoaded /
-                          loadingProgress.expectedTotalBytes!
+                                loadingProgress.expectedTotalBytes!
                           : null,
                     ),
                   ),
@@ -430,44 +437,42 @@ class _VehicleDetailState extends State<VehicleDetail> {
         const SizedBox(height: 10),
         if (_isLoadingFuelTypes)
           const Center(child: CircularProgressIndicator())
+        else if (fuelTypeList == null || fuelTypeList.isEmpty)
+          const Text(
+            "No fuel types available for this vehicle",
+            style: TextStyle(
+              fontFamily: 'Poppins',
+              fontSize: 14,
+              color: Colors.grey,
+            ),
+          )
         else
-          if (fuelTypeList == null || fuelTypeList.isEmpty)
-            const Text(
-              "No fuel types available for this vehicle",
-              style: TextStyle(
-                fontFamily: 'Poppins',
-                fontSize: 14,
-                color: Colors.grey,
+          GestureDetector(
+            onTap: () => _showFuelTypeBottomSheet(),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey.shade400),
+                borderRadius: BorderRadius.circular(8),
               ),
-            )
-          else
-            GestureDetector(
-              onTap: () => _showFuelTypeBottomSheet(),
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 12, vertical: 12),
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey.shade400),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      _selectedFuelTypeName ?? "Select Vehicle Fuel Type",
-                      style: TextStyle(
-                        fontFamily: 'Poppins',
-                        fontSize: 14,
-                        color: _selectedFuelTypeName == null
-                            ? Colors.grey.shade600
-                            : Colors.black,
-                      ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    _selectedFuelTypeName ?? "Select Vehicle Fuel Type",
+                    style: TextStyle(
+                      fontFamily: 'Poppins',
+                      fontSize: 14,
+                      color: _selectedFuelTypeName == null
+                          ? Colors.grey.shade600
+                          : Colors.black,
                     ),
-                    Icon(Icons.arrow_drop_down, color: Colors.grey.shade600),
-                  ],
-                ),
+                  ),
+                  Icon(Icons.arrow_drop_down, color: Colors.grey.shade600),
+                ],
               ),
             ),
+          ),
       ],
     );
   }
@@ -560,7 +565,9 @@ class _VehicleDetailState extends State<VehicleDetail> {
     if (_selectedVehicleId == null || _selectedVehicleId!.isEmpty) return;
 
     final vehicleBodyDetailVm = Provider.of<VehicleBodyDetailViewModel>(
-        context, listen: false);
+      context,
+      listen: false,
+    );
 
     try {
       setState(() {
@@ -582,14 +589,14 @@ class _VehicleDetailState extends State<VehicleDetail> {
 
   void _showVehicleBodyDetailBottomSheet() async {
     if (_selectedVehicleId == null || _selectedVehicleId!.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please select a vehicle type first.")),
-      );
+      Utils.showErrorMessage(context, "Please select a vehicle type first.");
       return;
     }
 
     final vehicleBodyDetailVm = Provider.of<VehicleBodyDetailViewModel>(
-        context, listen: false);
+      context,
+      listen: false,
+    );
 
     showDialog(
       context: context,
@@ -603,9 +610,9 @@ class _VehicleDetailState extends State<VehicleDetail> {
 
       if (vehicleBodyDetailVm.vehicleBodyDetailModel?.data == null ||
           vehicleBodyDetailVm.vehicleBodyDetailModel!.data!.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text("No body details available for this vehicle.")),
+        Utils.showErrorMessage(
+          context,
+          "No body details available for this vehicle.",
         );
         return;
       }
@@ -627,7 +634,9 @@ class _VehicleDetailState extends State<VehicleDetail> {
                   children: [
                     const Padding(
                       padding: EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 12),
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
                       child: Text(
                         "Select Vehicle Body Detail",
                         style: TextStyle(
@@ -640,11 +649,14 @@ class _VehicleDetailState extends State<VehicleDetail> {
                     const Divider(height: 1, thickness: 1),
                     Expanded(
                       child: ListView.builder(
-                        itemCount: vehicleBodyDetailVm.vehicleBodyDetailModel!
-                            .data!.length,
+                        itemCount: vehicleBodyDetailVm
+                            .vehicleBodyDetailModel!
+                            .data!
+                            .length,
                         itemBuilder: (context, index) {
                           final vehicleBody = vehicleBodyDetailVm
-                              .vehicleBodyDetailModel!.data![index];
+                              .vehicleBodyDetailModel!
+                              .data![index];
                           return ListTile(
                             title: Text(
                               vehicleBody.bodyDetail ?? 'No Name',
@@ -656,10 +668,14 @@ class _VehicleDetailState extends State<VehicleDetail> {
                             onTap: () {
                               Navigator.pop(context);
                               setState(() {
-                                _selectedVehicleBodyDetailId = vehicleBody.id?.toString();
-                                _selectedVehicleBodyDetailName = vehicleBody.bodyDetail;
+                                _selectedVehicleBodyDetailId = vehicleBody.id
+                                    ?.toString();
+                                _selectedVehicleBodyDetailName =
+                                    vehicleBody.bodyDetail;
                               });
-                              print("Selected Vehicle Body Detail ID: $_selectedVehicleBodyDetailId, Name: $_selectedVehicleBodyDetailName");
+                              print(
+                                "Selected Vehicle Body Detail ID: $_selectedVehicleBodyDetailId, Name: $_selectedVehicleBodyDetailName",
+                              );
                             },
                           );
                         },
@@ -674,8 +690,9 @@ class _VehicleDetailState extends State<VehicleDetail> {
       );
     } catch (e) {
       Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error loading body details: ${e.toString()}")),
+      Utils.showErrorMessage(
+        context,
+        "Error loading body details: ${e.toString()}",
       );
     }
   }
@@ -687,9 +704,9 @@ class _VehicleDetailState extends State<VehicleDetail> {
     final fuelTypeList = fuelTypeVm.fuelTypeModel?.data;
 
     if (fuelTypeList == null || fuelTypeList.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text("No fuel types available for this vehicle.")),
+      Utils.showErrorMessage(
+        context,
+        "No fuel types available for this vehicle.",
       );
       return;
     }
@@ -738,7 +755,9 @@ class _VehicleDetailState extends State<VehicleDetail> {
                           _selectedFuelTypeId = fuelVehicle.id?.toString();
                           _selectedFuelTypeName = fuelVehicle.fuelType;
                         });
-                        print("Selected Fuel Type ID: $_selectedFuelTypeId, Name: $_selectedFuelTypeName");
+                        print(
+                          "Selected Fuel Type ID: $_selectedFuelTypeId, Name: $_selectedFuelTypeName",
+                        );
                       },
                     );
                   },
@@ -752,6 +771,7 @@ class _VehicleDetailState extends State<VehicleDetail> {
   }
 
   Widget _buildVehicleNumberSection() {
+    final formKey = GlobalKey<FormState>();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -762,13 +782,181 @@ class _VehicleDetailState extends State<VehicleDetail> {
           size: 15,
         ),
         const SizedBox(height: 8),
-        CustomTextField(
-          controller: _vehicleNumberController,
-          hintText: "Vehicle Number",
-          hintStyle: const TextStyle(color: PortColor.gray),
-        )
+
+        Form(
+          key: formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Vehicle Number Input Field with better styling
+              Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: CustomTextField(
+                  controller: _vehicleNumberController,
+                  hintText: "Enter Vehicle Number",
+                  hintStyle: TextStyle(
+                    color: Colors.grey[600],
+                    fontSize: 16,
+                  ),
+                  inputFormatters: [
+                    FilteringTextInputFormatter.allow(RegExp(r'[A-Za-z0-9]')),
+                    UpperCaseTextFormatter(),
+                    LengthLimitingTextInputFormatter(10),
+                  ],
+                  keyboardType: TextInputType.text,
+                  textCapitalization: TextCapitalization.characters,
+                  prefixIcon: const Icon(
+                    Icons.directions_car,
+                    color: Colors.grey,
+                    size: 24,
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 20),
+
+              // Show button and help text only if not validated
+              if (!_isValidated) ...[
+                // Validation Button with better styling
+                SizedBox(
+                  width: double.infinity,
+                  height: 45,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      final value = _vehicleNumberController.text.trim();
+                      final error = validateVehicleNumber(value);
+                      if (error != null) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Row(
+                              children: [
+                                const Icon(Icons.error_outline, color: Colors.white),
+                                const SizedBox(width: 8),
+                                Expanded(child: Text(error)),
+                              ],
+                            ),
+                            backgroundColor: Colors.red,
+                            behavior: SnackBarBehavior.floating,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        );
+                      } else {
+                        // Set validated to true and hide button & help text
+                        setState(() {
+                          _isValidated = true;
+                        });
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Row(
+                              children: [
+                                const Icon(Icons.check_circle, color: Colors.white),
+                                const SizedBox(width: 8),
+                                const Text('Vehicle number is valid'),
+                              ],
+                            ),
+                            backgroundColor: Colors.green,
+                            behavior: SnackBarBehavior.floating,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        );
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: PortColor.gold,
+                      foregroundColor: Colors.white,
+                      elevation: 4,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      shadowColor: PortColor.gold.withOpacity(0.3),
+                    ),
+                    child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.verified_user, size: 20, color: PortColor.blackLight),
+                        SizedBox(width: 8),
+                        Text(
+                          'Validate Vehicle Number',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: PortColor.blackLight,
+                            fontFamily: AppFonts.kanitReg,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+
+                // Help text
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: Text(
+                    'Enter your vehicle number in uppercase (e.g., DL01AB1234)',
+                    style: TextStyle(
+                      color: Colors.grey[600],
+                      fontSize: 12,
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                ),
+              ],
+
+              // Show success message when validated
+              if (_isValidated) ...[
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: Row(
+                    children: [
+                      Icon(Icons.check_circle, color: Colors.green, size: 20),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Vehicle number validated successfully',
+                        style: TextStyle(
+                          color: Colors.green,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          fontFamily: AppFonts.kanitReg,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
       ],
     );
+  }
+
+  String? validateVehicleNumber(String value) {
+    final RegExp vehicleRegExp = RegExp(
+      r'^[A-Z]{2}[0-9]{2}[A-Z]{1,2}[0-9]{4}$',
+    );
+
+    if (value.isEmpty) {
+      return 'Vehicle number is required';
+    } else if (!vehicleRegExp.hasMatch(value)) {
+      return 'Enter a valid vehicle number (e.g., MH12AB1234)';
+    }
+    return null;
   }
 
   Widget _buildVehicleRCSection() {
@@ -788,72 +976,108 @@ class _VehicleDetailState extends State<VehicleDetail> {
         const SizedBox(height: 8),
         InkWell(
           onTap: () async {
-            final citiesVm = Provider.of<CitiesViewModel>(context, listen: false);
+            final citiesVm = Provider.of<CitiesViewModel>(
+              context,
+              listen: false,
+            );
+
             final selected = await showModalBottomSheet<Map<String, dynamic>>(
               context: context,
+              isScrollControlled: true,
               builder: (context) {
-                return Container(
-                  color: PortColor.white,
-                  height: MediaQuery.of(context).size.height * 0.4,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                        child: Text(
-                          "Select the city of operation",
-                          style: TextStyle(
-                            fontFamily: 'Poppins',
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
+                List filteredCities =
+                List.from(citiesVm.citiesModel?.data ?? []);
+                return StatefulBuilder(
+                  builder: (context, setModalState) {
+                    return Container(
+                      padding: const EdgeInsets.all(16),
+                      color: PortColor.white,
+                      height: MediaQuery.of(context).size.height * 0.6,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            "Select the city of operation",
+                            style: TextStyle(
+                              fontFamily: 'Poppins',
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
-                        ),
-                      ),
-                      const Divider(height: 1, thickness: 1),
-                      Expanded(
-                        child: ListView.builder(
-                          itemCount: citiesVm.citiesModel?.data?.length ?? 0,
-                          itemBuilder: (context, index) {
-                            final city = citiesVm.citiesModel!.data![index];
-                            final isSelected = city.id == _selectedCityId;
-                            return Container(
-                              color: isSelected
-                                  ? Colors.blue.shade50
-                                  : Colors.transparent,
-                              child: ListTile(
-                                title: Text(
-                                  city.cityName!,
-                                  style: TextStyle(
-                                    fontFamily: 'Poppins',
-                                    fontSize: 14,
-                                    fontWeight: isSelected
-                                        ? FontWeight.w600
-                                        : FontWeight.normal,
-                                    color: isSelected ? Colors.blue : Colors.black,
+                          const SizedBox(height: 10),
+                          CustomTextField(
+                            hintText: "Search City",
+                            height: 40,
+                            prefixIcon: Icon(Icons.search),
+                            onChanged: (value) {
+                              setModalState(() {
+                                filteredCities = citiesVm.citiesModel?.data
+                                    ?.where((city) => city.cityName!
+                                    .toLowerCase()
+                                    .contains(value.toLowerCase()))
+                                    .toList() ??
+                                    [];
+                              });
+                            },
+                          ),
+                          const SizedBox(height: 10),
+                          const Divider(height: 1, thickness: 1),
+                          Expanded(
+                            child: filteredCities.isEmpty
+                                ? const Center(
+                              child: Text('No cities found'),
+                            )
+                                : ListView.builder(
+                              itemCount: filteredCities.length,
+                              itemBuilder: (context, index) {
+                                final city = filteredCities[index];
+                                final isSelected =
+                                    city.id == _selectedCityId;
+                                return Container(
+                                  color: isSelected
+                                      ? Colors.blue.shade50
+                                      : Colors.transparent,
+                                  child: ListTile(
+                                    title: Text(
+                                      city.cityName!,
+                                      style: TextStyle(
+                                        fontFamily: 'Poppins',
+                                        fontSize: 14,
+                                        fontWeight: isSelected
+                                            ? FontWeight.w600
+                                            : FontWeight.normal,
+                                        color: isSelected
+                                            ? Colors.blue
+                                            : Colors.black,
+                                      ),
+                                    ),
+                                    onTap: () {
+                                      Navigator.pop(context, {
+                                        'id': city.id.toString(),
+                                        'name': city.cityName,
+                                      });
+                                    },
                                   ),
-                                ),
-                                onTap: () {
-                                  Navigator.pop(context, {
-                                    'id': city.id.toString(),
-                                    'name': city.cityName
-                                  });
-                                },
-                              ),
-                            );
-                          },
-                        ),
+                                );
+                              },
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
+                    );
+                  },
                 );
               },
             );
+
             if (selected != null) {
               setState(() {
                 _selectedCityId = selected['id'];
                 _selectedCityName = selected['name'];
               });
-              print("Selected City ID: $_selectedCityId, Name: $_selectedCityName");
+              print(
+                "Selected City ID: $_selectedCityId, Name: $_selectedCityName",
+              );
             }
           },
           child: Container(
@@ -901,6 +1125,7 @@ class _VehicleDetailState extends State<VehicleDetail> {
               child: _buildUploadButton(
                 text: _rcFrontFile != null ? 'Front Uploaded' : 'Front Side',
                 onPressed: () => _uploadRCDocument('front'),
+                isUploaded: _rcFrontFile != null,
               ),
             ),
             const SizedBox(width: 12),
@@ -908,6 +1133,7 @@ class _VehicleDetailState extends State<VehicleDetail> {
               child: _buildUploadButton(
                 text: _rcBackFile != null ? 'Back Uploaded' : 'Back Side',
                 onPressed: () => _uploadRCDocument('back'),
+                isUploaded: _rcBackFile != null,
               ),
             ),
           ],
@@ -921,26 +1147,39 @@ class _VehicleDetailState extends State<VehicleDetail> {
   Widget _buildUploadButton({
     required String text,
     required VoidCallback onPressed,
+    bool isUploaded = false, // ✅ Add uploaded flag
   }) {
     return GestureDetector(
       onTap: onPressed,
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
         decoration: BoxDecoration(
-          border: Border.all(color: Colors.grey.shade400),
+          border: Border.all(
+            color: isUploaded
+                ? Colors.green
+                : Colors.grey.shade400, // ✅ dynamic border
+            width: 1,
+          ),
           borderRadius: BorderRadius.circular(4),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.camera_alt_outlined, size: 16,
-                color: Colors.grey.shade600),
+            Icon(
+              Icons.camera_alt_outlined,
+              size: 16,
+              color: isUploaded
+                  ? Colors.green
+                  : Colors.grey.shade600, // ✅ icon color
+            ),
             const SizedBox(width: 6),
             Text(
               text,
               style: TextStyle(
                 fontSize: 12,
-                color: Colors.grey.shade700,
+                color: isUploaded
+                    ? Colors.green
+                    : Colors.grey.shade700, // ✅ text color
                 fontFamily: 'Poppins',
               ),
             ),
@@ -969,12 +1208,8 @@ class _VehicleDetailState extends State<VehicleDetail> {
   }
 
   Widget _buildContinueButton(String userId) {
-    return _isSubmitting
-        ? const Center(child: CircularProgressIndicator())
-        : GestureDetector(
-      onTap: () {
-        _submitVehicleDetails(userId);
-      },
+    return GestureDetector(
+      onTap: _isSubmitting ? null : () => _submitVehicleDetails(userId),
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.symmetric(vertical: 10),
@@ -983,12 +1218,21 @@ class _VehicleDetailState extends State<VehicleDetail> {
           borderRadius: BorderRadius.circular(8),
         ),
         alignment: Alignment.center,
-        child: const TextConst(
-          title: 'Continue',
-          size: 15,
-          fontWeight: FontWeight.w600,
-          color: Colors.white,
-        ),
+        child: _isSubmitting
+            ? SizedBox(
+                height: 18,
+                width: 18,
+                child: CupertinoActivityIndicator(
+                  color: Colors.white,
+                  radius: 12,
+                ),
+              )
+            : const TextConst(
+                title: 'Continue',
+                size: 15,
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
+              ),
       ),
     );
   }
@@ -1016,51 +1260,37 @@ class _VehicleDetailState extends State<VehicleDetail> {
 
     // Validation
     if (_vehicleNumberController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please enter vehicle number")),
-      );
+      Utils.showErrorMessage(context, "Please enter vehicle number");
       return;
     }
 
     if (_rcFrontFile == null || _rcBackFile == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please upload both RC front and back")),
-      );
+      Utils.showErrorMessage(context, "Please upload both RC front and back");
       return;
     }
 
     if (_selectedCityId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please select city")),
-      );
+      Utils.showErrorMessage(context, "Please select city");
       return;
     }
 
     if (_selectedVehicleId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please select vehicle type")),
-      );
+      Utils.showErrorMessage(context, "Please select vehicle type");
       return;
     }
 
     if (_selectedVehicleBodyDetailId == null && _selectedVehicleId != "3") {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please select vehicle body detail")),
-      );
+      Utils.showErrorMessage(context, "Please select vehicle body detail");
       return;
     }
 
     if (_selectedBodyTypeId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please select body type")),
-      );
+      Utils.showErrorMessage(context, "Please select body type");
       return;
     }
 
     if (_selectedFuelTypeId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please select fuel type")),
-      );
+      Utils.showErrorMessage(context, "Please select fuel type");
       return;
     }
 
@@ -1099,7 +1329,8 @@ class _VehicleDetailState extends State<VehicleDetail> {
 
       // For scooter, we might not have body details
       if (_selectedVehicleBodyDetailId != null) {
-        request.fields['vehicle_body_details_type'] = _selectedVehicleBodyDetailId!; // ID भेजें
+        request.fields['vehicle_body_details_type'] =
+            _selectedVehicleBodyDetailId!; // ID भेजें
       } else {
         request.fields['vehicle_body_details_type'] = '0';
       }
@@ -1137,9 +1368,10 @@ class _VehicleDetailState extends State<VehicleDetail> {
       if (response.statusCode == 200 && jsonResponse['success'] == true) {
         print("✅ API Response Success - User ID used: $userId");
         print("📋 API Response: ${jsonResponse['message']}");
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(jsonResponse['message'] ?? "Vehicle details submitted successfully!")),
-        );
+        Utils.showSuccessMessage(context, jsonResponse['message']);
+
+        // Error
+        // Utils.showErrorMessage(context, jsonResponse['message']);
 
         final profileVm = Provider.of<ProfileViewModel>(context, listen: false);
 
@@ -1151,37 +1383,74 @@ class _VehicleDetailState extends State<VehicleDetail> {
           return;
         }
 
-        debugPrint("OwnerDoc: ${profile.ownerDocStatus}, VehicleDoc: ${profile.vehicleDocStatus}, DriverDoc: ${profile.driverDocStatus}");
+        debugPrint(
+          "OwnerDoc: ${profile.ownerDocStatus}, VehicleDoc: ${profile.vehicleDocStatus}, DriverDoc: ${profile.driverDocStatus}",
+        );
 
         if (profile.ownerDocStatus == 0 || profile.ownerDocStatus == 2) {
-          Navigator.pushNamed(context, RoutesName.owner, arguments: {'user_id': userId});
-        } else if (profile.vehicleDocStatus == 0 || profile.vehicleDocStatus == 2) {
-          Navigator.pushNamed(context, RoutesName.vehicleDetail, arguments: {'user_id': userId});
-        } else if (profile.driverDocStatus == 0 || profile.driverDocStatus == 2) {
+          Navigator.pushNamed(
+            context,
+            RoutesName.owner,
+            arguments: {'user_id': userId},
+          );
+        } else if (profile.vehicleDocStatus == 0 ||
+            profile.vehicleDocStatus == 2) {
+          Navigator.pushNamed(
+            context,
+            RoutesName.vehicleDetail,
+            arguments: {'user_id': userId},
+          );
+        } else if (profile.driverDocStatus == 0 ||
+            profile.driverDocStatus == 2) {
           print(" Navigating to AddDriverDetail screen with User ID: $userId");
-          Navigator.pushNamed(context, RoutesName.addDriverDetail, arguments: {'user_id': userId});
+          Navigator.pushNamed(
+            context,
+            RoutesName.addDriverDetail,
+            arguments: {'user_id': userId},
+          );
         } else if (profile.ownerDocStatus == 1 &&
             profile.vehicleDocStatus == 1 &&
             profile.driverDocStatus == 1) {
-          Navigator.pushNamed(context, RoutesName.register, arguments: {'user_id': userId});
+          Navigator.pushNamed(
+            context,
+            RoutesName.register,
+            arguments: {'user_id': userId},
+          );
         } else {
-          Navigator.pushNamed(context, RoutesName.register, arguments: {'user_id': userId});
+          Navigator.pushNamed(
+            context,
+            RoutesName.register,
+            arguments: {'user_id': userId},
+          );
         }
       } else {
-        // Error
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(jsonResponse['message'] ?? 'Unknown error')),
+        Utils.showErrorMessage(
+          context,
+          jsonResponse['message'] ?? 'Unknown error',
         );
+        // Error
       }
-
     } catch (e) {
       setState(() {
         _isSubmitting = false;
       });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error submitting vehicle details: ${e.toString()}")),
+      Utils.showErrorMessage(
+        context,
+        "Error submitting vehicle details: ${e.toString()}",
       );
     }
+  }
+}
+
+class UpperCaseTextFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    return TextEditingValue(
+      text: newValue.text.toUpperCase(),
+      selection: newValue.selection,
+    );
   }
 }

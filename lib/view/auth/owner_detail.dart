@@ -324,25 +324,38 @@ class _OwnerDetailState extends State<OwnerDetail> {
     required String documentType,
     required String side,
   }) {
+    // ✅ Check if this side is uploaded
+    bool isUploaded = false;
+    if (documentType == 'selfie') {
+      isUploaded = selfie['front'] != null;
+    } else if (documentType == 'aadhaar') {
+      isUploaded = aadhaarCard[side] != null;
+    } else if (documentType == 'pan') {
+      isUploaded = panCard[side] != null;
+    }
+
     return GestureDetector(
       onTap: () => _pickImage(documentType, side),
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
         decoration: BoxDecoration(
-          border: Border.all(color: Colors.grey.shade400),
+          border: Border.all(
+            color: isUploaded ? Colors.green : Colors.grey.shade400,
+            width: 1,
+          ),
           borderRadius: BorderRadius.circular(4),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(Icons.camera_alt_outlined,
-                size: 16, color: Colors.grey.shade600),
+                size: 16, color: isUploaded ? Colors.green : Colors.grey.shade600),
             const SizedBox(width: 6),
             Text(
               text,
               style: TextStyle(
                 fontSize: 12,
-                color: Colors.grey.shade700,
+                color: isUploaded ? Colors.green : Colors.grey.shade700,
                 fontFamily: 'Poppins',
               ),
             ),
@@ -351,6 +364,7 @@ class _OwnerDetailState extends State<OwnerDetail> {
       ),
     );
   }
+
 
   Widget _buildStatusIndicator({
     required Map<String, dynamic> document,
@@ -407,49 +421,55 @@ class _OwnerDetailState extends State<OwnerDetail> {
 
   Future<void> _pickImage(String documentType, String side) async {
     try {
-      final XFile? image = await _picker.pickImage(
-        source: ImageSource.camera,
-        maxWidth: 1024,
-        imageQuality: 80,
-      );
+      XFile? image;
+
+      // 👇 If it's a selfie, open FRONT camera
+      if (documentType == 'selfie') {
+        image = await _picker.pickImage(
+          source: ImageSource.camera,
+          preferredCameraDevice: CameraDevice.front,
+          maxWidth: 1024,
+          imageQuality: 80,
+        );
+      } else {
+        // Aadhaar / PAN uses rear camera
+        image = await _picker.pickImage(
+          source: ImageSource.camera,
+          preferredCameraDevice: CameraDevice.rear,
+          maxWidth: 1024,
+          imageQuality: 80,
+        );
+      }
 
       if (image != null) {
+        final imagePath = image.path; // ✅ safely store path here
+
         setState(() {
           if (documentType == 'aadhaar') {
-            aadhaarCard[side] = image.path;
+            aadhaarCard[side] = imagePath;
           } else if (documentType == 'pan') {
-            panCard[side] = image.path;
+            panCard[side] = imagePath;
           } else if (documentType == 'selfie') {
-            selfie[side] = image.path;
+            selfie[side] = imagePath;
           }
         });
-
-        if (!mounted) return;
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-                '$documentType ${side != 'front' ? side : ''} uploaded successfully!'),
-            backgroundColor: Colors.green,
-            duration: const Duration(seconds: 2),
-          ),
-        );
       }
     } catch (e) {
       debugPrint('Error picking image: $e');
       if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to pick image: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      Utils.showErrorMessage(context, 'Failed to pick image: $e');
     }
   }
 
+
+
   bool _validateForm() {
     if (!_formKey.currentState!.validate()) {
+      return false;
+    }
+
+    if(_nameController.text.isEmpty){
+      Utils.showErrorMessage(context, "Please Enter Name");
       return false;
     }
 

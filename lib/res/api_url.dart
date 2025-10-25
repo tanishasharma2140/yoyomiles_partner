@@ -21,6 +21,7 @@ class ApiUrl{
   static const String policyUrl ="${baseUrl}login_policy/";
   static const String deleteBankDetailUrl ="${baseUrl}delete_bank_details/";
   static const String activeRideUrl ="${baseUrl}active_ride?";
+  static const String transactionUrl ="${baseUrl}transactions";
 
   static const String sendOtpUrl ="https://otp.fctechteam.org/send_otp.php?mode=test&digit=4&mobile=";
   static const String verifyOtpUrl ="https://otp.fctechteam.org/verifyotp.php?mobile=";

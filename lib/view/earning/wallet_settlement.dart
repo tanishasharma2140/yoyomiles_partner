@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:yoyomiles_partner/res/animated_gradient_border.dart';
 import 'package:yoyomiles_partner/res/app_fonts.dart';
 import 'package:yoyomiles_partner/res/constant_color.dart';
@@ -7,6 +8,8 @@ import 'package:yoyomiles_partner/res/text_const.dart';
 import 'package:yoyomiles_partner/view/bank_detail.dart' show BankDetail;
 import 'package:yoyomiles_partner/view/earning/help.dart';
 import 'package:yoyomiles_partner/view/earning/with_draw_history.dart' show WithDrawHistory;
+import 'package:yoyomiles_partner/view_model/profile_view_model.dart';
+import 'package:yoyomiles_partner/view_model/transaction_view_model.dart';
 
 class WalletSettlement extends StatefulWidget {
   const WalletSettlement({super.key});
@@ -20,71 +23,81 @@ class _WalletSettlementState extends State<WalletSettlement> {
   double _pendingBalance = 3250.00;
   double _totalEarnings = 21810.50;
 
-  List<Map<String, dynamic>> _transactions = [
-    {
-      'id': '1',
-      'type': 'credit',
-      'amount': 1250.00,
-      'description': 'Trip Earnings',
-      'date': 'Today, 10:30 AM',
-      'status': 'completed',
-      'icon': Icons.directions_car,
-    },
-    {
-      'id': '2',
-      'type': 'debit',
-      'amount': 5000.00,
-      'description': 'Bank Transfer',
-      'date': 'Yesterday, 02:15 PM',
-      'status': 'completed',
-      'icon': Icons.account_balance,
-    },
-    {
-      'id': '3',
-      'type': 'credit',
-      'amount': 850.00,
-      'description': 'Bonus Payment',
-      'date': '15 Dec, 09:45 AM',
-      'status': 'completed',
-      'icon': Icons.workspace_premium,
-    },
-    {
-      'id': '4',
-      'type': 'credit',
-      'amount': 1650.00,
-      'description': 'Weekly Incentive',
-      'date': '14 Dec, 11:20 AM',
-      'status': 'pending',
-      'icon': Icons.celebration,
-    },
-    {
-      'id': '5',
-      'type': 'debit',
-      'amount': 200.00,
-      'description': 'Service Fee',
-      'date': '13 Dec, 04:30 PM',
-      'status': 'completed',
-      'icon': Icons.receipt,
-    },
-    {
-      'id': '6',
-      'type': 'credit',
-      'amount': 1200.00,
-      'description': 'Trip Earnings',
-      'date': '12 Dec, 08:15 AM',
-      'status': 'completed',
-      'icon': Icons.directions_car,
-    },
-    {
-      'id': '7',
-      'type': 'credit',
-      'amount': 950.00,
-      'description': 'Night Bonus',
-      'date': '11 Dec, 11:30 PM',
-      'status': 'completed',
-      'icon': Icons.nightlight,
-    },
-  ];
+  // List<Map<String, dynamic>> _transactions = [
+  //   {
+  //     'id': '1',
+  //     'type': 'credit',
+  //     'amount': 1250.00,
+  //     'description': 'Trip Earnings',
+  //     'date': 'Today, 10:30 AM',
+  //     'status': 'completed',
+  //     'icon': Icons.directions_car,
+  //   },
+  //   {
+  //     'id': '2',
+  //     'type': 'debit',
+  //     'amount': 5000.00,
+  //     'description': 'Bank Transfer',
+  //     'date': 'Yesterday, 02:15 PM',
+  //     'status': 'completed',
+  //     'icon': Icons.account_balance,
+  //   },
+  //   {
+  //     'id': '3',
+  //     'type': 'credit',
+  //     'amount': 850.00,
+  //     'description': 'Bonus Payment',
+  //     'date': '15 Dec, 09:45 AM',
+  //     'status': 'completed',
+  //     'icon': Icons.workspace_premium,
+  //   },
+  //   {
+  //     'id': '4',
+  //     'type': 'credit',
+  //     'amount': 1650.00,
+  //     'description': 'Weekly Incentive',
+  //     'date': '14 Dec, 11:20 AM',
+  //     'status': 'pending',
+  //     'icon': Icons.celebration,
+  //   },
+  //   {
+  //     'id': '5',
+  //     'type': 'debit',
+  //     'amount': 200.00,
+  //     'description': 'Service Fee',
+  //     'date': '13 Dec, 04:30 PM',
+  //     'status': 'completed',
+  //     'icon': Icons.receipt,
+  //   },
+  //   {
+  //     'id': '6',
+  //     'type': 'credit',
+  //     'amount': 1200.00,
+  //     'description': 'Trip Earnings',
+  //     'date': '12 Dec, 08:15 AM',
+  //     'status': 'completed',
+  //     'icon': Icons.directions_car,
+  //   },
+  //   {
+  //     'id': '7',
+  //     'type': 'credit',
+  //     'amount': 950.00,
+  //     'description': 'Night Bonus',
+  //     'date': '11 Dec, 11:30 PM',
+  //     'status': 'completed',
+  //     'icon': Icons.nightlight,
+  //   },
+  // ];
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      print("trabsactuyon");
+      final transactionVm = Provider.of<TransactionViewModel>(context, listen: false);
+      transactionVm.transactionApi(context);
+    });
+  }
 
   List<Map<String, dynamic>> _withdrawalMethods = [
     {
@@ -148,16 +161,16 @@ class _WalletSettlementState extends State<WalletSettlement> {
   }
 
   Widget _buildBalanceCard() {
+    final driverProfile = Provider.of<ProfileViewModel>(context);
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: Sizes.screenWidth * 0.045),
       child: AnimatedGradientBorder(
         borderSize: 0.2,
-        glowSize: 0, // optional glow
+        glowSize: 0,
         gradientColors: [
           Color(0xFFFFA726),
           Colors.transparent,
           Color(0xFFFFD54F),
-
         ],
         borderRadius: BorderRadius.circular(12),
         child: Container(
@@ -180,47 +193,103 @@ class _WalletSettlementState extends State<WalletSettlement> {
           ),
           child: Column(
             children: [
-              TextConst(title:
-                'Total Available Balance',
-                 size: 15,
-                color: PortColor.black,
-              ),
               SizedBox(height: 8),
+              // Main wallet amount - centered
               Text(
-                '₹${_availableBalance.toStringAsFixed(2)}',
+                '₹${driverProfile.profileModel!.data!.wallet}',
                 style: TextStyle(
                   color: PortColor.blackLight,
                   fontFamily: AppFonts.kanitReg,
-                  fontSize: 30,
+                  fontSize: 32,
                   fontWeight: FontWeight.bold,
                   shadows: [
                     Shadow(
-                      color: Colors.black.withOpacity(0.25), // shadow color
-                      offset: Offset(2, 2), // x and y offset
-                      blurRadius: 4, // blur for softness
+                      color: Colors.black.withOpacity(0.25),
+                      offset: Offset(2, 2),
+                      blurRadius: 4,
                     ),
                   ],
                 ),
               ),
-              SizedBox(height: 15),
+              SizedBox(height: 4),
+              TextConst(
+                title: 'Available Balance',
+                size: 14,
+                color: PortColor.black,
+              ),
+              SizedBox(height: 20),
+              // Two wallets - left and right
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  _buildBalanceItem(
-                    'Pending',
-                    '₹${_pendingBalance.toStringAsFixed(2)}',
-                    Icons.pending_actions,
+                  // Main Wallet - Left side
+                  Expanded(
+                    child: _buildWalletItem(
+                      'Main Wallet',
+                      '₹${driverProfile.profileModel!.data!.wallet}',
+                      Icons.account_balance_wallet,
+                      Colors.green,
+                    ),
                   ),
-                  _buildBalanceItem(
-                    'Total Earnings',
-                    '₹${_totalEarnings.toStringAsFixed(2)}',
-                    Icons.trending_up,
+                  SizedBox(width: 16),
+                  // Due Wallet - Right side
+                  Expanded(
+                    child: _buildWalletItem(
+                      'Due Wallet',
+                      '₹${_pendingBalance.toStringAsFixed(2)}',
+                      Icons.pending,
+                      Colors.orange,
+                    ),
                   ),
                 ],
               ),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+// Updated helper widget for wallet items
+  Widget _buildWalletItem(String title, String amount, IconData icon, Color color) {
+    return Container(
+      padding: EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.2),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: color.withOpacity(0.3),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        children: [
+          Icon(
+            icon,
+            color: color,
+            size: 20,
+          ),
+          SizedBox(height: 6),
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 12,
+              color: PortColor.black,
+              fontWeight: FontWeight.w500,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          SizedBox(height: 4),
+          Text(
+            amount,
+            style: TextStyle(
+              fontSize: 14,
+              color: PortColor.blackLight,
+              fontWeight: FontWeight.bold,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
       ),
     );
   }
@@ -399,6 +468,7 @@ class _WalletSettlementState extends State<WalletSettlement> {
   }
 
   Widget _buildTransactionHistory() {
+    final transaction = Provider.of<TransactionViewModel>(context);
     return Container(
       margin: EdgeInsets.fromLTRB(16, 0, 16, 16),
       padding: EdgeInsets.all(16),
@@ -437,12 +507,13 @@ class _WalletSettlementState extends State<WalletSettlement> {
           ),
           SizedBox(height: 12),
           SizedBox(
-            height: 400, // Fixed height diye
+            height: 400,
             child: ListView.builder(
               shrinkWrap: true,
-              itemCount: _transactions.length,
+              itemCount: transaction.transactionsModel?.data?.length ?? 0,
               itemBuilder: (context, index) {
-                return _buildTransactionItem(_transactions[index]);
+                final transactionData = transaction.transactionsModel?.data?[index];
+                return _buildTransactionItem(transactionData!);
               },
             ),
           ),
@@ -451,9 +522,15 @@ class _WalletSettlementState extends State<WalletSettlement> {
     );
   }
 
-  Widget _buildTransactionItem(Map<String, dynamic> transaction) {
-    bool isCredit = transaction['type'] == 'credit';
-    bool isPending = transaction['status'] == 'pending';
+  Widget _buildTransactionItem( transaction) {
+    // Assuming you have payment_by field in your Data model
+    // If not, you need to add it to your Data class
+    int paymentBy = transaction.paymetBy ?? 1; // Default to 1 if null
+
+    // Determine transaction type and status
+    bool isCredit = transaction.amount != null && double.parse(transaction.amount!) > 0;
+    String paymentStatus = _getPaymentStatus(paymentBy);
+    String statusText = _getStatusText(paymentBy);
 
     return Container(
       margin: EdgeInsets.only(bottom: 12),
@@ -461,20 +538,24 @@ class _WalletSettlementState extends State<WalletSettlement> {
       decoration: BoxDecoration(
         color: Colors.grey[50],
         borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: _getStatusColor(paymentBy).withOpacity(0.2),
+          width: 1,
+        ),
       ),
       child: Row(
         children: [
+          // Status Icon
           Container(
-            padding: EdgeInsets.all(8),
+            width: 40,
+            height: 40,
             decoration: BoxDecoration(
-              color: isCredit
-                  ? Colors.green.withOpacity(0.1)
-                  : Colors.red.withOpacity(0.1),
+              color: _getStatusColor(paymentBy).withOpacity(0.1),
               shape: BoxShape.circle,
             ),
             child: Icon(
-              transaction['icon'],
-              color: isCredit ? Colors.green : Colors.red,
+              _getStatusIcon(paymentBy),
+              color: _getStatusColor(paymentBy),
               size: 20,
             ),
           ),
@@ -483,53 +564,198 @@ class _WalletSettlementState extends State<WalletSettlement> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  transaction['description'],
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black87,
+                // Case 1: payment_by = 1
+                if (paymentBy == 1) ...[
+                  Text(
+                    transaction.orderId ?? 'N/A',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black87,
+                      fontSize: 14,
+                    ),
                   ),
-                ),
+                  SizedBox(height: 4),
+                  RichText(
+                    text: TextSpan(
+                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                      children: [
+                        TextSpan(
+                          text: 'Platform Fee: ${transaction.platformFee ?? 'N/A'}',
+                          style: TextStyle(color: Colors.orange[600], fontWeight: FontWeight.w500),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: 2),
+                  RichText(
+                    text: TextSpan(
+                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                      children: [
+                        TextSpan(
+                          text: 'Total Amount: ₹${transaction.totalAmount ?? '0.00'}',
+                          style: TextStyle(fontWeight: FontWeight.w500, color: Colors.green),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: 2),
+                  RichText(
+                    text: TextSpan(
+                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                      children: [
+                        TextSpan(
+                          text: 'Final Amount: ₹${transaction.amount ?? '0.00'}',
+                          style: TextStyle(fontWeight: FontWeight.w500, color: Colors.blue),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+
+                // Case 2: payment_by = 2
+                if (paymentBy == 2) ...[
+                  Text(
+                    transaction.orderId ?? 'N/A',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black87,
+                      fontSize: 14,
+                    ),
+                  ),
+                  SizedBox(height: 4),
+                  RichText(
+                    text: TextSpan(
+                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                      children: [
+                        TextSpan(
+                          text: 'Total Amount: ₹${transaction.totalAmount ?? '0.00'}',
+                          style: TextStyle(fontWeight: FontWeight.w500, color: Colors.green),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+
+                // Case 3: payment_by = 3
+                if (paymentBy == 3) ...[
+                  // No Order ID for case 3
+                  RichText(
+                    text: TextSpan(
+                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                      children: [
+                        TextSpan(
+                          text: 'Total Amount: ₹${transaction.totalAmount ?? '0.00'}',
+                          style: TextStyle(fontWeight: FontWeight.w500, color: Colors.green),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: 2),
+                  RichText(
+                    text: TextSpan(
+                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                      children: [
+                        TextSpan(
+                          text: 'Platform Fee: ${transaction.platformFee ?? 'N/A'}',
+                          style: TextStyle(color: Colors.orange[600], fontWeight: FontWeight.w500),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+
+                // Date - Common for all cases
                 SizedBox(height: 4),
                 Text(
-                  transaction['date'],
-                  style: TextStyle(fontSize: 12, color: Colors.grey),
+                  _formatDate(transaction.createdAt),
+                  style: TextStyle(fontSize: 11, color: Colors.grey),
                 ),
-                if (isPending)
-                  Container(
-                    margin: EdgeInsets.only(top: 4),
-                    padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: Colors.orange.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Text(
-                      'Pending',
-                      style: TextStyle(
-                        color: Colors.orange,
-                        fontSize: 10,
-                        fontWeight: FontWeight.w500,
-                      ),
+
+                // Status Badge
+                Container(
+                  margin: EdgeInsets.only(top: 6),
+                  padding: EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: _getStatusColor(paymentBy).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(
+                      color: _getStatusColor(paymentBy).withOpacity(0.3),
+                      width: 0.5,
                     ),
                   ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        _getStatusIcon(paymentBy),
+                        size: 10,
+                        color: _getStatusColor(paymentBy),
+                      ),
+                      SizedBox(width: 4),
+                      Text(
+                        statusText,
+                        style: TextStyle(
+                          color: _getStatusColor(paymentBy),
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),
+
+          // Right side amount column
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Text(
-                '${isCredit ? '+' : '-'}₹${transaction['amount'].toStringAsFixed(2)}',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: isCredit ? Colors.green : Colors.red,
-                  fontSize: 16,
+              // Amount display based on payment_by
+              if (paymentBy == 1)
+                Text(
+                  '₹${transaction.amount ?? '0.00'}',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.blue,
+                    fontSize: 16,
+                  ),
                 ),
-              ),
+
+              if (paymentBy == 2 || paymentBy == 3)
+                Text(
+                  '₹${transaction.totalAmount ?? '0.00'}',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.green,
+                    fontSize: 16,
+                  ),
+                ),
+
               SizedBox(height: 4),
+
+              // Label based on payment_by
+              if (paymentBy == 1)
+                Text(
+                  'After Fee',
+                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                ),
+
+              if (paymentBy == 2 || paymentBy == 3)
+                Text(
+                  'Total',
+                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                ),
+
+              // Payment Method
+              SizedBox(height: 2),
               Text(
-                isCredit ? 'Credit' : 'Debit',
-                style: TextStyle(fontSize: 12, color: Colors.grey),
+                paymentStatus,
+                style: TextStyle(
+                  fontSize: 10,
+                  color: Colors.grey[500],
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ],
           ),
@@ -538,6 +764,73 @@ class _WalletSettlementState extends State<WalletSettlement> {
     );
   }
 
+// Helper function to get payment status text
+  String _getPaymentStatus(int paymentBy) {
+    switch (paymentBy) {
+      case 1:
+        return 'Online Payment';
+      case 2:
+        return 'Due Payment';
+      case 3:
+        return 'Offline Payment';
+      default:
+        return 'Unknown';
+    }
+  }
+
+// Helper function to get status text
+  String _getStatusText(int paymentBy) {
+    switch (paymentBy) {
+      case 1:
+        return 'Online';
+      case 2:
+        return 'Due';
+      case 3:
+        return 'Offline';
+      default:
+        return 'Unknown';
+    }
+  }
+
+// Helper function to get status color
+  Color _getStatusColor(int paymentBy) {
+    switch (paymentBy) {
+      case 1: // Online
+        return Colors.blue;
+      case 2: // Due Payment
+        return Colors.orange;
+      case 3: // Offline
+        return Colors.green;
+      default:
+        return Colors.grey;
+    }
+  }
+
+// Helper function to get status icon
+  IconData _getStatusIcon(int paymentBy) {
+    switch (paymentBy) {
+      case 1: // Online
+        return Icons.online_prediction;
+      case 2: // Due Payment
+        return Icons.pending;
+      case 3: // Offline
+        return Icons.offline_pin;
+      default:
+        return Icons.help;
+    }
+  }
+
+// Helper function to format date
+  String _formatDate(String? dateString) {
+    if (dateString == null || dateString.isEmpty) return 'No Date';
+
+    try {
+      DateTime date = DateTime.parse(dateString);
+      return '${date.day}/${date.month}/${date.year} ${date.hour}:${date.minute.toString().padLeft(2, '0')}';
+    } catch (e) {
+      return dateString;
+    }
+  }
 
   void _showWithdrawalDialog() {
     showGeneralDialog(

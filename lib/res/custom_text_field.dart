@@ -23,6 +23,8 @@ class CustomTextField extends StatelessWidget {
   final VoidCallback? onTap;
   final bool readOnly;
   final bool enabled;
+  final TextCapitalization textCapitalization;
+  final ValueChanged<String>? onChanged;
 
   const CustomTextField({
     Key? key,
@@ -45,11 +47,14 @@ class CustomTextField extends StatelessWidget {
     this.onTap,
     this.readOnly = false,
     this.enabled = true,
+    this.textCapitalization = TextCapitalization.none,
+    this.onChanged, // ✅ Initialize
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    double effectiveHeight = height ?? MediaQuery.of(context).size.height * 0.06;
+    double effectiveHeight =
+        height ?? MediaQuery.of(context).size.height * 0.06;
     double effectiveWidth = width ?? double.infinity;
 
     return Container(
@@ -59,7 +64,9 @@ class CustomTextField extends StatelessWidget {
         focusNode: focusNode,
         controller: controller,
         readOnly: readOnly,
+        textCapitalization: textCapitalization,
         onTap: onTap,
+        onChanged: onChanged,
         enabled: enabled,
         decoration: InputDecoration(
           contentPadding: const EdgeInsets.symmetric(horizontal: 15),
@@ -73,11 +80,13 @@ class CustomTextField extends StatelessWidget {
             fontSize: 12,
           ),
           hintText: hintText,
-          hintStyle: hintStyle ??
+          hintStyle:
+              hintStyle ??
               TextStyle(
-                  color: enabled
-                      ? PortColor.black.withOpacity(0.3)
-                      : PortColor.gray.withOpacity(0.5)),
+                color: enabled
+                    ? PortColor.black.withOpacity(0.3)
+                    : PortColor.gray.withOpacity(0.5),
+              ),
           prefixIcon: prefixIcon,
           suffixIcon: suffixIcon,
           border: OutlineInputBorder(

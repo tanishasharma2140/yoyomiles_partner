@@ -15,15 +15,19 @@ class AuthViewModel with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> loginApi(dynamic mobile,dynamic fcm, BuildContext context) async {
+  Future<void> loginApi(dynamic mobile, dynamic fcm, BuildContext context) async {
     setLoading(true);
-    Map data = {
-      "phone": mobile,
-      "fcm": fcm
-    };
 
-    _authRepo.loginApi(data).then((value) {
-      setLoading(false);
+    try {
+      Map<String, dynamic> data = {
+        "phone": mobile,
+        "fcm": fcm,
+      };
+
+      final value = await _authRepo.loginApi(data); // ✅ wait for API response
+      setLoading(false); // ✅ stop loader after success
+
+      // ✅ Navigate safely
       Navigator.pushNamed(
         context,
         RoutesName.otp,
@@ -32,27 +36,24 @@ class AuthViewModel with ChangeNotifier {
           "user_id": value["user_id"] ?? 0,
         },
       );
-    }).onError((error, stackTrace) {
-      setLoading(false);
-      if (kDebugMode) {
-        print('error: $error');
-      }
+    } catch (error) {
+      setLoading(false); // ✅ stop loader even on error
 
-      // 🔹 Show popup dialog on error
+      if (kDebugMode) print("Login error: $error");
+
+      // ✅ Show popup dialog on error
       showGeneralDialog(
         context: context,
         barrierDismissible: true,
         barrierLabel: '',
-        transitionDuration: Duration(milliseconds: 400),
+        transitionDuration: const Duration(milliseconds: 400),
         pageBuilder: (context, animation, secondaryAnimation) => AlertDialog(
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(24),
           ),
           backgroundColor: Colors.white,
-          shadowColor: Colors.black54,
-          elevation: 15,
           title: Row(
-            children: [
+            children: const [
               Icon(Icons.error_outline, color: Colors.red, size: 24),
               SizedBox(width: 8),
               Text(
@@ -67,16 +68,16 @@ class AuthViewModel with ChangeNotifier {
           ),
           content: Text(
             error.toString(),
-            style: TextStyle(fontSize: 15, height: 1.4),
+            style: const TextStyle(fontSize: 15, height: 1.4),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
               style: TextButton.styleFrom(
                 foregroundColor: Colors.blue,
-                padding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
               ),
-              child: Text(
+              child: const Text(
                 'OK',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
               ),
@@ -93,8 +94,9 @@ class AuthViewModel with ChangeNotifier {
           );
         },
       );
-    });
+    }
   }
+
 
 
   Future<void> sendOtpApi(dynamic mobile, context) async {
