@@ -25,82 +25,70 @@ class _ProfileState extends State<Profile> {
     final profileViewModel = Provider.of<ProfileViewModel>(context);
     final profileData = profileViewModel.profileModel!.data!;
 
-    return Scaffold(
-      backgroundColor: PortColor.scaffoldBgGrey,
-      body: CustomScrollView(
-        slivers: [
-          // App Bar Section
-          SliverAppBar(
-            expandedHeight: Sizes.screenHeight * 0.25,
-            flexibleSpace: FlexibleSpaceBar(
-              background: Container(
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      Color(0xFFFFF176),
-                      Color(0xFFFFD54F),
-                      Color(0xFFFFA726),
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
+    return SafeArea(
+      top: false,
+      bottom: true,
+      child: Scaffold(
+        backgroundColor: PortColor.scaffoldBgGrey,
+        body: CustomScrollView(
+          slivers: [
+            // App Bar Section
+            SliverAppBar(
+              expandedHeight: Sizes.screenHeight * 0.25,
+              flexibleSpace: FlexibleSpaceBar(
+                background: Container(
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        Color(0xFFFFF176),
+                        Color(0xFFFFD54F),
+                        Color(0xFFFFA726),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
                   ),
-                ),
-                child: SafeArea(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      // Profile Image
-                      Container(
-                        width: Sizes.screenWidth * 0.25,
-                        height: Sizes.screenHeight * 0.12,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: PortColor.white,
-                            width: 3,
-                          ),
-                          image: DecorationImage(
-                            image: NetworkImage(
-                                profileData.ownerSelfie ?? ""),
-                            fit: BoxFit.cover,
+                  child: SafeArea(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        // Profile Image
+                        Container(
+                          width: Sizes.screenWidth * 0.25,
+                          height: Sizes.screenHeight * 0.12,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: PortColor.white,
+                              width: 3,
+                            ),
+                            image: DecorationImage(
+                              image: NetworkImage(
+                                  profileData.ownerSelfie ?? ""),
+                              fit: BoxFit.cover,
+                            ),
                           ),
                         ),
-                      ),
-                      SizedBox(height: Sizes.screenHeight * 0.01),
-                      TextConst(
-                        title: profileData.driverName ?? "Driver Name",
-                        size: Sizes.fontSizeEight,
-                        fontWeight: FontWeight.bold,
-                        color: PortColor.white,
-                      ),
-                      SizedBox(height: Sizes.screenHeight * 0.005),
-                      TextConst(
-                        title: "Professional Driver",
-                        size: Sizes.fontSizeSix,
-                        color: PortColor.white.withOpacity(0.8),
-                      ),
-                    ],
+                        SizedBox(height: Sizes.screenHeight * 0.01),
+                        TextConst(
+                          title: profileData.driverName ?? "Driver Name",
+                          size: Sizes.fontSizeEight,
+                          fontWeight: FontWeight.bold,
+                          color: PortColor.white,
+                        ),
+                        SizedBox(height: Sizes.screenHeight * 0.005),
+                        TextConst(
+                          title: "Professional Driver",
+                          size: Sizes.fontSizeSix,
+                          color: PortColor.white.withOpacity(0.8),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ),
-            leading: IconButton(
-              onPressed: () => Navigator.pop(context),
-              icon: Container(
-                padding: const EdgeInsets.all(6),
-                decoration: BoxDecoration(
-                  color: PortColor.white.withOpacity(0.2),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.arrow_back,
-                  color: PortColor.white,
-                ),
-              ),
-            ),
-            actions: [
-              IconButton(
-                onPressed: _showLogoutDialog,
+              leading: IconButton(
+                onPressed: () => Navigator.pop(context),
                 icon: Container(
                   padding: const EdgeInsets.all(6),
                   decoration: BoxDecoration(
@@ -108,77 +96,93 @@ class _ProfileState extends State<Profile> {
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(
-                    Icons.logout,
+                    Icons.arrow_back,
                     color: PortColor.white,
                   ),
                 ),
               ),
-            ],
-          ),
-
-          // Profile Information Section
-          SliverList(
-            delegate: SliverChildListDelegate([
-              // Personal Information Card
-              _buildInfoCard(
-                title: "Personal Information:",
-                icon: Icons.person_outline,
-                children: [
-                  _buildInfoRow(
-                    icon: Icons.person,
-                    label: "Driver Name:",
-                    value: profileData.driverName ?? "N/A",
+              actions: [
+                IconButton(
+                  onPressed: _showLogoutDialog,
+                  icon: Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: PortColor.white.withOpacity(0.2),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.logout,
+                      color: PortColor.white,
+                    ),
                   ),
-                  _buildInfoRow(
-                    icon: Icons.phone,
-                    label: "Phone Number:",
-                    value: profileData.phone?.toString() ?? "N/A",
-                  ),
-                  _buildInfoRow(
-                    icon: Icons.person,
-                    label: "Owner Name:",
-                    value: profileData.ownerName ?? "N/A",
-                  ),
-                  _buildInfoRow(
-                    icon: Icons.directions_car,
-                    label: "Vehicle Number:",
-                    value: profileData.vehicleNo ?? "N/A",
-                  ),
-                ],
-              ),
+                ),
+              ],
+            ),
 
-              // Document Section - Aadhaar Card
-              _buildDocumentSection(
-                title: "Aadhaar Card:",
-                frontImage: profileData.ownerAadhaarFront ?? "",
-                backImage: profileData.ownerAadhaarBack ?? "",
-              ),
+            // Profile Information Section
+            SliverList(
+              delegate: SliverChildListDelegate([
+                // Personal Information Card
+                _buildInfoCard(
+                  title: "Personal Information:",
+                  icon: Icons.person_outline,
+                  children: [
+                    _buildInfoRow(
+                      icon: Icons.person,
+                      label: "Driver Name:",
+                      value: profileData.driverName ?? "N/A",
+                    ),
+                    _buildInfoRow(
+                      icon: Icons.phone,
+                      label: "Phone Number:",
+                      value: profileData.phone?.toString() ?? "N/A",
+                    ),
+                    _buildInfoRow(
+                      icon: Icons.person,
+                      label: "Owner Name:",
+                      value: profileData.ownerName ?? "N/A",
+                    ),
+                    _buildInfoRow(
+                      icon: Icons.directions_car,
+                      label: "Vehicle Number:",
+                      value: profileData.vehicleNo ?? "N/A",
+                    ),
+                  ],
+                ),
 
-              // Document Section - PAN Card
-              _buildDocumentSection(
-                title: "PAN Card:",
-                frontImage: profileData.ownerPanFornt ?? "",
-                backImage: profileData.ownerPanBack ?? "",
-              ),
+                // Document Section - Aadhaar Card
+                _buildDocumentSection(
+                  title: "Aadhaar Card:",
+                  frontImage: profileData.ownerAadhaarFront ?? "",
+                  backImage: profileData.ownerAadhaarBack ?? "",
+                ),
 
-              // Document Section - Driving Licence
-              _buildDocumentSection(
-                title: "Driving Licence",
-                frontImage: profileData.drivingLicenceFront ?? "",
-                backImage: profileData.drivingLicenceBack ?? "",
-              ),
+                // Document Section - PAN Card
+                _buildDocumentSection(
+                  title: "PAN Card:",
+                  frontImage: profileData.ownerPanFornt ?? "",
+                  backImage: profileData.ownerPanBack ?? "",
+                ),
 
-              // Document Section - RC Document
-              _buildDocumentSection(
-                title: "RC Document",
-                frontImage: profileData.rcFront ?? "",
-                backImage: profileData.rcBack ?? "",
-              ),
+                // Document Section - Driving Licence
+                _buildDocumentSection(
+                  title: "Driving Licence",
+                  frontImage: profileData.drivingLicenceFront ?? "",
+                  backImage: profileData.drivingLicenceBack ?? "",
+                ),
 
-              SizedBox(height: Sizes.screenHeight * 0.03),
-            ]),
-          ),
-        ],
+                // Document Section - RC Document
+                _buildDocumentSection(
+                  title: "RC Document",
+                  frontImage: profileData.rcFront ?? "",
+                  backImage: profileData.rcBack ?? "",
+                ),
+
+                SizedBox(height: Sizes.screenHeight * 0.03),
+              ]),
+            ),
+          ],
+        ),
       ),
     );
   }

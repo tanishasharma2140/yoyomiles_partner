@@ -62,7 +62,6 @@ class _VehicleDetailState extends State<VehicleDetail> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final citiesVm = Provider.of<CitiesViewModel>(context, listen: false);
       citiesVm.citiesApi();
-
       final driverVehicleVm = Provider.of<DriverVehicleViewModel>(
         context,
         listen: false,
@@ -142,14 +141,14 @@ class _VehicleDetailState extends State<VehicleDetail> {
   // Check if vehicle has body details available
   bool _shouldShowBodyDetailSection() {
     if (_selectedVehicleId == null) return false;
-    if (_selectedVehicleId == "3") return false; // Skip for scooter
+    if (_selectedVehicleId == "3") return false;
     return true;
   }
 
   // Check if body type section should be shown
   bool _shouldShowBodyTypeSection() {
     if (_selectedVehicleId == null) return false;
-    if (_selectedVehicleId == "3") return true; // Show directly for scooter
+    if (_selectedVehicleId == "3") return true;
     return _selectedVehicleBodyDetailName !=
         null; // Show after body detail for others
   }
@@ -176,9 +175,10 @@ class _VehicleDetailState extends State<VehicleDetail> {
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: vehicleList.map((vehicle) {
               return Padding(
-                padding: const EdgeInsets.only(right: 25),
+                padding: const EdgeInsets.only(right: 22),
                 child: _buildVehicleTypeCard(
                   imageUrl: vehicle.image ?? "",
                   title: vehicle.name ?? "Unknown",
@@ -207,8 +207,8 @@ class _VehicleDetailState extends State<VehicleDetail> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 80,
-        height: 80,
+        width: 68,
+        height: 68,
         decoration: BoxDecoration(
           color: isSelected ? PortColor.greyLight : Colors.white,
           borderRadius: BorderRadius.circular(9),

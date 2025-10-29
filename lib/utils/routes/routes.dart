@@ -8,13 +8,10 @@ import 'package:yoyomiles_partner/view/auth/owner_detail.dart';
 import 'package:yoyomiles_partner/view/auth/vehicle_detail.dart';
 import 'package:yoyomiles_partner/view/bank_detail.dart';
 import 'package:yoyomiles_partner/view/bank_detail_view.dart';
-import 'package:yoyomiles_partner/view/dashboard.dart';
-import 'package:yoyomiles_partner/view/live_ride_screen.dart';
 import 'package:yoyomiles_partner/view/privacy_policy/privacy_policy.dart';
 import 'package:yoyomiles_partner/view/privacy_policy/tds_declaration.dart';
 import 'package:yoyomiles_partner/view/privacy_policy/terms_and_condition.dart';
 import 'package:yoyomiles_partner/view/profile.dart';
-import 'package:yoyomiles_partner/view/reward.dart';
 import 'package:yoyomiles_partner/view/ride/ride_safety.dart';
 import 'package:yoyomiles_partner/view/ride_history.dart';
 import 'package:yoyomiles_partner/view/splash_screen.dart';
@@ -36,8 +33,6 @@ class Routers {
         return (context) => const Register();
       case RoutesName.map:
         return (context) => const TripStatus();
-      case RoutesName.dashboard:
-        return (context) => const Dashboard();
       case RoutesName.editProfile:
         return (context) => const Profile();
       case RoutesName.rideHistory:
@@ -64,6 +59,8 @@ class Routers {
         return (context) => const TdsDeclaration();
       case RoutesName.rideSafety:
         return (context) => const RideSafety();
+      case RoutesName.tripStatus:
+        return (context) => const TripStatus();
       default:
         return (context) => const Scaffold(
           body: Center(

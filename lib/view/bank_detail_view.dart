@@ -28,44 +28,47 @@ class _BankDetailViewState extends State<BankDetailView> {
 
   @override
   Widget build(BuildContext context) {
-    final bankViewModel = Provider.of<BankViewModel>(context);
-    return Scaffold(
-      backgroundColor: PortColor.scaffoldBgGrey,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        title: Text(
-          'Bank Details',
-          style: TextStyle(
-            color: Colors.black,
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
+    return SafeArea(
+      top: false,
+      bottom: false,
+      child: Scaffold(
+        backgroundColor: PortColor.scaffoldBgGrey,
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          title: Text(
+            'Bank Details',
+            style: TextStyle(
+              color: Colors.black,
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          centerTitle: true,
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back, color: Colors.black),
+            onPressed: () => Navigator.pop(context),
           ),
         ),
-        centerTitle: true,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
+        body: Consumer<BankViewModel>(
+          builder: (context, bankViewModel, child) {
+            if (bankViewModel.loading) {
+              // 🔹 Loader while data is being fetched
+              return Center(
+                child: CircularProgressIndicator(
+                  color: PortColor.gold,
+                  strokeWidth: 3,
+                ),
+              );
+            } else if (bankViewModel.bankDetailModel != null) {
+              // 🔹 Data Found
+              return bankDataFound();
+            } else {
+              // 🔹 No Data
+              return bankDataNot();
+            }
+          },
         ),
-      ),
-      body: Consumer<BankViewModel>(
-        builder: (context, bankViewModel, child) {
-          if (bankViewModel.loading) {
-            // 🔹 Loader while data is being fetched
-            return Center(
-              child: CircularProgressIndicator(
-                color: PortColor.gold,
-                strokeWidth: 3,
-              ),
-            );
-          } else if (bankViewModel.bankDetailModel != null) {
-            // 🔹 Data Found
-            return bankDataFound();
-          } else {
-            // 🔹 No Data
-            return bankDataNot();
-          }
-        },
       ),
     );
   }

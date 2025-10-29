@@ -19,31 +19,67 @@ class AssignRideViewModel with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> assignRideApi(context, dynamic rideStatus,String rideId,
-      Map<String, dynamic> bookingData) async {
+  Future<void> assignRideApi(
+      context,
+      dynamic rideStatus,
+      String rideId,
+      Map<String, dynamic> bookingData,
+      ) async {
     setLoading(true);
-final userId = await UserViewModel().getUser();
-    Map data =
-    {
-      "driver_id":userId,
-      "ride_status":rideStatus,
-      "ride_id":rideId,
+    final userId = await UserViewModel().getUser();
+
+    Map data = {
+      "driver_id": userId,
+      "ride_status": rideStatus,
+      "ride_id": rideId,
     };
+
     debugPrint(jsonEncode(data));
+
     _assignRideRepo.assignRideApi(data).then((value) async {
       setLoading(false);
+
       if (value['success'] == true) {
+        // ✅ Ride accepted
         await FirebaseFirestore.instance
             .collection('order')
             .doc(rideId)
             .update({
-          'accepted_driver_id': userId, // driver ki user ID
+          'accepted_driver_id': userId,
           'ride_started': true,
         });
+
         Utils.showSuccessMessage(context, value["message"]);
-        Navigator.push(context, MaterialPageRoute(builder: (context)=>LiveRideScreen(booking : bookingData)));
-        // Navigator.pushNamed(context, RoutesName.liveRide,arguments: bookingData);
-      } else {
+
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => LiveRideScreen(booking: bookingData),
+          ),
+        );
+      }
+      // ⚠️ If ride already assigned (status 400)
+      else if (value['status'] == 400) {
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            title: const Text(
+              "Ride Assignment Failed",
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            content: Text(value["message"] ?? "Ride is already assigned to another driver."),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text("OK"),
+              ),
+            ],
+          ),
+        );
+      }
+      // ❌ Other failure
+      else {
         Utils.showErrorMessage(context, value["message"]);
       }
     }).onError((error, stackTrace) {
@@ -53,4 +89,6 @@ final userId = await UserViewModel().getUser();
       }
     });
   }
+
+
 }

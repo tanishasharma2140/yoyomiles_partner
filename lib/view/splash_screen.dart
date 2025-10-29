@@ -48,17 +48,21 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: PortColor.gold,
-      body: Center(
-        child: ScaleTransition(
-          scale: _scaleAnimation,
-          child: Center(
-            child: Image.asset(
-              Assets.assetsYoyoPartnerLogo,
-              width: 150,
-              height: 100,
-              fit: BoxFit.contain,
+    return SafeArea(
+      top: false,
+      bottom: true,
+      child: Scaffold(
+        backgroundColor: PortColor.gold,
+        body: Center(
+          child: ScaleTransition(
+            scale: _scaleAnimation,
+            child: Center(
+              child: Image.asset(
+                Assets.assetsYoyoPartnerLogo,
+                width: 150,
+                height: 100,
+                fit: BoxFit.contain,
+              ),
             ),
           ),
         ),

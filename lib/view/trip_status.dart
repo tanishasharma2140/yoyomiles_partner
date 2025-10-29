@@ -2,7 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:yoyomiles_partner/generated/assets.dart';
-import 'package:yoyomiles_partner/res/const_map.dart';
 import 'package:yoyomiles_partner/res/const_without_polyline_map.dart';
 import 'package:yoyomiles_partner/res/constant_color.dart';
 import 'package:yoyomiles_partner/res/custom_appbar.dart';
@@ -12,7 +11,6 @@ import 'package:yoyomiles_partner/res/text_const.dart';
 import 'package:yoyomiles_partner/view_model/assign_ride_view_model.dart';
 import 'package:yoyomiles_partner/view_model/online_status_view_model.dart';
 import 'package:yoyomiles_partner/view_model/profile_view_model.dart';
-import 'package:yoyomiles_partner/view_model/update_ride_status_view_model.dart';
 
 class TripStatus extends StatefulWidget {
   const TripStatus({super.key});
@@ -25,7 +23,9 @@ class _TripStatusState extends State<TripStatus> {
   bool isSwitched = true;
   String? _currentAddress;
 
-  void _showSwitchDialog(bool value) {
+  // bool isSwitched = true;
+
+  void _showSwitchDialog() {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -33,6 +33,7 @@ class _TripStatusState extends State<TripStatus> {
           context,
           listen: false,
         );
+
         return Dialog(
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(15.0),
@@ -67,34 +68,48 @@ class _TripStatusState extends State<TripStatus> {
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
                     InkWell(
-                      onTap: () {
-                        // Navigator.of(context).pop();
-                        onlineStatusViewModel.onlineStatusApi(context, 0);
+                      onTap: () async {
+
+                        await onlineStatusViewModel.onlineStatusApi(context, 0);
+
+                        if (mounted) {
+                          setState(() {
+                            isSwitched = false;
+                          });
+                        }
                       },
                       child: Container(
                         alignment: Alignment.center,
                         height: Sizes.screenHeight * 0.05,
-                        width: Sizes.screenWidth * 0.06,
+                        width: Sizes.screenWidth * 0.2,
+                        decoration: BoxDecoration(
+                          color: PortColor.gold,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
                         child: const TextConst(
                           title: "Yes",
                           fontWeight: FontWeight.bold,
+                          color: Colors.white,
                         ),
                       ),
                     ),
                     InkWell(
                       onTap: () {
+                        // ✅ Close dialog
                         Navigator.of(context).pop();
-                        setState(() {
-                          isSwitched = true;
-                        });
                       },
                       child: Container(
                         alignment: Alignment.center,
                         height: Sizes.screenHeight * 0.05,
-                        width: Sizes.screenWidth * 0.06,
+                        width: Sizes.screenWidth * 0.2,
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade300,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
                         child: const TextConst(
                           title: "No",
                           fontWeight: FontWeight.bold,
+                          color: Colors.black,
                         ),
                       ),
                     ),
@@ -108,232 +123,246 @@ class _TripStatusState extends State<TripStatus> {
     );
   }
 
+
   @override
   Widget build(BuildContext context) {
     final profileViewModel = Provider.of<ProfileViewModel>(context);
 
-    return Scaffold(
-      backgroundColor: PortColor.scaffoldBgGrey,
-      appBar:  CustomAppBar(
-        name: profileViewModel.profileModel!.data!.driverName?? "Known",
-        imageUrl: profileViewModel.profileModel!.data!.ownerSelfie ?? "",
-        actions: [
-          Transform.scale(
-            scale: 0.8,
-            child: Switch(
-              value: isSwitched,
-              onChanged: (value) {
-                setState(() {
-                  isSwitched = value;
-                });
-                if (!value) {
-                  _showSwitchDialog(value); // Call the dialog here
-                }
-              },
-              activeColor: Colors.white,
-              inactiveThumbColor: Colors.blue[50],
-              activeTrackColor: PortColor.gold,
-              inactiveTrackColor: Colors.blue,
+    return SafeArea(
+      top: false,
+      bottom: true,
+      child: Scaffold(
+        backgroundColor: PortColor.scaffoldBgGrey,
+        appBar:  CustomAppBar(
+          name: profileViewModel.profileModel!.data!.driverName?? "Known",
+          imageUrl: profileViewModel.profileModel!.data!.ownerSelfie ?? "",
+          actions: [
+            Transform.scale(
+              scale: 0.8,
+              child: Switch(
+                value: isSwitched,
+                onChanged: (value) {
+                  if (value == false) {
+                    // 👇 Don't turn off immediately — just show dialog
+                    _showSwitchDialog();
+                  } else {
+                    // ✅ Turn ON instantly + call API
+                    final onlineStatusViewModel =
+                    Provider.of<OnlineStatusViewModel>(context, listen: false);
+                    onlineStatusViewModel.onlineStatusApi(context, 1);
+
+                    setState(() {
+                      isSwitched = true;
+                    });
+                  }
+                },
+                activeColor: Colors.white,
+                inactiveThumbColor: Colors.blue[50],
+                activeTrackColor: PortColor.gold,
+                inactiveTrackColor: Colors.blue,
+              ),
             ),
-          ),
-          const SizedBox(width: 12),
-        ],
-      ),
-      body: StreamBuilder<List<Map<String, dynamic>>>(
-        stream: fetchBookings("",context),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(
-              child: CircularProgressIndicator(color: PortColor.gold),
-            );
-          } else if (snapshot.hasError) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.error_outline, color: PortColor.red, size: 50),
-                  SizedBox(height: Sizes.screenHeight * 0.02),
-                  TextConst(
-                    title: 'Error loading bookings',
-                    color: PortColor.red,
-                    size: Sizes.fontSizeFive,
-                  ),
-                ],
-              ),
-            );
-          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Image.asset(Assets.assetsNoData,
-                      height: Sizes.screenHeight * 0.15),
-                  SizedBox(height: Sizes.screenHeight * 0.02),
-                  TextConst(
-                    title: "No Bookings Available",
-                    color: PortColor.gold,
-                    fontWeight: FontWeight.bold,
-                    size: Sizes.fontSizeSix,
-                  ),
-                  SizedBox(height: Sizes.screenHeight * 0.01),
-                  TextConst(
-                    title: "New bookings will appear here",
-                    color: PortColor.gray,
-                    size: Sizes.fontSizeFour,
-                  ),
-                ],
-              ),
-            );
-          }
 
-          final bookingList = snapshot.data!;
 
-          return Stack(
-            children: [
-              ///  FIXED MAP SECTION
-              Positioned.fill(
-                top: 0,
-                bottom: MediaQuery.of(context).size.height * 0.25,
-                child: SizedBox(
-                  height: Sizes.screenHeight * 0.4,
-                  child: ConstWithoutPolylineMap(
-                    backIconAllowed: false,
-                    onAddressFetched: (address) {
-                      if (_currentAddress != address) {
-                        WidgetsBinding.instance.addPostFrameCallback((_) {
-                          setState(() {
-                            _currentAddress = address;
+            const SizedBox(width: 12),
+          ],
+        ),
+        body: StreamBuilder<List<Map<String, dynamic>>>(
+          stream: fetchBookings("",context),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return Center(
+                child: CircularProgressIndicator(color: PortColor.gold),
+              );
+            } else if (snapshot.hasError) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.error_outline, color: PortColor.red, size: 50),
+                    SizedBox(height: Sizes.screenHeight * 0.02),
+                    TextConst(
+                      title: 'Error loading bookings',
+                      color: PortColor.red,
+                      size: Sizes.fontSizeFive,
+                    ),
+                  ],
+                ),
+              );
+            } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Image.asset(Assets.assetsNoData,
+                        height: Sizes.screenHeight * 0.15),
+                    SizedBox(height: Sizes.screenHeight * 0.02),
+                    TextConst(
+                      title: "No Bookings Available",
+                      color: PortColor.gold,
+                      fontWeight: FontWeight.bold,
+                      size: Sizes.fontSizeSix,
+                    ),
+                    SizedBox(height: Sizes.screenHeight * 0.01),
+                    TextConst(
+                      title: "New bookings will appear here",
+                      color: PortColor.gray,
+                      size: Sizes.fontSizeFour,
+                    ),
+                  ],
+                ),
+              );
+            }
+
+            final bookingList = snapshot.data!;
+
+            return Stack(
+              children: [
+                ///  FIXED MAP SECTION
+                Positioned.fill(
+                  top: 0,
+                  bottom: MediaQuery.of(context).size.height * 0.25,
+                  child: SizedBox(
+                    height: Sizes.screenHeight * 0.4,
+                    child: ConstWithoutPolylineMap(
+                      backIconAllowed: false,
+                      onAddressFetched: (address) {
+                        if (_currentAddress != address) {
+                          WidgetsBinding.instance.addPostFrameCallback((_) {
+                            setState(() {
+                              _currentAddress = address;
+                            });
                           });
-                        });
-                      }
-                    },
+                        }
+                      },
+                    ),
                   ),
                 ),
-              ),
 
-              ///  DRAGGABLE SCROLLABLE BOOKING LIST
-              DraggableScrollableSheet(
-                initialChildSize: 0.35,
-                minChildSize: 0.28,
-                maxChildSize: 0.65,
-                builder: (context, scrollController) {
-                  return Container(
-                    decoration: BoxDecoration(
-                      color: PortColor.white,
-                      borderRadius: const BorderRadius.only(
-                        topLeft: Radius.circular(20),
-                        topRight: Radius.circular(20),
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 8,
-                          offset: const Offset(0, -2),
+                ///  DRAGGABLE SCROLLABLE BOOKING LIST
+                DraggableScrollableSheet(
+                  initialChildSize: 0.35,
+                  minChildSize: 0.28,
+                  maxChildSize: 0.65,
+                  builder: (context, scrollController) {
+                    return Container(
+                      decoration: BoxDecoration(
+                        color: PortColor.white,
+                        borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(20),
+                          topRight: Radius.circular(20),
                         ),
-                      ],
-                    ),
-                    child: Column(
-                      children: [
-                        // Drag Handle
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 10),
-                          child: Container(
-                            width: 40,
-                            height: 5,
-                            decoration: BoxDecoration(
-                              color: Colors.grey[300],
-                              borderRadius: BorderRadius.circular(10),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 8,
+                            offset: const Offset(0, -2),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        children: [
+                          // Drag Handle
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 10),
+                            child: Container(
+                              width: 40,
+                              height: 5,
+                              decoration: BoxDecoration(
+                                color: Colors.grey[300],
+                                borderRadius: BorderRadius.circular(10),
+                              ),
                             ),
                           ),
-                        ),
 
-                        // Header Row
-                        Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 8),
-                          child: Row(
-                            children: [
-                              Icon(Icons.local_shipping, color: PortColor.gold),
-                              const SizedBox(width: 8),
-                              TextConst(
-                                title: "Available Bookings",
-                                size: Sizes.fontSizeSix,
-                                fontWeight: FontWeight.bold,
-                                color: PortColor.black,
-                              ),
-                              const Spacer(),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 12, vertical: 4),
-                                decoration: BoxDecoration(
-                                  color: PortColor.gold,
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: TextConst(
-                                  title: "${bookingList.length}",
-                                  color: PortColor.black,
-                                  size: Sizes.fontSizeFour,
+                          // Header Row
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 8),
+                            child: Row(
+                              children: [
+                                Icon(Icons.local_shipping, color: PortColor.gold),
+                                const SizedBox(width: 8),
+                                TextConst(
+                                  title: "Available Bookings",
+                                  size: Sizes.fontSizeSix,
                                   fontWeight: FontWeight.bold,
+                                  color: PortColor.black,
                                 ),
-                              ),
-                            ],
+                                const Spacer(),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 12, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: PortColor.gold,
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: TextConst(
+                                    title: "${bookingList.length}",
+                                    color: PortColor.black,
+                                    size: Sizes.fontSizeFour,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
 
-                        const Divider(height: 1, color: Colors.grey),
+                          const Divider(height: 1, color: Colors.grey),
 
-                        // Booking List
-                        Expanded(
-                          child: ListView.builder(
-                            controller: scrollController,
-                            padding: const EdgeInsets.symmetric(vertical: 8),
-                            itemCount: bookingList.length,
-                            itemBuilder: (context, index) {
-                              return BookingCard(
-                                bookingData: bookingList[index],
-                              );
-                            },
+                          // Booking List
+                          Expanded(
+                            child: ListView.builder(
+                              controller: scrollController,
+                              padding: const EdgeInsets.symmetric(vertical: 8),
+                              itemCount: bookingList.length,
+                              itemBuilder: (context, index) {
+                                return BookingCard(
+                                  bookingData: bookingList[index],
+                                );
+                              },
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
 
-              ///  TOP CURRENT ADDRESS BANNER
-              if (_currentAddress != null)
-                Positioned(
-                  top: 40,
-                  left: 16,
-                  right: 16,
-                  child: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.9),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(Icons.location_on, color: PortColor.gold, size: 18),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: TextConst(
-                            title: _currentAddress!,
-                            color: PortColor.black,
-                            size: Sizes.fontSizeFour,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
+                ///  TOP CURRENT ADDRESS BANNER
+                if (_currentAddress != null)
+                  Positioned(
+                    top: 40,
+                    left: 16,
+                    right: 16,
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.9),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.location_on, color: PortColor.gold, size: 18),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: TextConst(
+                              title: _currentAddress!,
+                              color: PortColor.black,
+                              size: Sizes.fontSizeFour,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
-                ),
-            ],
+              ],
 
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }
@@ -419,7 +448,6 @@ class BookingCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final assignRideViewModel = Provider.of<AssignRideViewModel>(context);
-    final updateRideStatus = Provider.of<UpdateRideStatusViewModel>(context);
 
     return Container(
       margin: EdgeInsets.symmetric(

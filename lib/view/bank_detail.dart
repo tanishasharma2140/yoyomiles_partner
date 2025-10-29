@@ -63,6 +63,7 @@ class _BankDetailState extends State<BankDetail> {
     final bankDetailViewModel = Provider.of<BankDetailViewModel>(context);
     return SafeArea(
       top: false,
+      bottom: true,
       child: Scaffold(
         backgroundColor: PortColor.scaffoldBgGrey,
         appBar: AppBar(

@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:yoyomiles_partner/view/auth/register.dart';
+import 'package:yoyomiles_partner/view/trip_status.dart';
 
 class NotificationService {
   final GlobalKey<NavigatorState> navigatorKey;
@@ -176,7 +177,7 @@ class NotificationService {
   Future<void> handleMassage(RemoteMessage massage) async {
     navigatorKey.currentState?.push(
       MaterialPageRoute(
-        builder: (context) => Register(),
+        builder: (context) => TripStatus(),
       ),
     );
   }

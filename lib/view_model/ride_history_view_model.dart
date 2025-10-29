@@ -25,12 +25,19 @@ class RideHistoryViewModel with ChangeNotifier {
     setLoading(true);
     UserViewModel userViewModel = UserViewModel();
     int? userId = await userViewModel.getUser();
-    _rideHistoryRepo.rideHistoryApi(userId).then((value){
+
+    _rideHistoryRepo.rideHistoryApi(userId).then((value) {
       print("hlooooo");
       print(userId);
-      print('value:$value');
+      print('value: $value');
+
+      setLoading(false); // ✅ Stop loader after response
+
       if (value.success == true) {
         setModelData(value);
+      } else {
+        // Optional: agar API success == false aaye to model ko null set kar do
+        setModelData(RideHistoryModel(data: []));
       }
     }).onError((error, stackTrace) {
       setLoading(false);
@@ -39,5 +46,6 @@ class RideHistoryViewModel with ChangeNotifier {
       }
     });
   }
+
 }
 

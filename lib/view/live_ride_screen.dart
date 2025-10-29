@@ -608,6 +608,7 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
 
     return SafeArea(
       top: false,
+      bottom: true,
       child: Scaffold(
         backgroundColor: PortColor.scaffoldBgGrey,
         appBar: CustomAppBar(
@@ -1023,13 +1024,7 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                         _buildDetailRow(
                           icon: Icons.directions_car,
                           title: "Vehicle Type",
-                          content: liveRideViewModel.liveOrderModel!.data!.vehicleType == "1"
-                              ? "Truck"
-                              : liveRideViewModel.liveOrderModel!.data!.vehicleType == "2"
-                              ? "3 Wheeler"
-                              : liveRideViewModel.liveOrderModel!.data!.vehicleType == "3"
-                              ? "Bike"
-                              : "N/A",
+                          content: liveRideViewModel.liveOrderModel!.data!.vehicleName??"N/A",
                           isHeader: true,
                         ),
                       ],

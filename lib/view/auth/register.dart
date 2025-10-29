@@ -113,115 +113,119 @@ class _RegisterState extends State<Register> {
     final profileViewModel = Provider.of<ProfileViewModel>(context);
     return WillPopScope(
       onWillPop: () => _onWillPop(context),
-      child: Scaffold(
-        backgroundColor: PortColor.grey,
-        body: SmartRefresher(
-          controller: _refreshController,
-          onRefresh: _onRefresh,
-          enablePullDown: true,
-          header: const WaterDropHeader(
-            waterDropColor: PortColor.partner,
-            complete: Icon(Icons.check, color: Colors.green),
-          ),
-          child: SingleChildScrollView(
-            child: Padding(
-              padding: EdgeInsets.symmetric(
-                  vertical: Sizes.screenHeight * 0.055,
-                  horizontal: Sizes.screenWidth * 0.03),
-              child: profileViewModel.profileModel == null
-                  ? const Center(child: CircularProgressIndicator())
-                  : Column(
-                      children: [
-                        Container(
-                          height: Sizes.screenHeight * 0.11,
-                          decoration: const BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [
-                                Color(0xFFFFF176),
-                                Color(0xFFFFD54F),
-                                Color(0xFFFFA726),
+      child: SafeArea(
+        top: false,
+        bottom: true,
+        child: Scaffold(
+          backgroundColor: PortColor.grey,
+          body: SmartRefresher(
+            controller: _refreshController,
+            onRefresh: _onRefresh,
+            enablePullDown: true,
+            header: const WaterDropHeader(
+              waterDropColor: PortColor.partner,
+              complete: Icon(Icons.check, color: Colors.green),
+            ),
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: EdgeInsets.symmetric(
+                    vertical: Sizes.screenHeight * 0.055,
+                    horizontal: Sizes.screenWidth * 0.03),
+                child: profileViewModel.profileModel == null
+                    ? const Center(child: CircularProgressIndicator())
+                    : Column(
+                        children: [
+                          Container(
+                            height: Sizes.screenHeight * 0.11,
+                            decoration: const BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  Color(0xFFFFF176),
+                                  Color(0xFFFFD54F),
+                                  Color(0xFFFFA726),
+                                ],
+                              ),
+                            ),
+                            child: Align(
+                              alignment: Alignment.center,
+                              child: Image.asset(
+                                Assets.assetsYoyoPartnerLogo,
+                                fit: BoxFit.contain,
+                              ),
+                            ),
+                          ),
+                          Container(
+                            padding: EdgeInsets.symmetric(
+                                vertical: Sizes.screenHeight * 0.02),
+                            height: Sizes.screenHeight * 0.09,
+                            color: PortColor.white,
+                            child: Column(
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const TextConst(
+                                      title:
+                                      "Hii  ",
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                    TextConst(
+                                      title:
+                                      profileViewModel.profileModel?.data?.driverName ?? "",
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                    SizedBox(
+                                      width: Sizes.screenWidth * 0.01,
+                                    ),
+                                    const TextConst( title: "welcome to yoyomiles"),
+                                  ],
+                                ),
+                                TextConst(
+                                  title:
+                                  "You are now a few steps away from getting your first trip",
+                                  size: 12,
+                                  color: PortColor.black.withOpacity(0.5),
+                                )
                               ],
                             ),
                           ),
-                          child: Align(
-                            alignment: Alignment.center,
-                            child: Image.asset(
-                              Assets.assetsYoyoPartnerLogo,
-                              fit: BoxFit.contain,
-                            ),
+                          SizedBox(
+                            height: Sizes.screenHeight * 0.004,
                           ),
-                        ),
-                        Container(
-                          padding: EdgeInsets.symmetric(
-                              vertical: Sizes.screenHeight * 0.02),
-                          height: Sizes.screenHeight * 0.09,
-                          color: PortColor.white,
-                          child: Column(
-                            children: [
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  const TextConst(
-                                    title:
-                                    "Hii  ",
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                  TextConst(
-                                    title:
-                                    profileViewModel.profileModel?.data?.driverName ?? "",
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                  SizedBox(
-                                    width: Sizes.screenWidth * 0.01,
-                                  ),
-                                  const TextConst( title: "welcome to yoyomiles"),
-                                ],
-                              ),
-                              TextConst(
-                                title:
-                                "You are now a few steps away from getting your first trip",
-                                size: 12,
-                                color: PortColor.black.withOpacity(0.5),
-                              )
-                            ],
-                          ),
-                        ),
-                        SizedBox(
-                          height: Sizes.screenHeight * 0.004,
-                        ),
-                        if (profileViewModel.profileModel?.data?.verifyDocument == 1)
-                          pendingContainer()
-                        else if (profileViewModel.profileModel?.data?.verifyDocument == 2)
-                          verifiedContainer()
-                        else if (profileViewModel.profileModel?.data?.verifyDocument == 3)
-                          rejectedContainer(),
-                        SizedBox(height: Sizes.screenHeight*0.008,),
-                        GestureDetector(
-                          onTap: (){
-                            _onRefresh();
-                          },
-                          child: SizedBox(
-                            height: Sizes.screenHeight*0.05,
-                            width: Sizes.screenWidth*0.3,
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
+                          if (profileViewModel.profileModel?.data?.verifyDocument == 1)
+                            pendingContainer()
+                          else if (profileViewModel.profileModel?.data?.verifyDocument == 2)
+                            verifiedContainer()
+                          else if (profileViewModel.profileModel?.data?.verifyDocument == 3)
+                            rejectedContainer(),
+                          SizedBox(height: Sizes.screenHeight*0.008,),
+                          GestureDetector(
+                            onTap: (){
+                              _onRefresh();
+                            },
+                            child: SizedBox(
+                              height: Sizes.screenHeight*0.05,
+                              width: Sizes.screenWidth*0.3,
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
 
-                                ],
+                                  ],
+                                ),
                               ),
                             ),
-                          ),
-                        )
+                          )
 
-                      ],
-                    ),
+                        ],
+                      ),
+              ),
             ),
           ),
+          // bottomSheet:
         ),
-        // bottomSheet:
       ),
     );
 

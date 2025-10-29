@@ -37,7 +37,7 @@ class Data {
   String? vehicleBodyDetailsType;
   String? vehicleBodyType;
   int? fuelType;
-  dynamic ownerName;
+  String? ownerName;
   String? ownerAadhaarBack;
   String? ownerAadhaarFront;
   String? ownerPanFornt;

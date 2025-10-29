@@ -92,35 +92,39 @@ class _OwnerDetailState extends State<OwnerDetail> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: const OwnerDetailsAppBar(),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.only(left: 16, right: 16, top: 5),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(height: Sizes.screenHeight * 0.02),
+    return SafeArea(
+      top: false,
+      bottom: true,
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        appBar: const OwnerDetailsAppBar(),
+        body: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.only(left: 16, right: 16, top: 5),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(height: Sizes.screenHeight * 0.02),
 
-                // Step Indicator
-                _buildStepIndicator(),
-                const SizedBox(height: 32),
+                  // Step Indicator
+                  _buildStepIndicator(),
+                  const SizedBox(height: 32),
 
-                // Name Field
-                _buildNameField(),
-                const SizedBox(height: 24),
+                  // Name Field
+                  _buildNameField(),
+                  const SizedBox(height: 24),
 
-                // Upload Section
-                _buildUploadSection(),
-                const SizedBox(height: 32),
+                  // Upload Section
+                  _buildUploadSection(),
+                  const SizedBox(height: 32),
 
-                // Submit Button
-                _buildSubmitButton(),
-                const SizedBox(height: 15),
-              ],
+                  // Submit Button
+                  _buildSubmitButton(),
+                  const SizedBox(height: 15),
+                ],
+              ),
             ),
           ),
         ),

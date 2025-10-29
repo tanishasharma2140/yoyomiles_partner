@@ -1,8 +1,10 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:yoyomiles_partner/res/constant_color.dart';
 import 'package:yoyomiles_partner/res/launcher.dart';
 import 'package:yoyomiles_partner/res/sizing_const.dart';
 import 'package:yoyomiles_partner/res/text_const.dart';
+import 'package:yoyomiles_partner/view_model/profile_view_model.dart';
 import 'package:yoyomiles_partner/view_model/ride_history_view_model.dart';
 import 'package:provider/provider.dart';
 
@@ -21,90 +23,107 @@ class _RideHistoryState extends State<RideHistory> {
       final rideHistoryViewModel =
       Provider.of<RideHistoryViewModel>(context, listen: false);
       rideHistoryViewModel.rideHistoryApi();
+      final profileViewModel =
+      Provider.of<ProfileViewModel>(context, listen: false);
+      profileViewModel.profileApi();
     });
   }
 
   @override
   Widget build(BuildContext context) {
     final rideHistoryViewModel = Provider.of<RideHistoryViewModel>(context);
-    return Scaffold(
-      backgroundColor: PortColor.scaffoldBgGrey,
-      body: Column(
-        children: [
-          // Header
-          Container(
-            height: Sizes.screenHeight * 0.12,
-            decoration: BoxDecoration(
-              color: PortColor.white,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 10,
-                  offset: Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Padding(
-              padding: EdgeInsets.only(
-                top: MediaQuery.of(context).padding.top + 10,
-                left: 16,
-                right: 16,
-              ),
-              child: Row(
-                children: [
-                  // Back Button
-                  Container(
-                    decoration: BoxDecoration(
-                      color: PortColor.gold.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: IconButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                      },
-                      icon: Icon(
-                        Icons.arrow_back_ios_rounded,
-                        color: PortColor.gold,
-                        size: 20,
-                      ),
-                    ),
+    return SafeArea(
+      top: false,
+      bottom: true,
+      child: Scaffold(
+        backgroundColor: PortColor.scaffoldBgGrey,
+        body: Column(
+          children: [
+            // Header
+            Container(
+              height: Sizes.screenHeight * 0.12,
+              decoration: BoxDecoration(
+                color: PortColor.white,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 10,
+                    offset: Offset(0, 2),
                   ),
-                  SizedBox(width: 20),
-                  // Title
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      TextConst(
-                        title: "Ride History",
-                        size: Sizes.fontSizeEight + 2,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black87,
-                      ),
-                      SizedBox(height: 4),
-                      Container(
-                        height: 3,
-                        width: 50,
-                        decoration: BoxDecoration(
-                          color: PortColor.gold,
-                          borderRadius: BorderRadius.circular(2),
-                        ),
-                      ),
-                    ],
-                  ),
-
                 ],
               ),
-            ),
-          ),
+              child: Padding(
+                padding: EdgeInsets.only(
+                  top: MediaQuery.of(context).padding.top + 10,
+                  left: 16,
+                  right: 16,
+                ),
+                child: Row(
+                  children: [
+                    // Back Button
+                    Container(
+                      decoration: BoxDecoration(
+                        color: PortColor.gold.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: IconButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        icon: Icon(
+                          Icons.arrow_back_ios_rounded,
+                          color: PortColor.gold,
+                          size: 20,
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 20),
+                    // Title
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        TextConst(
+                          title: "Ride History",
+                          size: Sizes.fontSizeEight + 2,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
+                        SizedBox(height: 4),
+                        Container(
+                          height: 3,
+                          width: 50,
+                          decoration: BoxDecoration(
+                            color: PortColor.gold,
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                        ),
+                      ],
+                    ),
 
-          // Content
-          Expanded(
-            child: rideHistoryViewModel.rideHistoryModel != null
-                ? dataContainer()
-                : pendingContainer(),
-          ),
-        ],
+                  ],
+                ),
+              ),
+            ),
+
+            // Content
+            Expanded(
+              child: rideHistoryViewModel.loading
+                  ?  Center(
+                child: CupertinoActivityIndicator(
+                  color: PortColor.blue,
+                  radius: 14, // optional – size control
+                ),
+              )
+                  : rideHistoryViewModel.rideHistoryModel == null ||
+                  rideHistoryViewModel.rideHistoryModel!.data == null ||
+                  rideHistoryViewModel.rideHistoryModel!.data!.isEmpty
+                  ? pendingContainer()
+                  : dataContainer(),
+            ),
+
+          ],
+        ),
       ),
     );
   }
@@ -142,7 +161,7 @@ class _RideHistoryState extends State<RideHistory> {
 
   Widget dataContainer() {
     final rideHistoryViewModel = Provider.of<RideHistoryViewModel>(context);
-
+    final profile = Provider.of<ProfileViewModel>(context);
     return ListView.builder(
       itemCount: rideHistoryViewModel.rideHistoryModel!.data!.length,
       padding: EdgeInsets.symmetric(
@@ -314,7 +333,7 @@ class _RideHistoryState extends State<RideHistory> {
                         color: Colors.grey,
                       ),
                       Row(
-                        children: List.generate(5, (index)
+                        children: List.generate(profile.profileModel!.data!.ratingCount!, (index)
                         => Icon(Icons.star_rounded, color: Colors.amber, size: 18),
                         ),
                       ),

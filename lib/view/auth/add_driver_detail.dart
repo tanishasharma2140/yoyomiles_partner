@@ -257,102 +257,106 @@ class _AddDriverDetailState extends State<AddDriverDetail> {
     print("Received userId in AddDriverDetail: $userId");
 
 
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        backgroundColor: PortColor.white,
-        elevation: 0,
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            TextConst(
-              title:
-              "Add Driver Detail",
-              size: Sizes.fontSizeSeven,
-              fontWeight: FontWeight.bold,
+    return SafeArea(
+      top: false,
+      bottom: true,
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        appBar: AppBar(
+          automaticallyImplyLeading: false,
+          backgroundColor: PortColor.white,
+          elevation: 0,
+          title: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              TextConst(
+                title:
+                "Add Driver Detail",
+                size: Sizes.fontSizeSeven,
+                fontWeight: FontWeight.bold,
+              ),
+              const Icon(Icons.headset_mic_rounded, color: Colors.black),
+            ],
+          ),
+          shape: Border(
+            bottom: BorderSide(
+              color: PortColor.gray,
+              width: Sizes.screenWidth * 0.001,
             ),
-            const Icon(Icons.headset_mic_rounded, color: Colors.black),
-          ],
-        ),
-        shape: Border(
-          bottom: BorderSide(
-            color: PortColor.gray,
-            width: Sizes.screenWidth * 0.001,
           ),
         ),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Stepper Indicator
-            _buildStepIndicator(),
-            const SizedBox(height: 32),
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Stepper Indicator
+              _buildStepIndicator(),
+              const SizedBox(height: 32),
 
-            // I will be driving this vehicle section
-            _buildDrivingQuestionSection(),
-            const SizedBox(height: 24),
+              // I will be driving this vehicle section
+              _buildDrivingQuestionSection(),
+              const SizedBox(height: 24),
 
-            // Driver Name Section
-            _buildDriverNameSection(),
-            const SizedBox(height: 20),
+              // Driver Name Section
+              _buildDriverNameSection(),
+              const SizedBox(height: 20),
 
-            // Driver Phone Number Section
-            _buildDriverPhoneSection(),
-            const SizedBox(height: 20),
+              // Driver Phone Number Section
+              _buildDriverPhoneSection(),
+              const SizedBox(height: 20),
 
-            // Upload Driver License Section
-            _buildLicenseUploadSection(),
-            const SizedBox(height: 100),
+              // Upload Driver License Section
+              _buildLicenseUploadSection(),
+              const SizedBox(height: 100),
 
-            // Submit Button
-            GestureDetector(
-              onTap: _isLoading ? null : () {
-                if (_validateForm()) {
+              // Submit Button
+              GestureDetector(
+                onTap: _isLoading ? null : () {
+                  if (_validateForm()) {
 
-                  _registerDriver(
-                    id: userId,
-                    driverName: _driverNameController.text,
-                    drivingLicenceBack: _backLicense!,
-                    drivingLicenceFront: _frontLicense!,
-                    phone: _driverPhoneController.text,
-                    driveOperator: driveOperator,
-                    context: context,
-                  );
-                } else {
-                  print("❌ Form validation failed");
-                }
-              },
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                decoration: BoxDecoration(
-                  color: _isLoading ? Colors.grey : PortColor.blue,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                alignment: Alignment.center,
-                child: _isLoading
-                    ? const SizedBox(
-                  height: 20,
-                  width: 20,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    _registerDriver(
+                      id: userId,
+                      driverName: _driverNameController.text,
+                      drivingLicenceBack: _backLicense!,
+                      drivingLicenceFront: _frontLicense!,
+                      phone: _driverPhoneController.text,
+                      driveOperator: driveOperator,
+                      context: context,
+                    );
+                  } else {
+                    print("❌ Form validation failed");
+                  }
+                },
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  decoration: BoxDecoration(
+                    color: _isLoading ? Colors.grey : PortColor.blue,
+                    borderRadius: BorderRadius.circular(8),
                   ),
-                )
-                    : const Text(
-                  'Submit',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
+                  alignment: Alignment.center,
+                  child: _isLoading
+                      ? const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    ),
+                  )
+                      : const Text(
+                    'Submit',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

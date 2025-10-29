@@ -272,8 +272,31 @@ class _ConstMapState extends State<ConstMap> {
       print("📍 Drop LatLng: $dropLatLng");
     }
 
-    // ✅ CURRENT LOCATION SE PICKUP TAK POLYLINE (Status 1-4)
-    if (widget.rideStatus! <= 4 && _currentPosition != null && pickupLatLng != null) {
+    // ✅ STATUS 4: PICKUP TO DROP POLYLINE (Aapka specific requirement)
+    if (widget.rideStatus == 4 && pickupLatLng != null && dropLatLng != null) {
+      if (kDebugMode) {
+        print("🎯 STATUS 4: Drawing Pickup → Drop Polyline");
+      }
+
+      List<LatLng> routeToDrop = await _getRoutePoints(pickupLatLng, dropLatLng);
+
+      if (routeToDrop.isNotEmpty) {
+        setState(() {
+          _polylines.add(Polyline(
+            polylineId: PolylineId("pickup_to_drop_status_4"),
+            points: routeToDrop,
+            color: Colors.purple, // Different color for status 4
+            width: 5,
+          ));
+        });
+
+        // Fit map to show pickup and drop points
+        _fitMapToPoints([pickupLatLng, dropLatLng]);
+      }
+    }
+
+    // ✅ CURRENT LOCATION SE PICKUP TAK POLYLINE (Status 1-3)
+    if (widget.rideStatus! <= 3 && _currentPosition != null && pickupLatLng != null) {
       if (kDebugMode) {
         print("🔄 Drawing Current Location → Pickup Polyline");
       }
@@ -318,7 +341,6 @@ class _ConstMapState extends State<ConstMap> {
       }
     }
 
-    // ✅ OPTIONAL: Driver se drop tak (Status 5+)
     if (widget.rideStatus! >= 5 && _currentPosition != null && dropLatLng != null) {
       if (kDebugMode) {
         print("🔄 Drawing Current Location → Drop Polyline (Optional)");
@@ -404,7 +426,6 @@ class _ConstMapState extends State<ConstMap> {
             position: pickupLatLng!,
             infoWindow: InfoWindow(title: "Pickup Location"),
             icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
-
           ));
         });
       }
