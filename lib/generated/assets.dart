@@ -8,10 +8,16 @@ class Assets {
   static const String assetsAddDetail = 'assets/add_detail.png';
   static const String assetsBank = 'assets/bank.png';
   static const String assetsBankDataNot = 'assets/bank_data_not.jpg';
+  static const String assetsBikeYoyo = 'assets/bike_yoyo.png';
+  static const String assetsCurrentLocation = 'assets/current_location.png';
   static const String assetsCustomerExperience = 'assets/customer_experience.png';
   static const String assetsDashboard = 'assets/dashboard.png';
   static const String assetsDriver = 'assets/driver.png';
+  static const String assetsDriverProfile = 'assets/driver_profile.png';
+  static const String assetsDropLocation = 'assets/drop_location.png';
+  static const String assetsEarning = 'assets/earning.png';
   static const String assetsEditprofile = 'assets/editprofile.png';
+  static const String assetsHueCurrent = 'assets/hue_current.png';
   static const String assetsIndiaPanCard = 'assets/india_pan_card.jpg';
   static const String assetsIndiaimage = 'assets/indiaimage.png';
   static const String assetsKingFairy = 'assets/king_fairy.png';
@@ -37,6 +43,7 @@ class Assets {
   static const String assetsTruck = 'assets/truck.png';
   static const String assetsWallet = 'assets/wallet.png';
   static const String assetsWalletHistory = 'assets/wallet_history.png';
+  static const String assetsWalletSettlement = 'assets/wallet_settlement.png';
   static const String assetsYoyoPartnerLogo = 'assets/yoyo_partner_logo.png';
   static const String yoyomilesPartnerAssetsNoData = 'assets/no_data.png';
   static const String yoyomilesPartnerAssetsPanCard = 'assets/pan_card.png';

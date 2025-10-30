@@ -4,17 +4,17 @@ import 'package:yoyomiles_partner/utils/routes/routes_name.dart';
 
 class YoyomilesPartnerCon with ChangeNotifier {
   List<DashBoardModel> dashBoardGridList = [
-    DashBoardModel(img: Assets.assetsEditprofile,
+    DashBoardModel(img: Assets.assetsDriverProfile,
         title: ' Profile',
         route: RoutesName.editProfile),
     DashBoardModel(img: Assets.assetsTruck,
         title: 'Ride History',
         route: RoutesName.rideHistory),
-    DashBoardModel(img: Assets.assetsWalletHistory,
-        title: 'Wallet',
+    DashBoardModel(img: Assets.assetsWalletSettlement,
+        title: 'Wallet & Settlement',
         route: RoutesName.wallet),
     DashBoardModel(
-        img: Assets.assetsReward, title: 'Reward', route: RoutesName.rideSafety),
+        img: Assets.assetsEarning, title: 'Earning Report', route: RoutesName.rideSafety),
   ];
 }
 class DashBoardModel{

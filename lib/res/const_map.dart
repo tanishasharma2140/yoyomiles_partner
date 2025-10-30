@@ -1,13 +1,16 @@
+import 'dart:async';
+import 'dart:ui' as ui;
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:provider/provider.dart';
+import 'package:yoyomiles_partner/generated/assets.dart';
 import 'package:yoyomiles_partner/res/constant_color.dart';
-import 'package:yoyomiles_partner/view_model/profile_view_model.dart';
 
 class ConstMap extends StatefulWidget {
   final double? height;
@@ -29,6 +32,7 @@ class ConstMap extends StatefulWidget {
 
 class _ConstMapState extends State<ConstMap> {
   GoogleMapController? mapController;
+  final Completer<GoogleMapController> completer = Completer();
   final LatLng _initialPosition = LatLng(26.8467, 80.9462);
   LatLng? _currentPosition;
   Marker? _currentLocationMarker;
@@ -36,7 +40,6 @@ class _ConstMapState extends State<ConstMap> {
   Set<Marker> _markers = {};
   Set<Polyline> _polylines = {};
 
-  // API key - ise secure way mein store karein
   static const String _mapsApiKey = 'AIzaSyANhzkw-SjvdzDvyPsUBDFmvEHfI9b8QqA';
 
   @override
@@ -51,6 +54,40 @@ class _ConstMapState extends State<ConstMap> {
     if (oldWidget.rideStatus != widget.rideStatus ||
         oldWidget.data != widget.data) {
       _updatePolylinesBasedOnStatus();
+    }
+  }
+
+  /// Move camera to fit polyline with bounds
+  Future<void> moveCameraOnPolyline(List<LatLng> points) async {
+    if (points.isEmpty) return;
+
+    final GoogleMapController controller = await completer.future;
+
+    double minLat = points.first.latitude;
+    double maxLat = points.first.latitude;
+    double minLng = points.first.longitude;
+    double maxLng = points.first.longitude;
+
+    for (var p in points) {
+      if (p.latitude < minLat) minLat = p.latitude;
+      if (p.latitude > maxLat) maxLat = p.latitude;
+      if (p.longitude < minLng) minLng = p.longitude;
+      if (p.longitude > maxLng) maxLng = p.longitude;
+    }
+
+    final bounds = LatLngBounds(
+      southwest: LatLng(minLat, minLng),
+      northeast: LatLng(maxLat, maxLng),
+    );
+
+    try {
+      await controller.animateCamera(CameraUpdate.newLatLngBounds(bounds, 30));
+    } catch (e) {
+      debugPrint("Error moving camera: $e");
+      // fallback
+      await controller.animateCamera(
+        CameraUpdate.newLatLngZoom(points.first, 14),
+      );
     }
   }
 
@@ -81,14 +118,17 @@ class _ConstMapState extends State<ConstMap> {
         desiredAccuracy: LocationAccuracy.best,
       );
 
-      setState(() {
+      setState(() async {
         _currentPosition = LatLng(position.latitude, position.longitude);
 
         _currentLocationMarker = Marker(
-          markerId: MarkerId("currentLocation"),
+          markerId: const MarkerId("currentLocation"),
           position: _currentPosition!,
-          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
-          infoWindow: InfoWindow(title: "You are here"),
+          icon: await BitmapDescriptor.fromAssetImage(
+            const ImageConfiguration(size: Size(74, 74)),
+            Assets.assetsHueCurrent,
+          ),
+          infoWindow: const InfoWindow(title: "You are here"),
         );
 
         _markers.add(_currentLocationMarker!);
@@ -285,13 +325,13 @@ class _ConstMapState extends State<ConstMap> {
           _polylines.add(Polyline(
             polylineId: PolylineId("pickup_to_drop_status_4"),
             points: routeToDrop,
-            color: Colors.purple, // Different color for status 4
-            width: 5,
+            color: PortColor.buttonBlue, // Different color for status 4
+            width: 3,
           ));
         });
 
-        // Fit map to show pickup and drop points
-        _fitMapToPoints([pickupLatLng, dropLatLng]);
+        // ✅ USE moveCameraOnPolyline FUNCTION HERE
+        await moveCameraOnPolyline(routeToDrop);
       }
     }
 
@@ -309,12 +349,12 @@ class _ConstMapState extends State<ConstMap> {
             polylineId: PolylineId("driver_to_pickup"),
             points: routeToPickup,
             color: Colors.blue,
-            width: 4,
+            width: 3,
           ));
         });
 
-        // Fit map to show both points
-        _fitMapToPoints([_currentPosition!, pickupLatLng]);
+        // ✅ USE moveCameraOnPolyline FUNCTION HERE
+        await moveCameraOnPolyline(routeToPickup);
       }
     }
 
@@ -332,12 +372,12 @@ class _ConstMapState extends State<ConstMap> {
             polylineId: PolylineId("pickup_to_drop"),
             points: routeToDrop,
             color: Colors.green,
-            width: 4,
+            width: 3,
           ));
         });
 
-        // Fit map to show both points
-        _fitMapToPoints([pickupLatLng, dropLatLng]);
+        // ✅ USE moveCameraOnPolyline FUNCTION HERE
+        await moveCameraOnPolyline(routeToDrop);
       }
     }
 
@@ -358,6 +398,9 @@ class _ConstMapState extends State<ConstMap> {
             patterns: [PatternItem.dash(10), PatternItem.gap(5)],
           ));
         });
+
+        // ✅ USE moveCameraOnPolyline FUNCTION HERE (Optional)
+        await moveCameraOnPolyline(routeToFinal);
       }
     }
   }
@@ -371,6 +414,24 @@ class _ConstMapState extends State<ConstMap> {
     mapController!.animateCamera(
       CameraUpdate.newLatLngBounds(bounds, 100.0),
     );
+  }
+
+
+  Future<BitmapDescriptor> resizeMarkerIcon(String assetPath, int targetWidth) async {
+    final ByteData data = await rootBundle.load(assetPath);
+    final Uint8List bytes = data.buffer.asUint8List();
+
+    final ui.Codec codec = await ui.instantiateImageCodec(
+      bytes,
+      targetWidth: targetWidth,
+    );
+    final ui.FrameInfo fi = await codec.getNextFrame();
+
+    final ByteData? byteData =
+    await fi.image.toByteData(format: ui.ImageByteFormat.png);
+    final Uint8List resizedBytes = byteData!.buffer.asUint8List();
+
+    return BitmapDescriptor.fromBytes(resizedBytes);
   }
 
   /// Create LatLngBounds from points
@@ -408,7 +469,6 @@ class _ConstMapState extends State<ConstMap> {
         pickupLatLng = await _getLatLngFromAddress(booking['pickup_address'].toString());
       }
 
-      // Drop LatLng
       if (booking['drop_latitute'] != null && booking['drop_logitute'] != null) {
         dropLatLng = LatLng(
           double.parse(booking['drop_latitute'].toString()),
@@ -418,27 +478,34 @@ class _ConstMapState extends State<ConstMap> {
         dropLatLng = await _getLatLngFromAddress(booking['drop_address'].toString());
       }
 
-      // Add pickup marker
+      // Add pickup marker - BADA SIZE (64x64)
       if (pickupLatLng != null) {
+        final pickupIcon = await resizeMarkerIcon(Assets.assetsCurrentLocation, 85);
+
         setState(() {
-          _markers.add(Marker(
-            markerId: MarkerId("pickup_${booking['id']}"),
-            position: pickupLatLng!,
-            infoWindow: InfoWindow(title: "Pickup Location"),
-            icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
-          ));
+          _markers.add(
+            Marker(
+              markerId: MarkerId("pickup_${booking['id']}"),
+              position: pickupLatLng!,
+              infoWindow: const InfoWindow(title: "Pickup Location"),
+              icon: pickupIcon,
+            ),
+          );
         });
       }
 
-      // Add drop marker
       if (dropLatLng != null) {
+        final dropIcon = await resizeMarkerIcon(Assets.assetsDropLocation, 85);
+
         setState(() {
-          _markers.add(Marker(
-            markerId: MarkerId("drop_${booking['id']}"),
-            position: dropLatLng!,
-            infoWindow: InfoWindow(title: "Drop Location"),
-            icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
-          ));
+          _markers.add(
+            Marker(
+              markerId: MarkerId("drop_${booking['id']}"),
+              position: dropLatLng!,
+              infoWindow: const InfoWindow(title: "Drop Location"),
+              icon: dropIcon,
+            ),
+          );
         });
       }
     }
@@ -456,6 +523,8 @@ class _ConstMapState extends State<ConstMap> {
       child: GoogleMap(
         onMapCreated: (GoogleMapController controller) {
           mapController = controller;
+          completer.complete(controller); // ✅ Completer ko complete karo
+
           // Refresh polylines when map is ready
           if (widget.data != null && widget.data!.isNotEmpty) {
             _drawPolylinesBasedOnStatus(widget.data!.first);

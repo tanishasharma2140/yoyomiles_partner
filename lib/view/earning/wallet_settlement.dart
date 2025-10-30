@@ -1,13 +1,16 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:yoyomiles_partner/res/animated_gradient_border.dart';
 import 'package:yoyomiles_partner/res/app_fonts.dart';
 import 'package:yoyomiles_partner/res/constant_color.dart';
+import 'package:yoyomiles_partner/res/custom_text_field.dart';
 import 'package:yoyomiles_partner/res/sizing_const.dart';
 import 'package:yoyomiles_partner/res/text_const.dart';
 import 'package:yoyomiles_partner/view/bank_detail.dart' show BankDetail;
 import 'package:yoyomiles_partner/view/earning/help.dart';
 import 'package:yoyomiles_partner/view/earning/with_draw_history.dart' show WithDrawHistory;
+import 'package:yoyomiles_partner/view_model/payment_view_model.dart';
 import 'package:yoyomiles_partner/view_model/profile_view_model.dart';
 import 'package:yoyomiles_partner/view_model/transaction_view_model.dart';
 
@@ -19,9 +22,6 @@ class WalletSettlement extends StatefulWidget {
 }
 
 class _WalletSettlementState extends State<WalletSettlement> {
-  double _availableBalance = 18560.50;
-  double _pendingBalance = 3250.00;
-  double _totalEarnings = 21810.50;
 
   // List<Map<String, dynamic>> _transactions = [
   //   {
@@ -236,7 +236,7 @@ class _WalletSettlementState extends State<WalletSettlement> {
                   Expanded(
                     child: _buildWalletItem(
                       'Due Wallet',
-                      '₹${_pendingBalance.toStringAsFixed(2)}',
+                      '₹${driverProfile.profileModel!.data!.duesPayment}',
                       Icons.pending,
                       Colors.orange,
                     ),
@@ -334,13 +334,14 @@ class _WalletSettlementState extends State<WalletSettlement> {
             Icons.currency_rupee,
             _showWithdrawalDialog,
           ),
+          _buildActionButton('History', Icons.history, _viewHistory),
           _buildActionButton(
             'Add Bank',
             Icons.account_balance,
             _addBankAccount,
           ),
-          _buildActionButton('History', Icons.history, _viewHistory),
-          _buildActionButton('Help', Icons.help, _showHelp),
+
+          _buildActionButton('Due Wallet', Icons.wallet, _showDueWalletHelp),
         ],
       ),
     );
@@ -469,22 +470,24 @@ class _WalletSettlementState extends State<WalletSettlement> {
 
   Widget _buildTransactionHistory() {
     final transaction = Provider.of<TransactionViewModel>(context);
+
     return Container(
-      margin: EdgeInsets.fromLTRB(16, 0, 16, 16),
-      padding: EdgeInsets.all(16),
+      margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(color: Colors.black12, blurRadius: 8, offset: Offset(0, 2)),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Header
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
+            children: const [
               Text(
                 'Recent Transactions',
                 style: TextStyle(
@@ -493,34 +496,51 @@ class _WalletSettlementState extends State<WalletSettlement> {
                   color: Colors.black87,
                 ),
               ),
-              TextButton(
-                onPressed: () {},
+            ],
+          ),
+          const SizedBox(height: 12),
+
+          // 🔥 Conditional UI for Loading / Data / Empty State
+          if (transaction.loading) ...[
+            const Center(
+              child: CupertinoActivityIndicator(radius: 14),
+            ),
+          ] else if (transaction.transactionsModel == null ||
+              transaction.transactionsModel!.data == null ||
+              transaction.transactionsModel!.data!.isEmpty) ...[
+            const Center(
+              child: Padding(
+                padding: EdgeInsets.symmetric(vertical: 50),
                 child: Text(
-                  'View All',
+                  "No Data Found",
                   style: TextStyle(
-                    color: PortColor.gold,
-                    fontWeight: FontWeight.w600,
+                    color: Colors.grey,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
               ),
-            ],
-          ),
-          SizedBox(height: 12),
-          SizedBox(
-            height: 400,
-            child: ListView.builder(
-              shrinkWrap: true,
-              itemCount: transaction.transactionsModel?.data?.length ?? 0,
-              itemBuilder: (context, index) {
-                final transactionData = transaction.transactionsModel?.data?[index];
-                return _buildTransactionItem(transactionData!);
-              },
             ),
-          ),
+          ] else ...[
+            // ✅ Show Transaction List if data available
+            SizedBox(
+              height: 400,
+              child: ListView.builder(
+                shrinkWrap: true,
+                itemCount: transaction.transactionsModel!.data!.length,
+                itemBuilder: (context, index) {
+                  final transactionData =
+                  transaction.transactionsModel!.data![index];
+                  return _buildTransactionItem(transactionData);
+                },
+              ),
+            ),
+          ],
         ],
       ),
     );
   }
+
 
   Widget _buildTransactionItem( transaction) {
     // Assuming you have payment_by field in your Data model
@@ -833,6 +853,7 @@ class _WalletSettlementState extends State<WalletSettlement> {
   }
 
   void _showWithdrawalDialog() {
+    final driverProfile = Provider.of<ProfileViewModel>(context,listen: false);
     showGeneralDialog(
       context: context,
       barrierDismissible: true,
@@ -903,7 +924,7 @@ class _WalletSettlementState extends State<WalletSettlement> {
                                   color: Colors.grey,
                                 ),
                                 TextConst(title:
-                                  '₹${_availableBalance.toStringAsFixed(2)}',
+                                '₹${driverProfile.profileModel!.data!.wallet}',
                                   size : 16,
                                   fontWeight: FontWeight.bold,
                                   color: PortColor.gold,
@@ -1209,27 +1230,144 @@ class _WalletSettlementState extends State<WalletSettlement> {
     );    // Implement view history
   }
 
-  void _showHelp() {
-    Navigator.push(
-      context,
-      PageRouteBuilder(
-        pageBuilder: (context, animation, secondaryAnimation) => Help(),
-        transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          const begin = Offset(0.0, 1.0);
-          const end = Offset.zero;
-          const curve = Curves.easeInOut;
+  void _showDueWalletHelp() {
+    final payment = Provider.of<PaymentViewModel>(context,listen: false);
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        String amount = '';
+        final TextEditingController _amountController = TextEditingController();
 
-          var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-          var offsetAnimation = animation.drive(tween);
+        return Dialog(
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          elevation: 10,
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black12,
+                  blurRadius: 20,
+                  offset: Offset(0, 10),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Header with icon and title
+                Container(
+                  padding: EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[50],
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        padding: EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: PortColor.gold.withOpacity(0.1),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(Icons.wallet, size: 28, color: PortColor.gold),
+                      ),
+                      SizedBox(width: 12),
+                      Text(
+                        'Due Wallet',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.grey[800],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
 
-          return SlideTransition(
-            position: offsetAnimation,
-            child: child,
-          );
-        },
-        transitionDuration: Duration(milliseconds: 300),
-      ),
+                SizedBox(height: 20),
+
+                  CustomTextField(
+                    controller: _amountController,
+                    labelText: 'Enter Amount',
+                    keyboardType: TextInputType.number,
+                  ),
+
+                SizedBox(height: 20),
+
+                Row(
+                  children: [
+                    // Cancel Button
+                    Expanded(
+                      child: Container(
+                        height: 50,
+                        child: OutlinedButton(
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: Colors.grey[700],
+                            side: BorderSide(color: Colors.grey[400]!),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            backgroundColor: Colors.white,
+                          ),
+                          child: Text(
+                            'Cancel',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    SizedBox(width: 12),
+
+                    // Submit Button
+                    Expanded(
+                      child: SizedBox(
+                        height: 50,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            payment.paymentApi(context, _amountController.text, "");
+                          },
+                          style: ElevatedButton.styleFrom(
+                            foregroundColor: Colors.white,
+                            backgroundColor: PortColor.gold,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            elevation: 2,
+                          ),
+                          child: Text(
+                            'Submit',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
-    // Implement help
   }
+
+
+
 }

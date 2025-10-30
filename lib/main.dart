@@ -16,6 +16,7 @@ import 'package:yoyomiles_partner/view_model/auth_view_model.dart';
 import 'package:yoyomiles_partner/view_model/bank_detail_view_model.dart';
 import 'package:yoyomiles_partner/view_model/bank_view_model.dart';
 import 'package:yoyomiles_partner/view_model/body_type_view_model.dart';
+import 'package:yoyomiles_partner/view_model/call_back_view_model.dart';
 import 'package:yoyomiles_partner/view_model/cities_view_model.dart';
 import 'package:yoyomiles_partner/view_model/delete_bank_detail_view_model.dart';
 import 'package:yoyomiles_partner/view_model/driver_vehicle_view_model.dart';
@@ -23,6 +24,7 @@ import 'package:yoyomiles_partner/view_model/fuel_type_view_model.dart';
 import 'package:yoyomiles_partner/view_model/help_topics_view_model.dart';
 import 'package:yoyomiles_partner/view_model/live_ride_view_model.dart';
 import 'package:yoyomiles_partner/view_model/online_status_view_model.dart';
+import 'package:yoyomiles_partner/view_model/payment_view_model.dart';
 import 'package:yoyomiles_partner/view_model/policy_view_model.dart';
 import 'package:yoyomiles_partner/view_model/profile_view_model.dart';
 import 'package:yoyomiles_partner/view_model/ride_history_view_model.dart';
@@ -116,6 +118,8 @@ class _MyAppState extends State<MyApp> {
           ChangeNotifierProvider(create: (context)=> HelpTopicsViewModel()),
           ChangeNotifierProvider(create: (context)=> ActiveRideViewModel()),
           ChangeNotifierProvider(create: (context)=> TransactionViewModel()),
+          ChangeNotifierProvider(create: (context)=> PaymentViewModel()),
+          ChangeNotifierProvider(create: (context)=> CallBackViewModel()),
 
         ],
         child: MaterialApp(
