@@ -5,8 +5,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:yoyomiles_partner/view/auth/register.dart';
+import 'package:provider/provider.dart';
 import 'package:yoyomiles_partner/view/trip_status.dart';
+import 'package:yoyomiles_partner/view_model/profile_view_model.dart';
 
 class NotificationService {
   final GlobalKey<NavigatorState> navigatorKey;
@@ -103,7 +104,7 @@ class NotificationService {
       }
       if (Platform.isAndroid) {
         initLocalNotification(context, massage);
-        // handleMassage(context, massage);
+        handleMassageReceivedBg(messaging,context);
         showNotification(massage);
       }
     });
@@ -156,6 +157,7 @@ class NotificationService {
         payload: "send data",
       );
     });
+    // handleMassageReceivedBg(massage);
   }
 
   // background and terminated
@@ -163,6 +165,7 @@ class NotificationService {
     // background state
     FirebaseMessaging.onMessageOpenedApp.listen((massage) {
       handleMassage(massage);
+      handleMassageReceivedBg(massage,context);
     });
     // terminated state
     FirebaseMessaging.instance.getInitialMessage().then((
@@ -171,6 +174,8 @@ class NotificationService {
       if (massage != null && massage.data.isNotEmpty) {
         handleMassage(massage);
       }
+      handleMassageReceivedBg(massage!,context);
+
     });
   }
 
@@ -181,81 +186,18 @@ class NotificationService {
       ),
     );
   }
+
+  Future<void> handleMassageReceivedBg(RemoteMessage, BuildContext context) async {
+    // navigatorKey.currentState?.push(
+    //   MaterialPageRoute(
+    //     builder: (context) => TripStatus(),
+    //   ),
+    // );
+    Provider.of<ProfileViewModel>(navigatorKey.currentContext!, listen: false).profileApi();
+
+  }
 }
 
-// Future<void> handleMassage(RemoteMessage message) async {
-//   debugPrint("📩 Raw Notification data: ${message.data}");
-//
-//   // role check (admin ya employee)
-//   String? role = message.data['role'];
-//   if (role == null || role.isEmpty) {
-//     final userViewModel = UserViewModel();
-//     final savedRole = await userViewModel.getRole();
-//     if (savedRole == 1) {
-//       role = "admin";
-//     } else if (savedRole == 2) {
-//       role = "employee";
-//     }
-//   }
-//
-//   debugPrint("📩 Effective role: $role");
-//
-//   String? type = message.data['type'];
-//   debugPrint("📌 Notification type:$type");
-//
-//   if (navigatorKey.currentState == null) return;
-//   if (role == "admin") {
-//     if (type == "leave_request") {
-//       navigatorKey.currentState?.push(
-//         MaterialPageRoute(builder: (context) => EmpLeaveRequest()),
-//       );
-//     } else if (type == "notice") {
-//       navigatorKey.currentState?.push(
-//         MaterialPageRoute(builder: (context) => AddNoticeHistory()),
-//       );
-//     } else if (type == "break_request") {
-//       navigatorKey.currentState?.push(
-//         MaterialPageRoute(builder: (context) => BreakNotification()),
-//       );
-//     } else if (type == "asset_request") {
-//       navigatorKey.currentState?.push(
-//         MaterialPageRoute(builder: (context) => AssetsAssignApprovePage()),
-//       );
-//     } else {
-//       navigatorKey.currentState?.pushReplacement(
-//         MaterialPageRoute(builder: (context) => AdminDashboard()),
-//       );
-//     }
-//   } else if (role == "employee") {
-//     if (type == "leave_status") {
-//       navigatorKey.currentState?.push(
-//         MaterialPageRoute(builder: (context) => MyLeaveApp()),
-//       );
-//     } else if (type == "notice") {
-//       navigatorKey.currentState?.push(
-//         MaterialPageRoute(builder: (context) => EmpNoticeBoard()),
-//       );
-//     } else if (type == "break_status") {
-//       navigatorKey.currentState?.push(
-//         MaterialPageRoute(builder: (context) => BreakHistory()),
-//       );
-//     } else if (type == "project_assign") {
-//       navigatorKey.currentState?.push(
-//         MaterialPageRoute(builder: (context) => ProjectStatusPage()),
-//       );
-//     }else if (type == "asset_request_action") {
-//       navigatorKey.currentState?.push(
-//         MaterialPageRoute(builder: (context) => AssetsAssignFormPage()),
-//       );
-//     }
-//     else {
-//       navigatorKey.currentState?.pushReplacement(
-//         MaterialPageRoute(builder: (context) => EmployeeDashboard()),
-//       );
-//     }
-//   }
-//
-// }
 
 
 

@@ -21,6 +21,7 @@ class ProfileViewModel with ChangeNotifier {
     notifyListeners();
   }
   Future<void> profileApi() async {
+    print("kjfnnfneofoefionieo");
     setLoading(true);
     try {
       UserViewModel userViewModel = UserViewModel();

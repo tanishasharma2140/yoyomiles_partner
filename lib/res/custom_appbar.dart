@@ -3,24 +3,30 @@ import 'package:flutter/material.dart';
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String name;
   final String imageUrl;
-  final List<Widget>? actions; // ✅ Add actions
+  final List<Widget>? actions;
+  final Widget? leading; // ✅ Optional leading widget
 
   const CustomAppBar({
     super.key,
     required this.name,
     required this.imageUrl,
-    this.actions, // Optional actions
+    this.actions,
+    this.leading, // ✅ Not required
   });
 
   @override
   Widget build(BuildContext context) {
     return AppBar(
       backgroundColor: Colors.white,
-      elevation: 5, // Shadow from bottom
+      elevation: 5,
       shadowColor: Colors.black.withOpacity(0.2),
       automaticallyImplyLeading: false,
       titleSpacing: 0,
       toolbarHeight: 70,
+
+      // ✅ Optional leading widget
+      leading: leading,
+
       title: Row(
         children: [
           const SizedBox(width: 12),
@@ -59,7 +65,6 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
         ],
       ),
 
-      // ✅ Right side actions
       actions: actions,
     );
   }

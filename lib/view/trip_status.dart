@@ -5,7 +5,6 @@ import 'package:yoyomiles_partner/generated/assets.dart';
 import 'package:yoyomiles_partner/res/const_without_polyline_map.dart';
 import 'package:yoyomiles_partner/res/constant_color.dart';
 import 'package:yoyomiles_partner/res/custom_appbar.dart';
-import 'package:yoyomiles_partner/res/launcher.dart';
 import 'package:yoyomiles_partner/res/sizing_const.dart';
 import 'package:yoyomiles_partner/res/text_const.dart';
 import 'package:yoyomiles_partner/view_model/assign_ride_view_model.dart';
@@ -23,7 +22,6 @@ class _TripStatusState extends State<TripStatus> {
   bool isSwitched = true;
   String? _currentAddress;
 
-  // bool isSwitched = true;
 
   void _showSwitchDialog() {
     showDialog(
@@ -134,6 +132,10 @@ class _TripStatusState extends State<TripStatus> {
       child: Scaffold(
         backgroundColor: PortColor.scaffoldBgGrey,
         appBar:  CustomAppBar(
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.black),
+            onPressed: () => Navigator.pop(context),
+          ),
           name: profileViewModel.profileModel!.data!.driverName?? "Known",
           imageUrl: profileViewModel.profileModel!.data!.ownerSelfie ?? "",
           actions: [
@@ -505,26 +507,23 @@ class BookingCard extends StatelessWidget {
                   ),
                 ),
                 GestureDetector(
-                  onTap: () => Launcher.launchDialPad(
-                    context,
-                    bookingData['sender_phone'].toString(),
-                  ),
+
                   child: Container(
                     padding: EdgeInsets.symmetric(
                       vertical: Sizes.screenHeight * 0.006,
                       horizontal: Sizes.screenWidth * 0.03,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.green,
+                      color: Colors.grey[100],
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Row(
                       children: [
-                        Icon(Icons.call, color: Colors.white, size: 16),
+                        Icon(Icons.call, color: PortColor.blackLight, size: 16),
                         SizedBox(width: Sizes.screenWidth * 0.01),
                         TextConst(
                           title: 'Call',
-                          color: Colors.white,
+                          color: PortColor.blackLight,
                           size: Sizes.fontSizeFour,
                         ),
                       ],

@@ -54,7 +54,7 @@ class OnlineStatusViewModel with ChangeNotifier {
           );
 
           print("🔥 Firebase saveOrUpdateDocument() called successfully!");
-          Navigator.pushNamed(context, RoutesName.map);
+          Navigator.pushNamed(context, RoutesName.tripStatus);
         } else if (status == 0){
           print("aman");
           FirebaseServices().saveOrUpdateDocument(

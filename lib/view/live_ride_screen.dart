@@ -8,6 +8,7 @@ import 'package:yoyomiles_partner/res/constant_color.dart';
 import 'package:yoyomiles_partner/res/custom_appbar.dart';
 import 'package:yoyomiles_partner/res/launcher.dart';
 import 'package:yoyomiles_partner/res/sizing_const.dart';
+import 'package:yoyomiles_partner/res/slide_to_button.dart';
 import 'package:yoyomiles_partner/res/text_const.dart';
 import 'package:yoyomiles_partner/utils/utils.dart';
 import 'package:yoyomiles_partner/view/auth/register.dart';
@@ -45,11 +46,13 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
   bool isSwitched = true;
   String? _currentAddress;
 
+
   // 🔥 ALAG-ALAG FLAGS FOR DIFFERENT DIALOGS
   bool _showWaitingForPaymentDialog = false;
   bool _showPaymentSuccessDialog = false;
   bool _showRideCompletedDialog = false;
   bool _showRideCancelledDialog = false;
+
 
   StreamSubscription<DocumentSnapshot>? _paymentSubscription;
   StreamSubscription<DocumentSnapshot>? _rideStatusSubscription;
@@ -538,6 +541,61 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
   }
 
   // NEW: Handle Reached button click with paymode condition
+  // void _handleReachedButtonClick() async {
+  //   final liveRideViewModel = Provider.of<LiveRideViewModel>(context, listen: false);
+  //   final orderId = liveRideViewModel.liveOrderModel!.data!.id.toString();
+  //
+  //   try {
+  //     // First get current order data to check paymode
+  //     final doc = await FirebaseFirestore.instance
+  //         .collection('order')
+  //         .doc(orderId)
+  //         .get();
+  //
+  //     if (doc.exists) {
+  //       final data = doc.data() as Map<String, dynamic>;
+  //       final payMode = data['paymode'] ?? 0;
+  //
+  //       print("💰 Reached button clicked - paymode: $payMode");
+  //
+  //       if (payMode == 1) {
+  //         // Cash payment - update to status 6 and show ride completed dialog
+  //         print("💵 Cash payment detected - updating to status 6");
+  //         await FirebaseFirestore.instance
+  //             .collection('order')
+  //             .doc(orderId)
+  //             .update({'ride_status': 6});
+  //
+  //         liveRideViewModel.liveOrderModel!.data!.rideStatus = 6;
+  //         Utils.showSuccessMessage(context, "Ride completed successfully!");
+  //
+  //         // Show ride completed dialog
+  //         Future.delayed(const Duration(milliseconds: 500), () {
+  //           _showRideCompletedDialogMethod();
+  //         });
+  //       } else {
+  //         // Online payment - update to status 5 and show waiting for payment
+  //         print("💳 Online payment detected - updating to status 5");
+  //         await FirebaseFirestore.instance
+  //             .collection('order')
+  //             .doc(orderId)
+  //             .update({'ride_status': 5});
+  //
+  //         liveRideViewModel.liveOrderModel!.data!.rideStatus = 5;
+  //         Utils.showSuccessMessage(context, "Ride status updated: Reached destination");
+  //
+  //         // Show waiting for payment dialog
+  //         Future.delayed(const Duration(milliseconds: 500), () {
+  //           _showWaitingForPaymentDialogMethod();
+  //         });
+  //       }
+  //       setState(() {});
+  //     }
+  //   } catch (e) {
+  //     Utils.showErrorMessage(context, "Failed to update ride status: $e");
+  //   }
+  // }
+
   void _handleReachedButtonClick() async {
     final liveRideViewModel = Provider.of<LiveRideViewModel>(context, listen: false);
     final orderId = liveRideViewModel.liveOrderModel!.data!.id.toString();
@@ -556,22 +614,22 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
         print("💰 Reached button clicked - paymode: $payMode");
 
         if (payMode == 1) {
-          // Cash payment - update to status 6 and show ride completed dialog
-          print("💵 Cash payment detected - updating to status 6");
+          // Cash payment - update to status 5 and show collect payment dialog with swapper button
+          print("💵 Cash payment detected - updating to status 5");
           await FirebaseFirestore.instance
               .collection('order')
               .doc(orderId)
-              .update({'ride_status': 6});
+              .update({'ride_status': 5});
 
-          liveRideViewModel.liveOrderModel!.data!.rideStatus = 6;
-          Utils.showSuccessMessage(context, "Ride completed successfully!");
+          liveRideViewModel.liveOrderModel!.data!.rideStatus = 5;
+          Utils.showSuccessMessage(context, "Reached destination!");
 
-          // Show ride completed dialog
+          // Show collect payment dialog with swapper button
           Future.delayed(const Duration(milliseconds: 500), () {
-            _showRideCompletedDialogMethod();
+            _showCollectPaymentDialogMethod();
           });
         } else {
-          // Online payment - update to status 5 and show waiting for payment
+          // Online payment - update to status 5 and show waiting for payment (SAME AS BEFORE)
           print("💳 Online payment detected - updating to status 5");
           await FirebaseFirestore.instance
               .collection('order')
@@ -592,6 +650,102 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
       Utils.showErrorMessage(context, "Failed to update ride status: $e");
     }
   }
+
+  // New method for cash payment - collect payment dialog with swapper button
+  void _showCollectPaymentDialogMethod() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: BorderSide(color: PortColor.gold, width: 1.5),
+          ),
+          backgroundColor: Colors.white,
+          surfaceTintColor: Colors.white,
+          title: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                padding: EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.green.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(Icons.location_on, color: Colors.green, size: 20),
+              ),
+              SizedBox(width: 8),
+              TextConst(
+                title: "Reached Destination",
+                size: 16,
+                fontWeight: FontWeight.w600,
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.grey[50],
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.grey[200]!),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.info_outline, color: Colors.blue, size: 16),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: TextConst(
+                        title: "Please collect payment from customer",
+                        size: 13,
+                        color: PortColor.blackLight,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(height: 20),
+              // Swapper Button
+                SlideToButton(onAccepted: (){
+                  Navigator.of(context).pop();
+                  _handleCashPaymentCompleted();
+                }, title: "Pay Done")
+
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _handleCashPaymentCompleted() async {
+    final liveRideViewModel = Provider.of<LiveRideViewModel>(context, listen: false);
+    final orderId = liveRideViewModel.liveOrderModel!.data!.id.toString();
+
+    try {
+      print("💵 Cash payment completed - updating to status 6");
+      await FirebaseFirestore.instance
+          .collection('order')
+          .doc(orderId)
+          .update({'ride_status': 6});
+
+      liveRideViewModel.liveOrderModel!.data!.rideStatus = 6;
+      Utils.showSuccessMessage(context, "Ride completed successfully!");
+
+      // Show ride completed dialog
+      Future.delayed(const Duration(milliseconds: 500), () {
+        _showRideCompletedDialogMethod();
+      });
+
+      setState(() {});
+    } catch (e) {
+      Utils.showErrorMessage(context, "Failed to complete ride: $e");
+    }
+  }
+
 
   @override
   void dispose() {
@@ -631,7 +785,6 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
               ),
             ),
 
-            // ✅ SIMPLIFIED STREAMBUILDER - Sirf UI update ke liye
             if (liveRideViewModel.liveOrderModel?.data?.id != null)
               StreamBuilder<DocumentSnapshot>(
                 stream: FirebaseFirestore.instance
@@ -643,7 +796,6 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                     final data = snapshot.data!.data() as Map<String, dynamic>;
                     final rideStatus = data['ride_status'] ?? 0;
 
-                    // ✅ UI update ke liye status refresh karo
                     if (liveRideViewModel.liveOrderModel!.data!.rideStatus != rideStatus) {
                       WidgetsBinding.instance.addPostFrameCallback((_) {
                         liveRideViewModel.liveOrderModel!.data!.rideStatus = rideStatus;

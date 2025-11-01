@@ -378,85 +378,88 @@ class _ProfileState extends State<Profile> {
         ),
       ),
       builder: (BuildContext context) {
-        return Container(
-          padding: EdgeInsets.all(Sizes.screenHeight * 0.03),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: PortColor.gray.withOpacity(0.3),
-                    borderRadius: BorderRadius.circular(2),
+        return SafeArea(
+          bottom: true,
+          child: Container(
+            padding: EdgeInsets.all(Sizes.screenHeight * 0.03),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: PortColor.gray.withOpacity(0.3),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
                   ),
                 ),
-              ),
-              SizedBox(height: Sizes.screenHeight * 0.02),
-               TextConst(
-                title: "Are you sure you want to log out?",
-                fontWeight: FontWeight.bold,
-                size: Sizes.fontSizeSeven,
-              ),
-              SizedBox(height: Sizes.screenHeight * 0.02),
-              TextConst(
-                title: "You'll need to log in again to access your account.",
-                size: Sizes.fontSizeSix,
-                color: PortColor.gray,
-              ),
-              SizedBox(height: Sizes.screenHeight * 0.03),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () => Navigator.pop(context),
-                      style: OutlinedButton.styleFrom(
-                        padding: EdgeInsets.symmetric(
-                            vertical: Sizes.screenHeight * 0.02),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(15),
+                SizedBox(height: Sizes.screenHeight * 0.02),
+                 TextConst(
+                  title: "Are you sure you want to log out?",
+                  fontWeight: FontWeight.bold,
+                  size: Sizes.fontSizeSeven,
+                ),
+                SizedBox(height: Sizes.screenHeight * 0.02),
+                TextConst(
+                  title: "You'll need to log in again to access your account.",
+                  size: Sizes.fontSizeSix,
+                  color: PortColor.gray,
+                ),
+                SizedBox(height: Sizes.screenHeight * 0.03),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () => Navigator.pop(context),
+                        style: OutlinedButton.styleFrom(
+                          padding: EdgeInsets.symmetric(
+                              vertical: Sizes.screenHeight * 0.02),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                          side: const BorderSide(color: PortColor.blue),
                         ),
-                        side: const BorderSide(color: PortColor.blue),
-                      ),
-                      child: const TextConst(
-                        title: "Cancel",
-                        fontWeight: FontWeight.bold,
-                        color: PortColor.blue,
-                      ),
-                    ),
-                  ),
-                  SizedBox(width: Sizes.screenWidth * 0.03),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () {
-                        UserViewModel().remove();
-                        Navigator.pushAndRemoveUntil(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => const SplashScreen()),
-                              (route) => false,
-                        );
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: PortColor.blue,
-                        padding: EdgeInsets.symmetric(
-                            vertical: Sizes.screenHeight * 0.02),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(15),
+                        child: const TextConst(
+                          title: "Cancel",
+                          fontWeight: FontWeight.bold,
+                          color: PortColor.blue,
                         ),
                       ),
-                      child: const TextConst(
-                        title: "Log Out",
-                        fontWeight: FontWeight.bold,
-                        color: PortColor.black,
+                    ),
+                    SizedBox(width: Sizes.screenWidth * 0.03),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () {
+                          UserViewModel().remove();
+                          Navigator.pushAndRemoveUntil(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => const SplashScreen()),
+                                (route) => false,
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: PortColor.blue,
+                          padding: EdgeInsets.symmetric(
+                              vertical: Sizes.screenHeight * 0.02),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                        ),
+                        child: const TextConst(
+                          title: "Log Out",
+                          fontWeight: FontWeight.bold,
+                          color: PortColor.black,
+                        ),
                       ),
                     ),
-                  ),
-                ],
-              ),
-            ],
+                  ],
+                ),
+              ],
+            ),
           ),
         );
       },

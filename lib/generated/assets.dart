@@ -38,6 +38,7 @@ class Assets {
   static const String assetsReward = 'assets/reward.png';
   static const String assetsRewardCoin = 'assets/reward_coin.png';
   static const String assetsRewardStarCoin = 'assets/reward_star_coin.png';
+  static const String assetsRideHistoryDriver = 'assets/ride_history_driver.png';
   static const String assetsSorry = 'assets/sorry.gif';
   static const String assetsSplashImage = 'assets/splash_image.png';
   static const String assetsTruck = 'assets/truck.png';

@@ -125,36 +125,40 @@ class _WalletSettlementState extends State<WalletSettlement> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: PortColor.scaffoldBgGrey,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        title: TextConst(title:
-          'Wallet & Settlements',
-            color: Colors.black,
-            size: 18,
-            fontWeight: FontWeight.bold,
+    return SafeArea(
+      bottom: true,
+      top: false,
+      child: Scaffold(
+        backgroundColor: PortColor.scaffoldBgGrey,
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          title: TextConst(title:
+            'Wallet & Settlements',
+              color: Colors.black,
+              size: 18,
+              fontWeight: FontWeight.bold,
+          ),
+          centerTitle: true,
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back, color: Colors.black),
+            onPressed: () => Navigator.pop(context),
+          ),
         ),
-        centerTitle: true,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            _buildBalanceCard(),
-            SizedBox(height: Sizes.screenHeight * 0.02),
-            // Quick Actions
-            _buildQuickActions(),
+        body: SingleChildScrollView(
+          child: Column(
+            children: [
+              _buildBalanceCard(),
+              SizedBox(height: Sizes.screenHeight * 0.02),
+              // Quick Actions
+              _buildQuickActions(),
 
-            // Withdrawal Methods
-            _buildWithdrawalMethods(),
+              // Withdrawal Methods
+              _buildWithdrawalMethods(),
 
-            _buildTransactionHistory(),
-          ],
+              _buildTransactionHistory(),
+            ],
+          ),
         ),
       ),
     );
@@ -586,15 +590,18 @@ class _WalletSettlementState extends State<WalletSettlement> {
               children: [
                 // Case 1: payment_by = 1
                 if (paymentBy == 1) ...[
-                  Text(
-                    transaction.orderId ?? 'N/A',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w600,
-                      color: Colors.black87,
-                      fontSize: 14,
+                  RichText(
+                    text: TextSpan(
+                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                      children: [
+                        TextSpan(
+                          text: 'Total Amount: ₹${transaction.totalAmount ?? '0.00'}',
+                          style: TextStyle(fontWeight: FontWeight.w500, color: Colors.green),
+                        ),
+                      ],
                     ),
                   ),
-                  SizedBox(height: 4),
+                  SizedBox(height: 2),
                   RichText(
                     text: TextSpan(
                       style: TextStyle(fontSize: 12, color: Colors.grey[600]),
@@ -612,6 +619,31 @@ class _WalletSettlementState extends State<WalletSettlement> {
                       style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                       children: [
                         TextSpan(
+                          text: 'Final Amount: ₹${transaction.amount ?? '0.00'}',
+                          style: TextStyle(fontWeight: FontWeight.w500, color: Colors.blue),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: 2),
+                  Text(
+                    transaction.orderId ?? 'N/A',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      color: PortColor.gray,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+
+                // Case 2: payment_by = 2
+                if (paymentBy == 2) ...[
+
+                  RichText(
+                    text: TextSpan(
+                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                      children: [
+                        TextSpan(
                           text: 'Total Amount: ₹${transaction.totalAmount ?? '0.00'}',
                           style: TextStyle(fontWeight: FontWeight.w500, color: Colors.green),
                         ),
@@ -619,39 +651,12 @@ class _WalletSettlementState extends State<WalletSettlement> {
                     ),
                   ),
                   SizedBox(height: 2),
-                  RichText(
-                    text: TextSpan(
-                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                      children: [
-                        TextSpan(
-                          text: 'Final Amount: ₹${transaction.amount ?? '0.00'}',
-                          style: TextStyle(fontWeight: FontWeight.w500, color: Colors.blue),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-
-                // Case 2: payment_by = 2
-                if (paymentBy == 2) ...[
                   Text(
                     transaction.orderId ?? 'N/A',
                     style: TextStyle(
                       fontWeight: FontWeight.w600,
-                      color: Colors.black87,
+                      color: PortColor.gray,
                       fontSize: 14,
-                    ),
-                  ),
-                  SizedBox(height: 4),
-                  RichText(
-                    text: TextSpan(
-                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                      children: [
-                        TextSpan(
-                          text: 'Total Amount: ₹${transaction.totalAmount ?? '0.00'}',
-                          style: TextStyle(fontWeight: FontWeight.w500, color: Colors.green),
-                        ),
-                      ],
                     ),
                   ),
                 ],
@@ -732,7 +737,7 @@ class _WalletSettlementState extends State<WalletSettlement> {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               // Amount display based on payment_by
-              if (paymentBy == 1)
+              if (paymentBy == 1|| paymentBy == 3)
                 Text(
                   '₹${transaction.amount ?? '0.00'}',
                   style: TextStyle(
@@ -742,7 +747,7 @@ class _WalletSettlementState extends State<WalletSettlement> {
                   ),
                 ),
 
-              if (paymentBy == 2 || paymentBy == 3)
+              if (paymentBy == 2 )
                 Text(
                   '₹${transaction.totalAmount ?? '0.00'}',
                   style: TextStyle(

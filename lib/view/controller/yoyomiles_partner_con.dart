@@ -7,14 +7,14 @@ class YoyomilesPartnerCon with ChangeNotifier {
     DashBoardModel(img: Assets.assetsDriverProfile,
         title: ' Profile',
         route: RoutesName.editProfile),
-    DashBoardModel(img: Assets.assetsTruck,
+    DashBoardModel(img: Assets.assetsRideHistoryDriver,
         title: 'Ride History',
         route: RoutesName.rideHistory),
     DashBoardModel(img: Assets.assetsWalletSettlement,
         title: 'Wallet & Settlement',
-        route: RoutesName.wallet),
+        route: RoutesName.walletSettlement),
     DashBoardModel(
-        img: Assets.assetsEarning, title: 'Earning Report', route: RoutesName.rideSafety),
+        img: Assets.assetsEarning, title: 'Earning Report', route: RoutesName.earningReport),
   ];
 }
 class DashBoardModel{

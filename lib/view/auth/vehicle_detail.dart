@@ -33,7 +33,6 @@ class _VehicleDetailState extends State<VehicleDetail> {
 
   // Variables to store IDs
   String? _selectedCityId;
-  String? _selectedVehicleTypeId;
   String? _selectedVehicleId;
   String? _selectedVehicleBodyDetailId;
   String? _selectedBodyTypeId;
@@ -50,7 +49,7 @@ class _VehicleDetailState extends State<VehicleDetail> {
   bool _isLoadingBodyTypes = false;
   bool _isLoadingFuelTypes = false;
   bool _isSubmitting = false;
-  bool _isValidated = false;
+  String? _vehicleErrorText;
 
   XFile? _rcFrontFile;
   XFile? _rcBackFile;
@@ -72,66 +71,70 @@ class _VehicleDetailState extends State<VehicleDetail> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        backgroundColor: PortColor.white,
-        elevation: 0,
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            TextConst(
-              title: "Vehicle Detail",
-              size: Sizes.fontSizeSeven,
-              fontWeight: FontWeight.bold,
+    return SafeArea(
+      top: false,
+      bottom: true,
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        appBar: AppBar(
+          automaticallyImplyLeading: false,
+          backgroundColor: PortColor.white,
+          elevation: 0,
+          title: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              TextConst(
+                title: "Vehicle Detail",
+                size: Sizes.fontSizeSeven,
+                fontWeight: FontWeight.bold,
+              ),
+              const Icon(Icons.headset_mic_rounded, color: Colors.black),
+            ],
+          ),
+          shape: Border(
+            bottom: BorderSide(
+              color: PortColor.gray,
+              width: Sizes.screenWidth * 0.001,
             ),
-            const Icon(Icons.headset_mic_rounded, color: Colors.black),
-          ],
-        ),
-        shape: Border(
-          bottom: BorderSide(
-            color: PortColor.gray,
-            width: Sizes.screenWidth * 0.001,
           ),
         ),
-      ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Vehicle Number Section
-              _buildVehicleNumberSection(),
-              const SizedBox(height: 24),
+        body: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Vehicle Number Section
+                _buildVehicleNumberSection(),
+                const SizedBox(height: 24),
 
-              // Vehicle RC Section
-              _buildVehicleRCSection(),
-              const SizedBox(height: 24),
+                // Vehicle RC Section
+                _buildVehicleRCSection(),
+                const SizedBox(height: 24),
 
-              // Vehicle Type Selection
-              _buildVehicleTypeSection(),
-              const SizedBox(height: 16),
+                // Vehicle Type Selection
+                _buildVehicleTypeSection(),
+                const SizedBox(height: 16),
 
-              // Vehicle Body Detail (only for vehicles that have body details)
-              if (_selectedVehicleTypeName != null &&
-                  _shouldShowBodyDetailSection())
-                _buildVehicleBodyDetailSection(),
+                // Vehicle Body Detail (only for vehicles that have body details)
+                if (_selectedVehicleTypeName != null &&
+                    _shouldShowBodyDetailSection())
+                  _buildVehicleBodyDetailSection(),
 
-              // Body Type Selection (show directly for vehicle ID 3, or after body detail selection for others)
-              if (_selectedVehicleTypeName != null &&
-                  _shouldShowBodyTypeSection())
-                _buildBodyTypeSection(),
-              if (_selectedBodyTypeName != null) const SizedBox(height: 16),
+                // Body Type Selection (show directly for vehicle ID 3, or after body detail selection for others)
+                if (_selectedVehicleTypeName != null &&
+                    _shouldShowBodyTypeSection())
+                  _buildBodyTypeSection(),
+                if (_selectedBodyTypeName != null) const SizedBox(height: 16),
 
-              // Fuel Type Selection (if body type selected)
-              if (_selectedBodyTypeName != null) _buildFuelTypeSection(),
-              if (_selectedFuelTypeName != null) const SizedBox(height: 24),
+                // Fuel Type Selection (if body type selected)
+                if (_selectedBodyTypeName != null) _buildFuelTypeSection(),
+                if (_selectedFuelTypeName != null) const SizedBox(height: 24),
 
-              // Continue Button
-              if (_selectedFuelTypeName != null) _buildContinueButton(""),
-            ],
+                // Continue Button
+                if (_selectedFuelTypeName != null) _buildContinueButton(""),
+              ],
+            ),
           ),
         ),
       ),
@@ -172,26 +175,23 @@ class _VehicleDetailState extends State<VehicleDetail> {
           fontWeight: FontWeight.w600,
         ),
         const SizedBox(height: 10),
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: vehicleList.map((vehicle) {
-              return Padding(
-                padding: const EdgeInsets.only(right: 22),
-                child: _buildVehicleTypeCard(
-                  imageUrl: vehicle.image ?? "",
-                  title: vehicle.name ?? "Unknown",
-                  color: Colors.blue,
-                  isSelected: _selectedVehicleTypeName == vehicle.name,
-                  onTap: () => _selectVehicleType(
-                    vehicle.name ?? "",
-                    vehicle.id?.toString() ?? "",
-                  ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: vehicleList.map((vehicle) {
+            return Padding(
+              padding: const EdgeInsets.only(right: 13),
+              child: _buildVehicleTypeCard(
+                imageUrl: vehicle.image ?? "",
+                title: vehicle.name ?? "Unknown",
+                color: PortColor.gold,
+                isSelected: _selectedVehicleTypeName == vehicle.name,
+                onTap: () => _selectVehicleType(
+                  vehicle.name ?? "",
+                  vehicle.id?.toString() ?? "",
                 ),
-              );
-            }).toList(),
-          ),
+              ),
+            );
+          }).toList(),
         ),
       ],
     );
@@ -208,19 +208,18 @@ class _VehicleDetailState extends State<VehicleDetail> {
       onTap: onTap,
       child: Container(
         width: 68,
-        height: 68,
         decoration: BoxDecoration(
-          color: isSelected ? PortColor.greyLight : Colors.white,
+          color: isSelected ? PortColor.gold.withOpacity(0.3) : Colors.white,
           borderRadius: BorderRadius.circular(9),
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.withOpacity(0.3),
+              color: Colors.black12,
               spreadRadius: 2,
               blurRadius: 5,
               offset: const Offset(0, 3),
             ),
           ],
-          border: isSelected ? Border.all(color: color, width: 2) : null,
+          border: isSelected ? Border.all(color: color, width: 1) : null,
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -771,7 +770,6 @@ class _VehicleDetailState extends State<VehicleDetail> {
   }
 
   Widget _buildVehicleNumberSection() {
-    final formKey = GlobalKey<FormState>();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -783,165 +781,67 @@ class _VehicleDetailState extends State<VehicleDetail> {
         ),
         const SizedBox(height: 8),
 
-        Form(
-          key: formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Vehicle Number Input Field with better styling
-              Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: CustomTextField(
-                  controller: _vehicleNumberController,
-                  hintText: "Enter Vehicle Number",
-                  hintStyle: TextStyle(
-                    color: Colors.grey[600],
-                    fontSize: 16,
-                  ),
-                  inputFormatters: [
-                    FilteringTextInputFormatter.allow(RegExp(r'[A-Za-z0-9]')),
-                    UpperCaseTextFormatter(),
-                    LengthLimitingTextInputFormatter(10),
-                  ],
-                  keyboardType: TextInputType.text,
-                  textCapitalization: TextCapitalization.characters,
-                  prefixIcon: const Icon(
-                    Icons.directions_car,
-                    color: Colors.grey,
-                    size: 24,
-                  ),
-                ),
+        // Vehicle Number Input Field
+        Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
               ),
-
-              const SizedBox(height: 20),
-
-              // Show button and help text only if not validated
-              if (!_isValidated) ...[
-                // Validation Button with better styling
-                SizedBox(
-                  width: double.infinity,
-                  height: 45,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      final value = _vehicleNumberController.text.trim();
-                      final error = validateVehicleNumber(value);
-                      if (error != null) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Row(
-                              children: [
-                                const Icon(Icons.error_outline, color: Colors.white),
-                                const SizedBox(width: 8),
-                                Expanded(child: Text(error)),
-                              ],
-                            ),
-                            backgroundColor: Colors.red,
-                            behavior: SnackBarBehavior.floating,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                        );
-                      } else {
-                        // Set validated to true and hide button & help text
-                        setState(() {
-                          _isValidated = true;
-                        });
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Row(
-                              children: [
-                                const Icon(Icons.check_circle, color: Colors.white),
-                                const SizedBox(width: 8),
-                                const Text('Vehicle number is valid'),
-                              ],
-                            ),
-                            backgroundColor: Colors.green,
-                            behavior: SnackBarBehavior.floating,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                        );
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: PortColor.gold,
-                      foregroundColor: Colors.white,
-                      elevation: 4,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      shadowColor: PortColor.gold.withOpacity(0.3),
-                    ),
-                    child: const Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.verified_user, size: 20, color: PortColor.blackLight),
-                        SizedBox(width: 8),
-                        Text(
-                          'Validate Vehicle Number',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: PortColor.blackLight,
-                            fontFamily: AppFonts.kanitReg,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 16),
-
-                // Help text
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  child: Text(
-                    'Enter your vehicle number in uppercase (e.g., DL01AB1234)',
-                    style: TextStyle(
-                      color: Colors.grey[600],
-                      fontSize: 12,
-                      fontStyle: FontStyle.italic,
-                    ),
-                  ),
-                ),
-              ],
-
-              // Show success message when validated
-              if (_isValidated) ...[
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  child: Row(
-                    children: [
-                      Icon(Icons.check_circle, color: Colors.green, size: 20),
-                      const SizedBox(width: 8),
-                      Text(
-                        'Vehicle number validated successfully',
-                        style: TextStyle(
-                          color: Colors.green,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                          fontFamily: AppFonts.kanitReg,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
             ],
           ),
+          child: CustomTextField(
+            controller: _vehicleNumberController,
+            hintText: "Enter Vehicle Number",
+            hintStyle: TextStyle(
+              color: Colors.grey[600],
+              fontSize: 16,
+            ),
+            inputFormatters: [
+              FilteringTextInputFormatter.allow(RegExp(r'[A-Za-z0-9]')),
+              UpperCaseTextFormatter(),
+              LengthLimitingTextInputFormatter(10),
+            ],
+            keyboardType: TextInputType.text,
+            textCapitalization: TextCapitalization.characters,
+            prefixIcon: const Icon(
+              Icons.directions_car,
+              color: Colors.grey,
+              size: 24,
+            ),
+            onChanged: (value) {
+              final text = value.trim();
+              final pattern = RegExp(r'^[A-Z]{2}\d{2}[A-Z]{2}\d{4}$');
+
+              setState(() {
+                if (text.isEmpty) {
+                  _vehicleErrorText = 'Please enter vehicle number';
+                } else if (!pattern.hasMatch(text)) {
+                  _vehicleErrorText = 'Invalid format (e.g., DL01AB1234)';
+                } else {
+                  _vehicleErrorText = null;
+                }
+              });
+            },
+          ),
         ),
+
+        // Error message below field
+        if (_vehicleErrorText != null)
+          Padding(
+            padding: const EdgeInsets.only(top: 6, left: 8),
+            child: Text(
+              _vehicleErrorText!,
+              style: const TextStyle(
+                color: Colors.red,
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
       ],
     );
   }

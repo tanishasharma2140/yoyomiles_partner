@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:ui' as ui;
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -480,7 +479,7 @@ class _ConstMapState extends State<ConstMap> {
 
       // Add pickup marker - BADA SIZE (64x64)
       if (pickupLatLng != null) {
-        final pickupIcon = await resizeMarkerIcon(Assets.assetsCurrentLocation, 85);
+        final pickupIcon = await resizeMarkerIcon(Assets.assetsCurrentLocation, 65);
 
         setState(() {
           _markers.add(
@@ -495,7 +494,7 @@ class _ConstMapState extends State<ConstMap> {
       }
 
       if (dropLatLng != null) {
-        final dropIcon = await resizeMarkerIcon(Assets.assetsDropLocation, 85);
+        final dropIcon = await resizeMarkerIcon(Assets.assetsDropLocation, 65);
 
         setState(() {
           _markers.add(

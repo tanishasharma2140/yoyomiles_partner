@@ -12,7 +12,6 @@ import 'package:yoyomiles_partner/view/auth/vehicle_detail.dart';
 import 'package:yoyomiles_partner/view/controller/yoyomiles_partner_con.dart';
 import 'package:yoyomiles_partner/view/earning/wallet_settlement.dart';
 import 'package:yoyomiles_partner/view/live_ride_screen.dart';
-import 'package:yoyomiles_partner/view/trip_status.dart';
 import 'package:yoyomiles_partner/view_model/active_ride_view_model.dart';
 import 'package:yoyomiles_partner/view_model/online_status_view_model.dart';
 import 'package:yoyomiles_partner/view_model/profile_view_model.dart';
@@ -126,10 +125,7 @@ class _RegisterState extends State<Register> {
             profileModel.data != null &&
             profileModel.data!.onlineStatus == 1) {
           if (context.mounted) {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => TripStatus()),
-            );
+            Navigator.pushNamed(context, RoutesName.tripStatus);
           }
         }
       }
@@ -415,39 +411,28 @@ class _RegisterState extends State<Register> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const SizedBox(height: 10),
-                        GestureDetector(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => WalletSettlement(),
-                              ),
-                            );
-                          },
-                          child: Container(
-                            width: Sizes.screenWidth * 0.75,
-                            height: Sizes.screenHeight * 0.09,
-                            decoration: BoxDecoration(
-                              color: PortColor.white,
-                              border: Border.all(color: PortColor.grey),
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.all(12.0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const TextConst(
-                                    title: 'Upload documents',
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                  const SizedBox(height: 4),
-                                  TextConst(
-                                    title:
-                                        'Driving licence, Aadhaar card, etc.',
-                                    color: PortColor.black.withOpacity(0.6),
-                                  ),
-                                ],
-                              ),
+                        Container(
+                          width: Sizes.screenWidth * 0.75,
+                          height: Sizes.screenHeight * 0.09,
+                          decoration: BoxDecoration(
+                            color: PortColor.white,
+                            border: Border.all(color: PortColor.grey),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(12.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const TextConst(
+                                  title: 'Upload documents',
+                                  fontWeight: FontWeight.w500,
+                                ),
+                                const SizedBox(height: 4),
+                                TextConst(
+                                  title: 'Driving licence, Aadhaar card, etc.',
+                                  color: PortColor.black.withOpacity(0.6),
+                                ),
+                              ],
                             ),
                           ),
                         ),

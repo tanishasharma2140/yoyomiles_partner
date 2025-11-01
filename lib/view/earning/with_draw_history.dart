@@ -71,33 +71,37 @@ class _WithDrawHistoryState extends State<WithDrawHistory> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: PortColor.scaffoldBgGrey,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 1,
-        title: Text(
-          'Withdrawal History',
-          style: TextStyle(
-            color: Colors.black,
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
+    return SafeArea(
+      top: false,
+      bottom: true,
+      child: Scaffold(
+        backgroundColor: PortColor.scaffoldBgGrey,
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          elevation: 1,
+          title: Text(
+            'Withdrawal History',
+            style: TextStyle(
+              color: Colors.black,
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          centerTitle: true,
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back, color: Colors.black),
+            onPressed: () => Navigator.pop(context),
           ),
         ),
-        centerTitle: true,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
-      body: Column(
-        children: [
-          // Filter Chips
-          _buildFilterChips(),
+        body: Column(
+          children: [
+            // Filter Chips
+            _buildFilterChips(),
 
-          // Withdrawal List
-          _buildWithdrawalList(),
-        ],
+            // Withdrawal List
+            _buildWithdrawalList(),
+          ],
+        ),
       ),
     );
   }

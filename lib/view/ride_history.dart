@@ -298,7 +298,6 @@ class _RideHistoryState extends State<RideHistory> {
                         ),
                       ),
 
-                      // Call Button
                       GestureDetector(
                         onTap: () => Launcher.launchDialPad(context, ride.senderPhone?.toString() ?? ''),
                         child: Container(
@@ -333,8 +332,9 @@ class _RideHistoryState extends State<RideHistory> {
                         color: Colors.grey,
                       ),
                       Row(
-                        children: List.generate(profile.profileModel!.data!.ratingCount!, (index)
-                        => Icon(Icons.star_rounded, color: Colors.amber, size: 18),
+                        children: List.generate(
+                          profile.profileModel?.data?.ratingCount ?? 0,
+                              (index) => const Icon(Icons.star_rounded, color: Colors.amber, size: 18),
                         ),
                       ),
                     ],

@@ -4,7 +4,6 @@ class RoutesName {
   static const otp = "/otp";
   static const owner = "/owner";
   static const register = "/register";
-  static const map = "/map";
   static const editProfile = "/editProfile";
   static const rideHistory = "/rideHistory";
   static const wallet = "/wallet";
@@ -20,4 +19,6 @@ class RoutesName {
   static const tdsDeclaration = "/tdsDeclaration";
   static const rideSafety = "/rideSafety";
   static const tripStatus = "/tripStatus";
+  static const walletSettlement = "/walletSettlement";
+  static const earningReport = "/earningReport";
 }

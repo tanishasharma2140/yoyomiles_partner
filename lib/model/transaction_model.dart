@@ -32,45 +32,45 @@ class TransactionsModel {
 
 class Data {
   int? id;
-  String? totalAmount;
   String? platformFee;
-  String? createdAt;
-  int? paymetBy;
+  String? totalAmount;
+  String? amount;
   int? paymentGatewayStatus;
   String? orderId;
-  String? amount;
+  String? createdAt;
+  int? paymetBy;
 
   Data(
       {this.id,
-        this.totalAmount,
         this.platformFee,
-        this.createdAt,
-        this.paymetBy,
+        this.totalAmount,
+        this.amount,
         this.paymentGatewayStatus,
         this.orderId,
-        this.amount});
+        this.createdAt,
+        this.paymetBy});
 
   Data.fromJson(Map<String, dynamic> json) {
     id = json['id'];
-    totalAmount = json['total_amount'];
     platformFee = json['platform_fee'];
-    createdAt = json['created_at'];
-    paymetBy = json['paymet_by'];
+    totalAmount = json['total_amount'];
+    amount = json['amount'];
     paymentGatewayStatus = json['payment_gateway_status'];
     orderId = json['order_id'];
-    amount = json['amount'];
+    createdAt = json['created_at'];
+    paymetBy = json['paymet_by'];
   }
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = <String, dynamic>{};
     data['id'] = id;
-    data['total_amount'] = totalAmount;
     data['platform_fee'] = platformFee;
-    data['created_at'] = createdAt;
-    data['paymet_by'] = paymetBy;
+    data['total_amount'] = totalAmount;
+    data['amount'] = amount;
     data['payment_gateway_status'] = paymentGatewayStatus;
     data['order_id'] = orderId;
-    data['amount'] = amount;
+    data['created_at'] = createdAt;
+    data['paymet_by'] = paymetBy;
     return data;
   }
 }
