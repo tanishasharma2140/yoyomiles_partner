@@ -29,7 +29,7 @@ class VehicleDetail extends StatefulWidget {
 
 class _VehicleDetailState extends State<VehicleDetail> {
   final TextEditingController _vehicleNumberController =
-      TextEditingController();
+  TextEditingController();
 
   // Variables to store IDs
   String? _selectedCityId;
@@ -51,6 +51,9 @@ class _VehicleDetailState extends State<VehicleDetail> {
   bool _isSubmitting = false;
   String? _vehicleErrorText;
 
+  // New variables for delivery type
+  int _selectedDeliveryType = 0; // 0 for parcel, 1 for passenger
+
   XFile? _rcFrontFile;
   XFile? _rcBackFile;
   final ImagePicker _picker = ImagePicker();
@@ -66,6 +69,23 @@ class _VehicleDetailState extends State<VehicleDetail> {
         listen: false,
       );
       driverVehicleVm.driverVehicleApi();
+    });
+  }
+
+  // Filter vehicles based on delivery type
+  void _filterVehiclesByDeliveryType(int deliveryType) {
+    setState(() {
+      _selectedDeliveryType = deliveryType;
+
+      // Reset selections when delivery type changes
+      _selectedVehicleTypeName = null;
+      _selectedVehicleId = null;
+      _selectedVehicleBodyDetailId = null;
+      _selectedVehicleBodyDetailName = null;
+      _selectedBodyTypeId = null;
+      _selectedBodyTypeName = null;
+      _selectedFuelTypeId = null;
+      _selectedFuelTypeName = null;
     });
   }
 
@@ -104,12 +124,17 @@ class _VehicleDetailState extends State<VehicleDetail> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Delivery Type Radio Buttons
+
                 // Vehicle Number Section
                 _buildVehicleNumberSection(),
                 const SizedBox(height: 24),
 
                 // Vehicle RC Section
                 _buildVehicleRCSection(),
+                const SizedBox(height: 24),
+
+                _buildDeliveryTypeSection(),
                 const SizedBox(height: 24),
 
                 // Vehicle Type Selection
@@ -141,6 +166,92 @@ class _VehicleDetailState extends State<VehicleDetail> {
     );
   }
 
+  // New method for delivery type radio buttons
+  Widget _buildDeliveryTypeSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const TextConst(
+          title: 'Select Delivery Type',
+          fontWeight: FontWeight.w600,
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            // Parcel Delivery Radio
+            Expanded(
+              child: _buildDeliveryTypeRadio(
+                title: "Parcel Delivery",
+                value: 0,
+                icon: Icons.local_shipping,
+              ),
+            ),
+            const SizedBox(width: 16),
+            // Passenger Delivery Radio
+            Expanded(
+              child: _buildDeliveryTypeRadio(
+                title: "Passenger Delivery",
+                value: 1,
+                icon: Icons.people,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDeliveryTypeRadio({
+    required String title,
+    required int value,
+    required IconData icon,
+  }) {
+    return GestureDetector(
+      onTap: () => _filterVehiclesByDeliveryType(value),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 7),
+        decoration: BoxDecoration(
+          color: _selectedDeliveryType == value
+              ? PortColor.gold.withOpacity(0.2)
+              : Colors.grey.shade100,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: _selectedDeliveryType == value
+                ? PortColor.gold
+                : Colors.grey.shade300,
+            width: _selectedDeliveryType == value ? 1 : 0.5,
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              color: _selectedDeliveryType == value
+                  ? PortColor.gold
+                  : Colors.grey.shade600,
+              size: 15,
+            ),
+            const SizedBox(width: 6),
+            Text(
+              title,
+              style: TextStyle(
+                fontFamily: 'Poppins',
+                fontSize: 13,
+                fontWeight: _selectedDeliveryType == value
+                    ? FontWeight.w600
+                    : FontWeight.normal,
+                color: _selectedDeliveryType == value
+                    ? PortColor.black
+                    : Colors.grey.shade700,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   // Check if vehicle has body details available
   bool _shouldShowBodyDetailSection() {
     if (_selectedVehicleId == null) return false;
@@ -167,6 +278,58 @@ class _VehicleDetailState extends State<VehicleDetail> {
       return const Center(child: Text("No vehicles available"));
     }
 
+    // Filter vehicles based on delivery type
+    List filteredVehicles = [];
+    if (_selectedDeliveryType == 0) {
+      // Parcel delivery - index 0 to 2
+      if (vehicleList.length >= 3) {
+        filteredVehicles = vehicleList.sublist(0, 3);
+      } else {
+        filteredVehicles = List.from(vehicleList);
+      }
+    } else {
+      // Passenger delivery - index 3 to 4
+      if (vehicleList.length >= 5) {
+        filteredVehicles = vehicleList.sublist(3, 5);
+      } else if (vehicleList.length >= 4) {
+        filteredVehicles = vehicleList.sublist(3);
+      } else {
+        filteredVehicles = [];
+      }
+    }
+
+    if (filteredVehicles.isEmpty) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const TextConst(
+            title: 'Select Vehicle Type',
+            fontWeight: FontWeight.w600,
+          ),
+          const SizedBox(height: 10),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.grey.shade100,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Center(
+              child: Text(
+                _selectedDeliveryType == 0
+                    ? "No parcel delivery vehicles available"
+                    : "No passenger delivery vehicles available",
+                style: const TextStyle(
+                  fontFamily: 'Poppins',
+                  fontSize: 14,
+                  color: Colors.grey,
+                ),
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -177,7 +340,7 @@ class _VehicleDetailState extends State<VehicleDetail> {
         const SizedBox(height: 10),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: vehicleList.map((vehicle) {
+          children: filteredVehicles.map((vehicle) {
             return Padding(
               padding: const EdgeInsets.only(right: 13),
               child: _buildVehicleTypeCard(
@@ -207,19 +370,15 @@ class _VehicleDetailState extends State<VehicleDetail> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 68,
+        padding: EdgeInsets.all(10),
+        width: 80,
         decoration: BoxDecoration(
-          color: isSelected ? PortColor.gold.withOpacity(0.3) : Colors.white,
+          color: isSelected ? PortColor.gold.withOpacity(0.2) : Colors.grey.shade100,
           borderRadius: BorderRadius.circular(9),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black12,
-              spreadRadius: 2,
-              blurRadius: 5,
-              offset: const Offset(0, 3),
-            ),
-          ],
-          border: isSelected ? Border.all(color: color, width: 1) : null,
+          border: Border.all(
+            color: isSelected ? PortColor.gold : Colors.black,
+            width: 0.5,
+          ),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -394,7 +553,7 @@ class _VehicleDetailState extends State<VehicleDetail> {
                     child: CircularProgressIndicator(
                       value: loadingProgress.expectedTotalBytes != null
                           ? loadingProgress.cumulativeBytesLoaded /
-                                loadingProgress.expectedTotalBytes!
+                          loadingProgress.expectedTotalBytes!
                           : null,
                     ),
                   ),
@@ -1120,19 +1279,19 @@ class _VehicleDetailState extends State<VehicleDetail> {
         alignment: Alignment.center,
         child: _isSubmitting
             ? SizedBox(
-                height: 18,
-                width: 18,
-                child: CupertinoActivityIndicator(
-                  color: Colors.white,
-                  radius: 12,
-                ),
-              )
+          height: 18,
+          width: 18,
+          child: CupertinoActivityIndicator(
+            color: Colors.white,
+            radius: 12,
+          ),
+        )
             : const TextConst(
-                title: 'Continue',
-                size: 15,
-                fontWeight: FontWeight.w600,
-                color: Colors.white,
-              ),
+          title: 'Continue',
+          size: 15,
+          fontWeight: FontWeight.w600,
+          color: Colors.white,
+        ),
       ),
     );
   }
@@ -1230,7 +1389,7 @@ class _VehicleDetailState extends State<VehicleDetail> {
       // For scooter, we might not have body details
       if (_selectedVehicleBodyDetailId != null) {
         request.fields['vehicle_body_details_type'] =
-            _selectedVehicleBodyDetailId!; // ID भेजें
+        _selectedVehicleBodyDetailId!; // ID भेजें
       } else {
         request.fields['vehicle_body_details_type'] = '0';
       }
@@ -1345,9 +1504,9 @@ class _VehicleDetailState extends State<VehicleDetail> {
 class UpperCaseTextFormatter extends TextInputFormatter {
   @override
   TextEditingValue formatEditUpdate(
-    TextEditingValue oldValue,
-    TextEditingValue newValue,
-  ) {
+      TextEditingValue oldValue,
+      TextEditingValue newValue,
+      ) {
     return TextEditingValue(
       text: newValue.text.toUpperCase(),
       selection: newValue.selection,
