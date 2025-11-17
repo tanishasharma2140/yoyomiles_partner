@@ -1,12 +1,10 @@
 import 'dart:io';
-import 'package:app_settings/app_settings.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:provider/provider.dart';
-import 'package:yoyomiles_partner/view/trip_status.dart';
+import 'package:yoyomiles_partner/view/auth/register.dart';
 import 'package:yoyomiles_partner/view_model/profile_view_model.dart';
 
 class NotificationService {
@@ -17,187 +15,155 @@ class NotificationService {
   final FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin =
   FlutterLocalNotificationsPlugin();
 
-  // request notification permission
+  // ✅ Request Permission
   Future<void> requestedNotificationPermission() async {
     await Permission.notification.request();
+
     NotificationSettings settings = await messaging.requestPermission(
       alert: true,
       announcement: true,
       badge: true,
-      carPlay: true,
-      criticalAlert: true,
-      provisional: true,
       sound: true,
     );
-    if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-      debugPrint('user granted permission');
-    } else if (settings.authorizationStatus ==
-        AuthorizationStatus.provisional) {
-      debugPrint('user provisional granted permission');
-    } else {
-      debugPrint(
-        "notification permission denied\n please allow notification to recieve call's",
-      );
-      Future.delayed(Duration(seconds: 2), () {
-        AppSettings.openAppSettings(type: AppSettingsType.notification);
-      });
-    }
+
+    debugPrint("🔔 Permission status: ${settings.authorizationStatus}");
   }
 
-  Future<void> subscribeToNoticeTopic() async {
-    await messaging.subscribeToTopic("notice");
-    debugPrint("✅ Subscribed to NOTICE topic");
-  }
-
-  Future<void> unsubscribeFromNoticeTopic() async {
-    await messaging.unsubscribeFromTopic("notice");
-    debugPrint("❌ Unsubscribed from NOTICE topic");
-  }
-
-
-  // get fcm(device) token
+  // ✅ Get Device Token
   Future<String> getDeviceToken() async {
-    // NotificationSettings settings =
-    await messaging.requestPermission(
-      alert: true,
-      announcement: true,
-      badge: true,
-      carPlay: true,
-      criticalAlert: true,
-      provisional: true,
-      sound: true,
-    );
+    await messaging.requestPermission();
     String? token = await messaging.getToken();
-    debugPrint("token:$token");
-    return token!;
+    debugPrint("✅ FCM Token: $token");
+    return token ?? "";
   }
 
-  void initLocalNotification(
-      BuildContext context,
-      RemoteMessage massage,
-      ) async {
-    var androidInitSetting = AndroidInitializationSettings(
-      "@mipmap/ic_launcher",
-    );
-    var iosInitSetting = DarwinInitializationSettings();
+  // ✅ Local Notification Init
+  void initLocalNotification(BuildContext context, RemoteMessage message) async {
+    var androidInit = const AndroidInitializationSettings("@mipmap/ic_launcher");
+    var iosInit = const DarwinInitializationSettings();
 
-    var initializationSettings = InitializationSettings(
-      android: androidInitSetting,
-      iOS: iosInitSetting,
+    var settings = InitializationSettings(
+      android: androidInit,
+      iOS: iosInit,
     );
+
     await _flutterLocalNotificationsPlugin.initialize(
-      initializationSettings,
+      settings,
       onDidReceiveNotificationResponse: (payload) {
-        handleMassage(massage);
+        handleMassage(message);
       },
     );
   }
 
-  // firebase init
+  // ✅ Firebase foreground listener
   void firebaseInit(BuildContext context) {
-    FirebaseMessaging.onMessage.listen((massage) {
-      RemoteNotification? notification = massage.notification;
-      AndroidNotification? android = massage.notification!.android;
-      if (kDebugMode) {
-        print("Notification title:${notification!.title}");
-        print("Notification body:${notification.body}");
-      }
+    FirebaseMessaging.onMessage.listen((message) {
+      print("🔔 Notification Received:");
+      print("Title: ${message.notification?.title}");
+      print("Body: ${message.notification?.body}");
+
       if (Platform.isAndroid) {
-        initLocalNotification(context, massage);
-        handleMassageReceivedBg(messaging,context);
-        showNotification(massage);
+        initLocalNotification(context, message);
+
+        /// ✅ Run Profile API safely
+        _runProfileApiSafe();
+
+        /// ✅ Show Notification
+        showNotification(message);
       }
     });
   }
 
-  // function to show notification
-  Future<void> showNotification(RemoteMessage massage) async {
-    // final player = FlutterRingtonePlayer();
-    // player.playRingtone();
+  // ✅ SAFE Profile API runner (context optional)
+  void _runProfileApiSafe() {
+    final ctx = navigatorKey.currentContext;
+
+    if (ctx != null) {
+      print("✅ Context available → Running Profile API");
+      ProfileViewModel().profileApi(ctx);
+      navigatorKey.currentState?.push(
+        MaterialPageRoute(builder: (_) => Register()),
+      );
+    } else {
+      print("⚠️ No context → Running Profile API without context");
+      ProfileViewModel().profileApi(ctx); // ← Modify API to accept null
+    }
+  }
+
+  // ✅ Show Push Notification
+  Future<void> showNotification(RemoteMessage message) async {
+    final androidData = message.notification?.android;
+
     AndroidNotificationChannel channel = AndroidNotificationChannel(
-      massage.notification!.android!.channelId.toString(),
-      massage.notification!.android!.channelId.toString(),
+      androidData?.channelId ?? "default_channel",
+      androidData?.channelId ?? "Default Channel",
       importance: Importance.high,
-      showBadge: true,
-      playSound: true,
     );
-    // android setting
-    AndroidNotificationDetails androidNotificationDetails =
-    AndroidNotificationDetails(
-      channel.id.toString(),
-      channel.name.toString(),
-      channelDescription: "Channel Description",
+
+    AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
+      channel.id,
+      channel.name,
       importance: Importance.high,
       priority: Priority.high,
-      fullScreenIntent: true,
-      timeoutAfter: 60000,
-      visibility: NotificationVisibility.public,
       playSound: true,
-      sound: channel.sound,
+      fullScreenIntent: true,
     );
-    // ios setting
-    DarwinNotificationDetails darwinNotificationDetails =
-    DarwinNotificationDetails(
+
+    DarwinNotificationDetails iosDetails = const DarwinNotificationDetails(
       presentAlert: true,
-      presentBadge: true,
       presentSound: true,
+      presentBadge: true,
     );
-    // marge-setting
-    NotificationDetails notificationDetails = NotificationDetails(
-      android: androidNotificationDetails,
-      iOS: darwinNotificationDetails,
+
+    NotificationDetails settings = NotificationDetails(
+      android: androidDetails,
+      iOS: iosDetails,
     );
-    //show notification
-    Future.delayed(Duration.zero, () {
-      _flutterLocalNotificationsPlugin.show(
-        0,
-        massage.notification!.title.toString(),
-        massage.notification!.body.toString(),
-        notificationDetails,
-        payload: "send data",
-      );
-    });
-    // handleMassageReceivedBg(massage);
+
+    _flutterLocalNotificationsPlugin.show(
+      0,
+      message.notification?.title,
+      message.notification?.body,
+      settings,
+    );
   }
 
-  // background and terminated
+  // ✅ Background / Killed State Notifications
   Future<void> setupInteractMassage(BuildContext context) async {
-    // background state
-    FirebaseMessaging.onMessageOpenedApp.listen((massage) {
-      handleMassage(massage);
-      handleMassageReceivedBg(massage,context);
+    FirebaseMessaging.onMessageOpenedApp.listen((message) {
+      handleMassage(message);
     });
-    // terminated state
-    FirebaseMessaging.instance.getInitialMessage().then((
-        RemoteMessage? massage,
-        ) {
-      if (massage != null && massage.data.isNotEmpty) {
-        handleMassage(massage);
+
+    FirebaseMessaging.instance.getInitialMessage().then((message) {
+      if (message != null) {
+        handleMassage(message);
       }
-      handleMassageReceivedBg(massage!,context);
-
     });
   }
 
-  Future<void> handleMassage(RemoteMessage massage) async {
+  // ✅ SAFEST Navigation
+  Future<void> handleMassage(RemoteMessage message) async {
+    BuildContext? ctx = navigatorKey.currentContext;
+
+    if (ctx == null) {
+      print("⏳ Waiting for context for navigation...");
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final newCtx = navigatorKey.currentContext;
+        if (newCtx != null) {
+          navigatorKey.currentState?.push(
+            MaterialPageRoute(builder: (_) => Register()),
+          );
+        } else {
+          print("❌ Still no context — navigation failed");
+        }
+      });
+
+      return;
+    }
+
     navigatorKey.currentState?.push(
-      MaterialPageRoute(
-        builder: (context) => TripStatus(),
-      ),
+      MaterialPageRoute(builder: (_) => Register()),
     );
-  }
-
-  Future<void> handleMassageReceivedBg(RemoteMessage, BuildContext context) async {
-    // navigatorKey.currentState?.push(
-    //   MaterialPageRoute(
-    //     builder: (context) => TripStatus(),
-    //   ),
-    // );
-    Provider.of<ProfileViewModel>(navigatorKey.currentContext!, listen: false).profileApi();
-
   }
 }
-
-
-
-

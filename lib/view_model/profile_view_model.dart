@@ -20,7 +20,7 @@ class ProfileViewModel with ChangeNotifier {
     _profileModel = value;
     notifyListeners();
   }
-  Future<void> profileApi() async {
+  Future<void> profileApi(context) async {
     print("kjfnnfneofoefionieo");
     setLoading(true);
     try {

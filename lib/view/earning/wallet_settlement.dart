@@ -1,5 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:yoyomiles_partner/view_model/bank_view_model.dart';
+import 'package:yoyomiles_partner/view_model/withdraw_view_model.dart';
 import 'package:provider/provider.dart';
 import 'package:yoyomiles_partner/res/animated_gradient_border.dart';
 import 'package:yoyomiles_partner/res/app_fonts.dart';
@@ -8,8 +10,8 @@ import 'package:yoyomiles_partner/res/custom_text_field.dart';
 import 'package:yoyomiles_partner/res/sizing_const.dart';
 import 'package:yoyomiles_partner/res/text_const.dart';
 import 'package:yoyomiles_partner/view/bank_detail.dart' show BankDetail;
-import 'package:yoyomiles_partner/view/earning/help.dart';
-import 'package:yoyomiles_partner/view/earning/with_draw_history.dart' show WithDrawHistory;
+import 'package:yoyomiles_partner/view/earning/with_draw_history.dart'
+    show WithDrawHistory;
 import 'package:yoyomiles_partner/view_model/payment_view_model.dart';
 import 'package:yoyomiles_partner/view_model/profile_view_model.dart';
 import 'package:yoyomiles_partner/view_model/transaction_view_model.dart';
@@ -22,106 +24,20 @@ class WalletSettlement extends StatefulWidget {
 }
 
 class _WalletSettlementState extends State<WalletSettlement> {
-
-  // List<Map<String, dynamic>> _transactions = [
-  //   {
-  //     'id': '1',
-  //     'type': 'credit',
-  //     'amount': 1250.00,
-  //     'description': 'Trip Earnings',
-  //     'date': 'Today, 10:30 AM',
-  //     'status': 'completed',
-  //     'icon': Icons.directions_car,
-  //   },
-  //   {
-  //     'id': '2',
-  //     'type': 'debit',
-  //     'amount': 5000.00,
-  //     'description': 'Bank Transfer',
-  //     'date': 'Yesterday, 02:15 PM',
-  //     'status': 'completed',
-  //     'icon': Icons.account_balance,
-  //   },
-  //   {
-  //     'id': '3',
-  //     'type': 'credit',
-  //     'amount': 850.00,
-  //     'description': 'Bonus Payment',
-  //     'date': '15 Dec, 09:45 AM',
-  //     'status': 'completed',
-  //     'icon': Icons.workspace_premium,
-  //   },
-  //   {
-  //     'id': '4',
-  //     'type': 'credit',
-  //     'amount': 1650.00,
-  //     'description': 'Weekly Incentive',
-  //     'date': '14 Dec, 11:20 AM',
-  //     'status': 'pending',
-  //     'icon': Icons.celebration,
-  //   },
-  //   {
-  //     'id': '5',
-  //     'type': 'debit',
-  //     'amount': 200.00,
-  //     'description': 'Service Fee',
-  //     'date': '13 Dec, 04:30 PM',
-  //     'status': 'completed',
-  //     'icon': Icons.receipt,
-  //   },
-  //   {
-  //     'id': '6',
-  //     'type': 'credit',
-  //     'amount': 1200.00,
-  //     'description': 'Trip Earnings',
-  //     'date': '12 Dec, 08:15 AM',
-  //     'status': 'completed',
-  //     'icon': Icons.directions_car,
-  //   },
-  //   {
-  //     'id': '7',
-  //     'type': 'credit',
-  //     'amount': 950.00,
-  //     'description': 'Night Bonus',
-  //     'date': '11 Dec, 11:30 PM',
-  //     'status': 'completed',
-  //     'icon': Icons.nightlight,
-  //   },
-  // ];
+  final TextEditingController amountController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       print("trabsactuyon");
-      final transactionVm = Provider.of<TransactionViewModel>(context, listen: false);
+      final transactionVm = Provider.of<TransactionViewModel>(
+        context,
+        listen: false,
+      );
       transactionVm.transactionApi(context);
     });
   }
-
-  List<Map<String, dynamic>> _withdrawalMethods = [
-    {
-      'type': 'bank',
-      'name': 'HDFC Bank',
-      'number': 'XXXX XXXX 1234',
-      'icon': Icons.account_balance,
-      'selected': true,
-    },
-    {
-      'type': 'upi',
-      'name': 'PhonePe UPI',
-      'number': 'mobileno@ybl',
-      'icon': Icons.payment,
-      'selected': false,
-    },
-    {
-      'type': 'bank',
-      'name': 'ICICI Bank',
-      'number': 'XXXX XXXX 5678',
-      'icon': Icons.account_balance,
-      'selected': false,
-    },
-  ];
 
   @override
   Widget build(BuildContext context) {
@@ -133,11 +49,11 @@ class _WalletSettlementState extends State<WalletSettlement> {
         appBar: AppBar(
           backgroundColor: Colors.white,
           elevation: 0,
-          title: TextConst(title:
-            'Wallet & Settlements',
-              color: Colors.black,
-              size: 18,
-              fontWeight: FontWeight.bold,
+          title: TextConst(
+            title: 'Wallet & Settlements',
+            color: Colors.black,
+            size: 18,
+            fontWeight: FontWeight.bold,
           ),
           centerTitle: true,
           leading: IconButton(
@@ -154,7 +70,7 @@ class _WalletSettlementState extends State<WalletSettlement> {
               _buildQuickActions(),
 
               // Withdrawal Methods
-              _buildWithdrawalMethods(),
+              SizedBox(height: 20),
 
               _buildTransactionHistory(),
             ],
@@ -254,25 +170,23 @@ class _WalletSettlementState extends State<WalletSettlement> {
     );
   }
 
-// Updated helper widget for wallet items
-  Widget _buildWalletItem(String title, String amount, IconData icon, Color color) {
+  // Updated helper widget for wallet items
+  Widget _buildWalletItem(
+    String title,
+    String amount,
+    IconData icon,
+    Color color,
+  ) {
     return Container(
       padding: EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(0.2),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: color.withOpacity(0.3),
-          width: 1,
-        ),
+        border: Border.all(color: color.withOpacity(0.3), width: 1),
       ),
       child: Column(
         children: [
-          Icon(
-            icon,
-            color: color,
-            size: 20,
-          ),
+          Icon(icon, color: color, size: 20),
           SizedBox(height: 6),
           Text(
             title,
@@ -303,16 +217,16 @@ class _WalletSettlementState extends State<WalletSettlement> {
       children: [
         Icon(icon, color: PortColor.blackLight, size: 20),
         SizedBox(height: 4),
-        TextConst(title:
-          title,
+        TextConst(
+          title: title,
           color: PortColor.blackLight,
           size: 12,
           fontFamily: AppFonts.kanitReg,
         ),
         SizedBox(height: 2),
-        TextConst(title:
-          value,
-       color: PortColor.blackLight,
+        TextConst(
+          title: value,
+          color: PortColor.blackLight,
           fontFamily: AppFonts.kanitReg,
         ),
       ],
@@ -361,7 +275,7 @@ class _WalletSettlementState extends State<WalletSettlement> {
             decoration: BoxDecoration(
               color: PortColor.gold.withOpacity(0.1),
               shape: BoxShape.circle,
-              border: Border.all(color: PortColor.gold)
+              border: Border.all(color: PortColor.gold),
             ),
             child: Icon(icon, color: PortColor.gold, size: 20),
           ),
@@ -374,50 +288,6 @@ class _WalletSettlementState extends State<WalletSettlement> {
               color: Colors.black87,
             ),
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildWithdrawalMethods() {
-    return Container(
-      margin: EdgeInsets.all(16),
-      padding: EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(color: Colors.black12, blurRadius: 8, offset: Offset(0, 2)),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Withdrawal Methods',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
-                ),
-              ),
-              TextButton(
-                onPressed: _addBankAccount,
-                child: Text(
-                  'Add New',
-                  style: TextStyle(
-                    color: PortColor.gold,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: 12),
-          ..._withdrawalMethods.map((method) => _buildWithdrawalMethod(method)),
         ],
       ),
     );
@@ -475,16 +345,8 @@ class _WalletSettlementState extends State<WalletSettlement> {
   Widget _buildTransactionHistory() {
     final transaction = Provider.of<TransactionViewModel>(context);
 
-    return Container(
-      margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+    return Padding(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: const [
-          BoxShadow(color: Colors.black12, blurRadius: 8, offset: Offset(0, 2)),
-        ],
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -506,9 +368,7 @@ class _WalletSettlementState extends State<WalletSettlement> {
 
           // 🔥 Conditional UI for Loading / Data / Empty State
           if (transaction.loading) ...[
-            const Center(
-              child: CupertinoActivityIndicator(radius: 14),
-            ),
+            const Center(child: CupertinoActivityIndicator(radius: 14)),
           ] else if (transaction.transactionsModel == null ||
               transaction.transactionsModel!.data == null ||
               transaction.transactionsModel!.data!.isEmpty) ...[
@@ -534,7 +394,7 @@ class _WalletSettlementState extends State<WalletSettlement> {
                 itemCount: transaction.transactionsModel!.data!.length,
                 itemBuilder: (context, index) {
                   final transactionData =
-                  transaction.transactionsModel!.data![index];
+                      transaction.transactionsModel!.data![index];
                   return _buildTransactionItem(transactionData);
                 },
               ),
@@ -545,14 +405,14 @@ class _WalletSettlementState extends State<WalletSettlement> {
     );
   }
 
-
-  Widget _buildTransactionItem( transaction) {
+  Widget _buildTransactionItem(transaction) {
     // Assuming you have payment_by field in your Data model
     // If not, you need to add it to your Data class
     int paymentBy = transaction.paymetBy ?? 1; // Default to 1 if null
 
     // Determine transaction type and status
-    bool isCredit = transaction.amount != null && double.parse(transaction.amount!) > 0;
+    bool isCredit =
+        transaction.amount != null && double.parse(transaction.amount!) > 0;
     String paymentStatus = _getPaymentStatus(paymentBy);
     String statusText = _getStatusText(paymentBy);
 
@@ -595,8 +455,12 @@ class _WalletSettlementState extends State<WalletSettlement> {
                       style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                       children: [
                         TextSpan(
-                          text: 'Total Amount: ₹${transaction.totalAmount ?? '0.00'}',
-                          style: TextStyle(fontWeight: FontWeight.w500, color: Colors.green),
+                          text:
+                              'Total Amount: ₹${transaction.totalAmount ?? '0.00'}',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w500,
+                            color: Colors.green,
+                          ),
                         ),
                       ],
                     ),
@@ -607,8 +471,12 @@ class _WalletSettlementState extends State<WalletSettlement> {
                       style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                       children: [
                         TextSpan(
-                          text: 'Platform Fee: ${transaction.platformFee ?? 'N/A'}',
-                          style: TextStyle(color: Colors.orange[600], fontWeight: FontWeight.w500),
+                          text:
+                              'Platform Fee: ${transaction.platformFee ?? 'N/A'}',
+                          style: TextStyle(
+                            color: Colors.orange[600],
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
                       ],
                     ),
@@ -619,8 +487,12 @@ class _WalletSettlementState extends State<WalletSettlement> {
                       style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                       children: [
                         TextSpan(
-                          text: 'Final Amount: ₹${transaction.amount ?? '0.00'}',
-                          style: TextStyle(fontWeight: FontWeight.w500, color: Colors.blue),
+                          text:
+                              'Final Amount: ₹${transaction.amount ?? '0.00'}',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w500,
+                            color: Colors.blue,
+                          ),
                         ),
                       ],
                     ),
@@ -638,14 +510,17 @@ class _WalletSettlementState extends State<WalletSettlement> {
 
                 // Case 2: payment_by = 2
                 if (paymentBy == 2) ...[
-
                   RichText(
                     text: TextSpan(
                       style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                       children: [
                         TextSpan(
-                          text: 'Total Amount: ₹${transaction.totalAmount ?? '0.00'}',
-                          style: TextStyle(fontWeight: FontWeight.w500, color: Colors.green),
+                          text:
+                              'Total Amount: ₹${transaction.totalAmount ?? '0.00'}',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w500,
+                            color: Colors.green,
+                          ),
                         ),
                       ],
                     ),
@@ -669,8 +544,12 @@ class _WalletSettlementState extends State<WalletSettlement> {
                       style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                       children: [
                         TextSpan(
-                          text: 'Total Amount: ₹${transaction.totalAmount ?? '0.00'}',
-                          style: TextStyle(fontWeight: FontWeight.w500, color: Colors.green),
+                          text:
+                              'Total Amount: ₹${transaction.totalAmount ?? '0.00'}',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w500,
+                            color: Colors.green,
+                          ),
                         ),
                       ],
                     ),
@@ -681,8 +560,12 @@ class _WalletSettlementState extends State<WalletSettlement> {
                       style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                       children: [
                         TextSpan(
-                          text: 'Platform Fee: ${transaction.platformFee ?? 'N/A'}',
-                          style: TextStyle(color: Colors.orange[600], fontWeight: FontWeight.w500),
+                          text:
+                              'Platform Fee: ${transaction.platformFee ?? 'N/A'}',
+                          style: TextStyle(
+                            color: Colors.orange[600],
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
                       ],
                     ),
@@ -737,7 +620,7 @@ class _WalletSettlementState extends State<WalletSettlement> {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               // Amount display based on payment_by
-              if (paymentBy == 1|| paymentBy == 3)
+              if (paymentBy == 1 || paymentBy == 3)
                 Text(
                   '₹${transaction.amount ?? '0.00'}',
                   style: TextStyle(
@@ -747,7 +630,7 @@ class _WalletSettlementState extends State<WalletSettlement> {
                   ),
                 ),
 
-              if (paymentBy == 2 )
+              if (paymentBy == 2)
                 Text(
                   '₹${transaction.totalAmount ?? '0.00'}',
                   style: TextStyle(
@@ -789,7 +672,7 @@ class _WalletSettlementState extends State<WalletSettlement> {
     );
   }
 
-// Helper function to get payment status text
+  // Helper function to get payment status text
   String _getPaymentStatus(int paymentBy) {
     switch (paymentBy) {
       case 1:
@@ -803,7 +686,7 @@ class _WalletSettlementState extends State<WalletSettlement> {
     }
   }
 
-// Helper function to get status text
+  // Helper function to get status text
   String _getStatusText(int paymentBy) {
     switch (paymentBy) {
       case 1:
@@ -817,7 +700,7 @@ class _WalletSettlementState extends State<WalletSettlement> {
     }
   }
 
-// Helper function to get status color
+  // Helper function to get status color
   Color _getStatusColor(int paymentBy) {
     switch (paymentBy) {
       case 1: // Online
@@ -831,7 +714,7 @@ class _WalletSettlementState extends State<WalletSettlement> {
     }
   }
 
-// Helper function to get status icon
+  // Helper function to get status icon
   IconData _getStatusIcon(int paymentBy) {
     switch (paymentBy) {
       case 1: // Online
@@ -845,7 +728,7 @@ class _WalletSettlementState extends State<WalletSettlement> {
     }
   }
 
-// Helper function to format date
+  // Helper function to format date
   String _formatDate(String? dateString) {
     if (dateString == null || dateString.isEmpty) return 'No Date';
 
@@ -858,7 +741,9 @@ class _WalletSettlementState extends State<WalletSettlement> {
   }
 
   void _showWithdrawalDialog() {
-    final driverProfile = Provider.of<ProfileViewModel>(context,listen: false);
+    final driverProfile = Provider.of<ProfileViewModel>(context, listen: false);
+    final bankVm = Provider.of<BankViewModel>(context, listen: false);
+    final withdrawVm = Provider.of<WithdrawViewModel>(context, listen: false);
     showGeneralDialog(
       context: context,
       barrierDismissible: true,
@@ -866,10 +751,7 @@ class _WalletSettlementState extends State<WalletSettlement> {
       transitionDuration: Duration(milliseconds: 400),
       pageBuilder: (context, animation, secondaryAnimation) {
         return ScaleTransition(
-          scale: CurvedAnimation(
-            parent: animation,
-            curve: Curves.easeOutBack,
-          ),
+          scale: CurvedAnimation(parent: animation, curve: Curves.easeOutBack),
           child: FadeTransition(
             opacity: animation,
             child: AlertDialog(
@@ -894,8 +776,8 @@ class _WalletSettlementState extends State<WalletSettlement> {
                     ),
                   ),
                   SizedBox(height: 8),
-                  TextConst(title:
-                    'Withdraw Funds',
+                  TextConst(
+                    title: 'Withdraw Funds',
                     size: 20,
                     fontWeight: FontWeight.w600,
                     color: Colors.black87,
@@ -912,25 +794,31 @@ class _WalletSettlementState extends State<WalletSettlement> {
                       decoration: BoxDecoration(
                         color: PortColor.gold.withOpacity(0.05),
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: PortColor.gold.withOpacity(0.2)),
+                        border: Border.all(
+                          color: PortColor.gold.withOpacity(0.2),
+                        ),
                       ),
                       child: Row(
                         children: [
-                          Icon(Icons.account_balance_wallet,
-                              color: PortColor.gold, size: 20),
+                          Icon(
+                            Icons.account_balance_wallet,
+                            color: PortColor.gold,
+                            size: 20,
+                          ),
                           SizedBox(width: 8),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                TextConst(title:
-                                  'Available Balance',
+                                TextConst(
+                                  title: 'Available Balance',
                                   size: 12,
                                   color: Colors.grey,
                                 ),
-                                TextConst(title:
-                                '₹${driverProfile.profileModel!.data!.wallet}',
-                                  size : 16,
+                                TextConst(
+                                  title:
+                                      '₹${driverProfile.profileModel!.data!.wallet}',
+                                  size: 16,
                                   fontWeight: FontWeight.bold,
                                   color: PortColor.gold,
                                 ),
@@ -945,17 +833,28 @@ class _WalletSettlementState extends State<WalletSettlement> {
 
                     // Amount Input
                     TextFormField(
+                      controller: amountController,
                       decoration: InputDecoration(
                         labelText: 'Enter Amount',
-                        labelStyle: TextStyle(color: Colors.grey,fontFamily: AppFonts.kanitReg),
-                        prefixIcon: Icon(Icons.currency_rupee, color: PortColor.gold,size: 18,),
+                        labelStyle: TextStyle(
+                          color: Colors.grey,
+                          fontFamily: AppFonts.kanitReg,
+                        ),
+                        prefixIcon: Icon(
+                          Icons.currency_rupee,
+                          color: PortColor.gold,
+                          size: 18,
+                        ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide(color: Colors.grey.shade300),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: PortColor.gold, width: 2),
+                          borderSide: BorderSide(
+                            color: PortColor.gold,
+                            width: 2,
+                          ),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
@@ -986,8 +885,11 @@ class _WalletSettlementState extends State<WalletSettlement> {
                               color: PortColor.gold.withOpacity(0.1),
                               shape: BoxShape.circle,
                             ),
-                            child: Icon(Icons.account_balance,
-                                color: PortColor.gold, size: 16),
+                            child: Icon(
+                              Icons.account_balance,
+                              color: PortColor.gold,
+                              size: 16,
+                            ),
                           ),
                           SizedBox(width: 8),
                           Expanded(
@@ -996,12 +898,21 @@ class _WalletSettlementState extends State<WalletSettlement> {
                               children: [
                                 TextConst(
                                   title:
-                                  'HDFC Bank',
+                                      bankVm
+                                          .bankDetailModel
+                                          ?.bankDetails
+                                          ?.bankName ??
+                                      "Known",
                                   fontWeight: FontWeight.w600,
                                   size: 14,
                                 ),
-                                TextConst(title:
-                                  'XXXX XXXX 1234',
+                                TextConst(
+                                  title:
+                                      bankVm
+                                          .bankDetailModel
+                                          ?.bankDetails
+                                          ?.accountNumber ??
+                                      "Known",
                                   size: 12,
                                   color: Colors.grey,
                                 ),
@@ -1011,7 +922,6 @@ class _WalletSettlementState extends State<WalletSettlement> {
                         ],
                       ),
                     ),
-
                   ],
                 ),
               ),
@@ -1033,8 +943,8 @@ class _WalletSettlementState extends State<WalletSettlement> {
                               color: Colors.transparent,
                             ),
                             alignment: Alignment.center,
-                            child: TextConst(title:
-                              'Cancel',
+                            child: TextConst(
+                              title: 'Cancel',
                               color: Colors.grey,
                               fontWeight: FontWeight.w500,
                             ),
@@ -1046,19 +956,25 @@ class _WalletSettlementState extends State<WalletSettlement> {
                       Expanded(
                         child: InkWell(
                           onTap: () {
-                            Navigator.pop(context);
-                            _showSuccessDialog();
+                            withdrawVm.withDrawApi(
+                              amountController.text,
+                              context,
+                            );
+                            amountController.clear();
+                            // _showSuccessDialog();
                           },
                           borderRadius: BorderRadius.circular(12),
                           child: Container(
-                            padding: EdgeInsets.symmetric(vertical: 12),
+                            padding: const EdgeInsets.symmetric(vertical: 12),
                             decoration: BoxDecoration(
-                               color: PortColor.gold,
+                              color: PortColor.gold,
                               borderRadius: BorderRadius.circular(12),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Color(0xFFFFA726).withOpacity(0.3),
-                                  offset: Offset(0, 4),
+                                  color: const Color(
+                                    0xFFFFA726,
+                                  ).withOpacity(0.3),
+                                  offset: const Offset(0, 4),
                                   blurRadius: 8,
                                 ),
                               ],
@@ -1067,14 +983,27 @@ class _WalletSettlementState extends State<WalletSettlement> {
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Icon(Icons.currency_rupee, size: 16, color: Colors.black),
-                                SizedBox(width: 4),
-                                TextConst(title:
-                                  'Withdraw',
-                                  color: PortColor.blackLight,
-                                  fontWeight: FontWeight.bold,
-                                  size: 14,
-                                ),
+                                // ✅ Hide Rupee icon when loading
+                                if (!withdrawVm.loading) ...[
+                                  const Icon(
+                                    Icons.currency_rupee,
+                                    size: 16,
+                                    color: Colors.white,
+                                  ),
+                                  const SizedBox(width: 4),
+                                ],
+
+                                // ✅ Loader OR Text
+                                withdrawVm.loading
+                                    ? const CupertinoActivityIndicator(
+                                        radius: 12,
+                                      )
+                                    : TextConst(
+                                        title: 'Withdraw',
+                                        color: PortColor.white,
+                                        fontWeight: FontWeight.bold,
+                                        size: 14,
+                                      ),
                               ],
                             ),
                           ),
@@ -1084,7 +1013,6 @@ class _WalletSettlementState extends State<WalletSettlement> {
                   ),
                 ),
               ],
-
             ),
           ),
         );
@@ -1100,10 +1028,7 @@ class _WalletSettlementState extends State<WalletSettlement> {
       transitionDuration: Duration(milliseconds: 500),
       pageBuilder: (context, animation, secondaryAnimation) {
         return ScaleTransition(
-          scale: CurvedAnimation(
-            parent: animation,
-            curve: Curves.elasticOut,
-          ),
+          scale: CurvedAnimation(parent: animation, curve: Curves.elasticOut),
           child: FadeTransition(
             opacity: animation,
             child: Dialog(
@@ -1188,7 +1113,6 @@ class _WalletSettlementState extends State<WalletSettlement> {
     );
   }
 
-
   void _addBankAccount() {
     Navigator.push(
       context,
@@ -1199,13 +1123,13 @@ class _WalletSettlementState extends State<WalletSettlement> {
           const end = Offset.zero;
           const curve = Curves.easeInOut;
 
-          var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+          var tween = Tween(
+            begin: begin,
+            end: end,
+          ).chain(CurveTween(curve: curve));
           var offsetAnimation = animation.drive(tween);
 
-          return SlideTransition(
-            position: offsetAnimation,
-            child: child,
-          );
+          return SlideTransition(position: offsetAnimation, child: child);
         },
         transitionDuration: Duration(milliseconds: 300),
       ),
@@ -1216,27 +1140,28 @@ class _WalletSettlementState extends State<WalletSettlement> {
     Navigator.push(
       context,
       PageRouteBuilder(
-        pageBuilder: (context, animation, secondaryAnimation) => WithDrawHistory(),
+        pageBuilder: (context, animation, secondaryAnimation) =>
+            WithDrawHistory(),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           const begin = Offset(0.0, 1.0);
           const end = Offset.zero;
           const curve = Curves.easeInOut;
 
-          var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+          var tween = Tween(
+            begin: begin,
+            end: end,
+          ).chain(CurveTween(curve: curve));
           var offsetAnimation = animation.drive(tween);
 
-          return SlideTransition(
-            position: offsetAnimation,
-            child: child,
-          );
+          return SlideTransition(position: offsetAnimation, child: child);
         },
         transitionDuration: Duration(milliseconds: 300),
       ),
-    );    // Implement view history
+    ); // Implement view history
   }
 
   void _showDueWalletHelp() {
-    final payment = Provider.of<PaymentViewModel>(context,listen: false);
+    final payment = Provider.of<PaymentViewModel>(context, listen: false);
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -1281,7 +1206,11 @@ class _WalletSettlementState extends State<WalletSettlement> {
                           color: PortColor.gold.withOpacity(0.1),
                           shape: BoxShape.circle,
                         ),
-                        child: Icon(Icons.wallet, size: 28, color: PortColor.gold),
+                        child: Icon(
+                          Icons.wallet,
+                          size: 28,
+                          color: PortColor.gold,
+                        ),
                       ),
                       SizedBox(width: 12),
                       Text(
@@ -1298,11 +1227,11 @@ class _WalletSettlementState extends State<WalletSettlement> {
 
                 SizedBox(height: 20),
 
-                  CustomTextField(
-                    controller: _amountController,
-                    labelText: 'Enter Amount',
-                    keyboardType: TextInputType.number,
-                  ),
+                CustomTextField(
+                  controller: _amountController,
+                  labelText: 'Enter Amount',
+                  keyboardType: TextInputType.number,
+                ),
 
                 SizedBox(height: 20),
 
@@ -1343,7 +1272,11 @@ class _WalletSettlementState extends State<WalletSettlement> {
                         height: 50,
                         child: ElevatedButton(
                           onPressed: () {
-                            payment.paymentApi(context, _amountController.text, "");
+                            payment.paymentApi(
+                              context,
+                              _amountController.text,
+                              "",
+                            );
                           },
                           style: ElevatedButton.styleFrom(
                             foregroundColor: Colors.white,
@@ -1372,7 +1305,4 @@ class _WalletSettlementState extends State<WalletSettlement> {
       },
     );
   }
-
-
-
 }

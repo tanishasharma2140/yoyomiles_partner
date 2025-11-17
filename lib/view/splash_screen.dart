@@ -96,7 +96,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       } else {
         final profileVm = Provider.of<ProfileViewModel>(context, listen: false);
 
-        await profileVm.profileApi();
+        await profileVm.profileApi(context);
 
         final profile = profileVm.profileModel?.data;
 

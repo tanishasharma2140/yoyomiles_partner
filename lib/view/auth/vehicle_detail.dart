@@ -1434,7 +1434,7 @@ class _VehicleDetailState extends State<VehicleDetail> {
 
         final profileVm = Provider.of<ProfileViewModel>(context, listen: false);
 
-        await profileVm.profileApi();
+        await profileVm.profileApi(context);
         final profile = profileVm.profileModel?.data;
 
         if (profile == null) {

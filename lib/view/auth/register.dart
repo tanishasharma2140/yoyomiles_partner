@@ -81,56 +81,68 @@ class _RegisterState extends State<Register> {
       context,
       listen: false,
     );
-    await profileViewModel.profileApi();
+    await profileViewModel.profileApi(context);
     _refreshController.refreshCompleted();
   }
 
   @override
   @override
+  @override
   void initState() {
     super.initState();
+
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final userViewModel = UserViewModel();
       final driverId = await userViewModel.getUser();
 
-      final profileViewModel = Provider.of<ProfileViewModel>(
-        context,
-        listen: false,
-      );
-      final activeRideVm = Provider.of<ActiveRideViewModel>(
-        context,
-        listen: false,
-      );
+      final profileViewModel =
+      Provider.of<ProfileViewModel>(context, listen: false);
 
-      // 🔹 Call APIs
-      await profileViewModel.profileApi();
+      final activeRideVm =
+      Provider.of<ActiveRideViewModel>(context, listen: false);
+
+      // 🔹 Load profile
+      await profileViewModel.profileApi(context);
+
+      // 🔹 Load Active ride
       await activeRideVm.activeRideApi(driverId.toString());
 
-      // 🔹 Check Active Ride First
-      final activeRideModel = activeRideVm.activeRideModel;
-      if (activeRideModel != null && activeRideModel.data != null) {
-        if (context.mounted) {
+      // 🔹 Active ride check
+      final activeModel = activeRideVm.activeRideModel;
+
+      bool hasRide = false;
+
+      if (activeModel != null &&
+          activeModel.data != null &&
+          activeModel.data!.toJson().isNotEmpty) {
+        hasRide = true;
+      }
+
+      if (hasRide) {
+        if (mounted) {
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
               builder: (context) =>
-                  LiveRideScreen(booking: activeRideModel.data!.toJson()),
+                  LiveRideScreen(booking: activeModel!.data!.toJson()),
             ),
           );
         }
       } else {
-        // 🔹 If no active ride, then check online status
+        // 🔹 No active ride → Go to TripStatus only if online
         final profileModel = profileViewModel.profileModel;
+
         if (profileModel != null &&
             profileModel.data != null &&
             profileModel.data!.onlineStatus == 1) {
-          if (context.mounted) {
+          if (mounted) {
             Navigator.pushNamed(context, RoutesName.tripStatus);
           }
         }
       }
     });
   }
+
 
   @override
   Widget build(BuildContext context) {

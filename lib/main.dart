@@ -4,7 +4,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:yoyomiles_partner/firebase_options.dart';
-import 'package:yoyomiles_partner/model/transaction_model.dart';
 import 'package:yoyomiles_partner/res/notification_service.dart';
 import 'package:yoyomiles_partner/res/sizing_const.dart';
 import 'package:yoyomiles_partner/utils/routes/routes.dart';
@@ -35,6 +34,8 @@ import 'package:yoyomiles_partner/view_model/vehicle_body_detail_view_model.dart
 import 'package:yoyomiles_partner/view_model/vehicle_name_view_model.dart';
 import 'package:yoyomiles_partner/view_model/vehicle_type_view_model.dart';
 import 'package:provider/provider.dart';
+import 'package:yoyomiles_partner/view_model/withdraw_history_view_model.dart';
+import 'package:yoyomiles_partner/view_model/withdraw_view_model.dart';
 
 String? fcmToken;
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -122,9 +123,14 @@ class _MyAppState extends State<MyApp> {
           ChangeNotifierProvider(create: (context)=> PaymentViewModel()),
           ChangeNotifierProvider(create: (context)=> CallBackViewModel()),
           ChangeNotifierProvider(create: (context)=> DailyWeeklyViewModel()),
-
+          ChangeNotifierProvider(create: (context)=> WithdrawViewModel()),
+          ChangeNotifierProvider(create: (context)=> WithdrawHistoryViewModel()),
+          Provider<NotificationService>(
+            create: (_) => NotificationService(navigatorKey: navigatorKey),
+          ),
         ],
         child: MaterialApp(
+          navigatorKey: navigatorKey,
           debugShowCheckedModeBanner: false,
           initialRoute: RoutesName.splash,
           onGenerateRoute: (settings){

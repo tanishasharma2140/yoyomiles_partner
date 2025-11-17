@@ -1,5 +1,11 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:yoyomiles_partner/res/constant_color.dart';
+import 'package:yoyomiles_partner/res/text_const.dart';
+import 'package:yoyomiles_partner/view_model/withdraw_history_view_model.dart';
+import 'package:provider/provider.dart';
+import '../../model/withdraw_history_model.dart';
 
 class WithDrawHistory extends StatefulWidget {
   const WithDrawHistory({super.key});
@@ -11,61 +17,51 @@ class WithDrawHistory extends StatefulWidget {
 class _WithDrawHistoryState extends State<WithDrawHistory> {
   int _selectedFilter = 0; // 0: All, 1: Completed, 2: Pending, 3: Failed
 
-  List<Map<String, dynamic>> _withdrawals = [
-    {
-      'amount': 5000.00,
-      'status': 'completed',
-      'date': 'Today, 10:30 AM',
-      'method': 'HDFC Bank',
-    },
-    {
-      'amount': 3500.00,
-      'status': 'pending',
-      'date': 'Today, 09:15 AM',
-      'method': 'ICICI Bank',
-    },
-    {
-      'amount': 7500.00,
-      'status': 'completed',
-      'date': 'Yesterday, 03:45 PM',
-      'method': 'HDFC Bank',
-    },
-    {
-      'amount': 2000.00,
-      'status': 'failed',
-      'date': '15 Dec, 11:20 AM',
-      'method': 'PhonePe UPI',
-    },
-    {
-      'amount': 4500.00,
-      'status': 'completed',
-      'date': '14 Dec, 02:30 PM',
-      'method': 'HDFC Bank',
-    },
-  ];
-
-  List<Map<String, dynamic>> get filteredWithdrawals {
-    if (_selectedFilter == 0) return _withdrawals;
-    if (_selectedFilter == 1) return _withdrawals.where((w) => w['status'] == 'completed').toList();
-    if (_selectedFilter == 2) return _withdrawals.where((w) => w['status'] == 'pending').toList();
-    return _withdrawals.where((w) => w['status'] == 'failed').toList();
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final withdrawHistoryVm =
+      Provider.of<WithdrawHistoryViewModel>(context, listen: false);
+      withdrawHistoryVm.withDrawHistoryApi("", context); // ✅ Default ALL -> ""
+    });
   }
 
-  Color _getStatusColor(String status) {
-    switch (status) {
-      case 'completed': return Colors.green;
-      case 'pending': return Colors.orange;
-      case 'failed': return Colors.red;
-      default: return Colors.grey;
+  // ✅ Format Date
+  String formatDate(String? date) {
+    if (date == null || date.isEmpty) return "";
+    try {
+      DateTime d = DateTime.parse(date);
+      return DateFormat("dd MMM yyyy, hh:mm a").format(d);
+    } catch (e) {
+      return date;
     }
   }
 
-  String _getStatusText(String status) {
+  Color _getStatusColor(int? status) {
     switch (status) {
-      case 'completed': return 'Completed';
-      case 'pending': return 'Processing';
-      case 'failed': return 'Failed';
-      default: return 'Unknown';
+      case 1:
+        return Colors.green; // Completed
+      case 0:
+        return Colors.orange; // Pending
+      case 2:
+        return Colors.red; // Failed
+      default:
+        return Colors.grey;
+    }
+  }
+
+  // ✅ Status Text Mapping
+  String _getStatusText(int? status) {
+    switch (status) {
+      case 1:
+        return 'Completed';
+      case 0:
+        return 'Pending';
+      case 2:
+        return 'Failed';
+      default:
+        return 'Unknown';
     }
   }
 
@@ -79,26 +75,22 @@ class _WithDrawHistoryState extends State<WithDrawHistory> {
         appBar: AppBar(
           backgroundColor: Colors.white,
           elevation: 1,
-          title: Text(
-            'Withdrawal History',
-            style: TextStyle(
-              color: Colors.black,
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
           centerTitle: true,
           leading: IconButton(
-            icon: Icon(Icons.arrow_back, color: Colors.black),
+            icon: const Icon(Icons.arrow_back, color: Colors.black),
             onPressed: () => Navigator.pop(context),
           ),
+          title:  TextConst(
+            title:
+            'Withdrawal History',
+            fontWeight: FontWeight.w600,
+            size: 17,
+          ),
         ),
+
         body: Column(
           children: [
-            // Filter Chips
             _buildFilterChips(),
-
-            // Withdrawal List
             _buildWithdrawalList(),
           ],
         ),
@@ -106,11 +98,12 @@ class _WithDrawHistoryState extends State<WithDrawHistory> {
     );
   }
 
+  // ✅ FILTER CHIPS + FILTER API CALL MAPPING
   Widget _buildFilterChips() {
     List<String> filters = ['All', 'Completed', 'Pending', 'Failed'];
 
     return Container(
-      padding: EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: filters.asMap().entries.map((entry) {
@@ -120,12 +113,22 @@ class _WithDrawHistoryState extends State<WithDrawHistory> {
 
           return GestureDetector(
             onTap: () {
-              setState(() {
-                _selectedFilter = index;
-              });
+              setState(() => _selectedFilter = index);
+
+              final withdrawHistoryVm =
+              Provider.of<WithdrawHistoryViewModel>(context, listen: false);
+
+              // ✅ UPDATED FLAGS
+              String flag = "";
+              if (index == 1) flag = "1"; // Completed
+              if (index == 2) flag = "0"; // Pending
+              if (index == 3) flag = "2"; // Failed
+
+              withdrawHistoryVm.withDrawHistoryApi(flag, context);
             },
+
             child: Container(
-              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
                 color: isSelected ? PortColor.gold : Colors.white,
                 borderRadius: BorderRadius.circular(20),
@@ -136,9 +139,8 @@ class _WithDrawHistoryState extends State<WithDrawHistory> {
               child: Text(
                 filter,
                 style: TextStyle(
-                  color: isSelected ? Colors.white : Colors.black87,
-                  fontWeight: FontWeight.w500,
-                ),
+                    color: isSelected ? Colors.white : Colors.black87,
+                    fontWeight: FontWeight.w500),
               ),
             ),
           );
@@ -147,133 +149,133 @@ class _WithDrawHistoryState extends State<WithDrawHistory> {
     );
   }
 
+  // ✅ WITHDRAWAL LIST
   Widget _buildWithdrawalList() {
-    if (filteredWithdrawals.isEmpty) {
+    final withdrawHistoryVm = Provider.of<WithdrawHistoryViewModel>(context);
+
+    // ✅ Loader
+    if (withdrawHistoryVm.loading) {
+      return const Expanded(
+        child: Center(child: CupertinoActivityIndicator(radius: 18)),
+      );
+    }
+
+    final List<Data>? list = withdrawHistoryVm.withdrawHistoryModel?.data;
+
+    // ✅ Empty UI
+    if (list == null || list.isEmpty) {
       return Expanded(
         child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(Icons.history, size: 64, color: Colors.grey.shade400),
-              SizedBox(height: 16),
-              Text(
-                'No withdrawals found',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.grey.shade600,
-                ),
-              ),
+              const SizedBox(height: 12),
+              TextConst(title:
+                "No withdrawals found",
+                size: 15,
+              )
             ],
           ),
         ),
       );
     }
 
+    // ✅ LISTVIEW
     return Expanded(
       child: ListView.builder(
-        padding: EdgeInsets.symmetric(horizontal: 16),
-        itemCount: filteredWithdrawals.length,
-        itemBuilder: (context, index) {
-          return _buildWithdrawalItem(filteredWithdrawals[index]);
-        },
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        itemCount: list.length,
+        itemBuilder: (context, index) => _buildWithdrawalItem(list[index]),
       ),
     );
   }
 
-  Widget _buildWithdrawalItem(Map<String, dynamic> withdrawal) {
-    Color statusColor = _getStatusColor(withdrawal['status']);
+  // ✅ EACH ITEM CARD
+  Widget _buildWithdrawalItem(Data withdrawal) {
+    int status = withdrawal.status ?? -1;
+    Color statusColor = _getStatusColor(status);
 
     return Container(
-      margin: EdgeInsets.only(bottom: 12),
-      padding: EdgeInsets.all(16),
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
-            color: Colors.black12,
-            blurRadius: 4,
-            offset: Offset(0, 2),
-          ),
+              color: Colors.black12, blurRadius: 4, offset: Offset(0, 2)),
         ],
       ),
+
       child: Row(
         children: [
-          // Bank Icon
+          // ✅ ICON
           Container(
-            padding: EdgeInsets.all(12),
+            padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: PortColor.gold.withOpacity(0.1),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              Icons.account_balance,
-              color: PortColor.gold,
-              size: 24,
-            ),
+                color: PortColor.gold.withOpacity(0.1),
+                shape: BoxShape.circle),
+            child: Icon(Icons.account_balance,
+                color: PortColor.gold, size: 24),
           ),
 
-          SizedBox(width: 12),
+          const SizedBox(width: 12),
 
-          // Details
+          // ✅ DETAILS
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // ✅ Header row
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      withdrawal['method'],
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 16,
+                    TextConst(
+                      title:
+                      withdrawal.orderId ?? "Order",
+                        size: 16,
                         color: Colors.black87,
-                      ),
+                      fontWeight: FontWeight.w600,
                     ),
-                    Text(
-                      '₹${withdrawal['amount'].toStringAsFixed(2)}',
-                      style: TextStyle(
+                    TextConst(title:
+                      "₹${withdrawal.amount}",
                         fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                        color: PortColor.gold,
-                      ),
+                        size: 14,
+                        color: PortColor.gold
                     ),
                   ],
                 ),
 
-                SizedBox(height: 4),
+                const SizedBox(height: 4),
 
+                // ✅ Footer row
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      withdrawal['date'],
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey.shade600,
-                      ),
+                    TextConst(title:
+                      formatDate(withdrawal.createdAt),
+                        size : 13, color: Colors.grey.shade600,
                     ),
                     Container(
-                      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
-                        color: statusColor.withOpacity(0.1),
+                        color: statusColor.withOpacity(0.15),
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: Text(
-                        _getStatusText(withdrawal['status']),
-                        style: TextStyle(
-                          color: statusColor,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                        ),
+                      child: TextConst(title:
+                        _getStatusText(status),
+                        color: statusColor,
+                        size: 11,
+                        fontWeight: FontWeight.w600,
                       ),
-                    ),
+                    )
                   ],
-                ),
+                )
               ],
             ),
-          ),
+          )
         ],
       ),
     );

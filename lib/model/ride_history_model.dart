@@ -54,6 +54,7 @@ class Data {
   dynamic reciverName;
   dynamic reciverPhone;
   dynamic rideStatus;
+  dynamic orderType;
   dynamic driverId;
   dynamic amount;
   dynamic distance;
@@ -89,6 +90,7 @@ class Data {
         this.reciverName,
         this.reciverPhone,
         this.rideStatus,
+        this.orderType,
         this.driverId,
         this.amount,
         this.distance,
@@ -124,6 +126,7 @@ class Data {
     reciverName = json['reciver_name'];
     reciverPhone = json['reciver_phone'];
     rideStatus = json['ride_status'];
+    orderType = json['order_type'];
     driverId = json['driver_id'];
     amount = json['amount'];
     distance = json['distance'];
@@ -162,6 +165,7 @@ class Data {
     data['reciver_phone'] = reciverPhone;
     data['ride_status'] = rideStatus;
     data['driver_id'] = driverId;
+    data['order_type'] = orderType;
     data['amount'] = amount;
     data['distance'] = distance;
     data['created_at'] = createdAt;

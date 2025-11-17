@@ -25,6 +25,10 @@ class ApiUrl{
   static const String paymentUrl="${baseUrl}payment";
   static const String callBackUrl="${baseUrl}cashfree/callback";
   static const String dailyWeeklyUrl="${baseUrl}daily_weekly_info";
+  static const String withdrawUrl="${baseUrl}withdraws";
+  static const String withdrawHistoryUrl="${baseUrl}withdraw-history";
+
+
 
 
   static const String sendOtpUrl ="https://otp.fctechteam.org/send_otp.php?mode=test&digit=4&mobile=";

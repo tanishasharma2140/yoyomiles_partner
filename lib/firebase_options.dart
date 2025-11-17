@@ -41,53 +41,49 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyDFTvfrJyJPvgfghmHrnCHB1AObli5GZrg',
-    appId: '1:288902387437:web:12b3e0141024d902b7dee4',
-    messagingSenderId: '288902387437',
-    projectId: 'porter-98613',
-    authDomain: 'porter-98613.firebaseapp.com',
-    databaseURL: 'https://porter-98613-default-rtdb.firebaseio.com',
-    storageBucket: 'porter-98613.firebasestorage.app',
-    measurementId: 'G-1N9PKE53P3',
+    apiKey: 'AIzaSyDxjmvO8q-_5mZVp7w2tdr3kXweCbHmhb8',
+    appId: '1:121960648355:web:286467ec4105d040627916',
+    messagingSenderId: '121960648355',
+    projectId: 'yoyomiles-50eea',
+    authDomain: 'yoyomiles-50eea.firebaseapp.com',
+    storageBucket: 'yoyomiles-50eea.firebasestorage.app',
+    measurementId: 'G-X3QV41DX27',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyDJPlS2CQh7LCGMyWr1x8KaVEdFs1QoV1I',
-    appId: '1:288902387437:android:37a6ee282a7dc32bb7dee4',
-    messagingSenderId: '288902387437',
-    projectId: 'porter-98613',
-    databaseURL: 'https://porter-98613-default-rtdb.firebaseio.com',
-    storageBucket: 'porter-98613.firebasestorage.app',
+    apiKey: 'AIzaSyDQOYo8GcMKxWSH9-z0XFp9AnzNChZWjN8',
+    appId: '1:121960648355:android:dfc484bb6c319431627916',
+    messagingSenderId: '121960648355',
+    projectId: 'yoyomiles-50eea',
+    storageBucket: 'yoyomiles-50eea.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyBWbhtiSy0wwfQojaBDRwK2e10StGdIFUE',
-    appId: '1:288902387437:ios:fab740eb98bbe4b6b7dee4',
-    messagingSenderId: '288902387437',
-    projectId: 'porter-98613',
-    databaseURL: 'https://porter-98613-default-rtdb.firebaseio.com',
-    storageBucket: 'porter-98613.firebasestorage.app',
+    apiKey: 'AIzaSyBd-UZiWeAaJxp6V5jaYVIKKtpWf0ACM3Q',
+    appId: '1:121960648355:ios:fe294665da64476e627916',
+    messagingSenderId: '121960648355',
+    projectId: 'yoyomiles-50eea',
+    storageBucket: 'yoyomiles-50eea.firebasestorage.app',
     iosBundleId: 'com.foundercode.yoyomilesPartner',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyBWbhtiSy0wwfQojaBDRwK2e10StGdIFUE',
-    appId: '1:288902387437:ios:fab740eb98bbe4b6b7dee4',
-    messagingSenderId: '288902387437',
-    projectId: 'porter-98613',
-    databaseURL: 'https://porter-98613-default-rtdb.firebaseio.com',
-    storageBucket: 'porter-98613.firebasestorage.app',
+    apiKey: 'AIzaSyBd-UZiWeAaJxp6V5jaYVIKKtpWf0ACM3Q',
+    appId: '1:121960648355:ios:fe294665da64476e627916',
+    messagingSenderId: '121960648355',
+    projectId: 'yoyomiles-50eea',
+    storageBucket: 'yoyomiles-50eea.firebasestorage.app',
     iosBundleId: 'com.foundercode.yoyomilesPartner',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyDFTvfrJyJPvgfghmHrnCHB1AObli5GZrg',
-    appId: '1:288902387437:web:6772e1be080bfc5cb7dee4',
-    messagingSenderId: '288902387437',
-    projectId: 'porter-98613',
-    authDomain: 'porter-98613.firebaseapp.com',
-    databaseURL: 'https://porter-98613-default-rtdb.firebaseio.com',
-    storageBucket: 'porter-98613.firebasestorage.app',
-    measurementId: 'G-43MJYCLWVJ',
+    apiKey: 'AIzaSyDxjmvO8q-_5mZVp7w2tdr3kXweCbHmhb8',
+    appId: '1:121960648355:web:d47ab16bb7c3c4e2627916',
+    messagingSenderId: '121960648355',
+    projectId: 'yoyomiles-50eea',
+    authDomain: 'yoyomiles-50eea.firebaseapp.com',
+    storageBucket: 'yoyomiles-50eea.firebasestorage.app',
+    measurementId: 'G-7QKVJSXETR',
   );
+
 }

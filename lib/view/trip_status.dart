@@ -22,7 +22,6 @@ class _TripStatusState extends State<TripStatus> {
   bool isSwitched = true;
   String? _currentAddress;
 
-
   void _showSwitchDialog() {
     showDialog(
       context: context,
@@ -67,7 +66,6 @@ class _TripStatusState extends State<TripStatus> {
                   children: [
                     InkWell(
                       onTap: () async {
-
                         await onlineStatusViewModel.onlineStatusApi(context, 0);
 
                         if (mounted) {
@@ -121,7 +119,6 @@ class _TripStatusState extends State<TripStatus> {
     );
   }
 
-
   @override
   Widget build(BuildContext context) {
     final profileViewModel = Provider.of<ProfileViewModel>(context);
@@ -131,12 +128,12 @@ class _TripStatusState extends State<TripStatus> {
       bottom: true,
       child: Scaffold(
         backgroundColor: PortColor.scaffoldBgGrey,
-        appBar:  CustomAppBar(
+        appBar: CustomAppBar(
           leading: IconButton(
             icon: const Icon(Icons.arrow_back, color: Colors.black),
             onPressed: () => Navigator.pop(context),
           ),
-          name: profileViewModel.profileModel!.data!.driverName?? "Known",
+          name: profileViewModel.profileModel!.data!.driverName ?? "Known",
           imageUrl: profileViewModel.profileModel!.data!.ownerSelfie ?? "",
           actions: [
             Transform.scale(
@@ -150,7 +147,10 @@ class _TripStatusState extends State<TripStatus> {
                   } else {
                     // ✅ Turn ON instantly + call API
                     final onlineStatusViewModel =
-                    Provider.of<OnlineStatusViewModel>(context, listen: false);
+                        Provider.of<OnlineStatusViewModel>(
+                          context,
+                          listen: false,
+                        );
                     onlineStatusViewModel.onlineStatusApi(context, 1);
 
                     setState(() {
@@ -165,12 +165,11 @@ class _TripStatusState extends State<TripStatus> {
               ),
             ),
 
-
             const SizedBox(width: 12),
           ],
         ),
         body: StreamBuilder<List<Map<String, dynamic>>>(
-          stream: fetchBookings("",context),
+          stream: fetchBookings("", context),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return Center(
@@ -196,8 +195,10 @@ class _TripStatusState extends State<TripStatus> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Image.asset(Assets.assetsNoData,
-                        height: Sizes.screenHeight * 0.15),
+                    Image.asset(
+                      Assets.assetsNoData,
+                      height: Sizes.screenHeight * 0.15,
+                    ),
                     SizedBox(height: Sizes.screenHeight * 0.02),
                     TextConst(
                       title: "No Bookings Available",
@@ -280,10 +281,15 @@ class _TripStatusState extends State<TripStatus> {
                           // Header Row
                           Padding(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 8),
+                              horizontal: 16,
+                              vertical: 8,
+                            ),
                             child: Row(
                               children: [
-                                Icon(Icons.local_shipping, color: PortColor.gold),
+                                Icon(
+                                  Icons.local_shipping,
+                                  color: PortColor.gold,
+                                ),
                                 const SizedBox(width: 8),
                                 TextConst(
                                   title: "Available Bookings",
@@ -294,14 +300,16 @@ class _TripStatusState extends State<TripStatus> {
                                 const Spacer(),
                                 Container(
                                   padding: const EdgeInsets.symmetric(
-                                      horizontal: 12, vertical: 4),
+                                    horizontal: 12,
+                                    vertical: 4,
+                                  ),
                                   decoration: BoxDecoration(
                                     color: PortColor.gold,
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                   child: TextConst(
                                     title: "${bookingList.length}",
-                                    color: PortColor.black,
+                                    color: PortColor.white,
                                     size: Sizes.fontSizeFour,
                                     fontWeight: FontWeight.bold,
                                   ),
@@ -345,7 +353,11 @@ class _TripStatusState extends State<TripStatus> {
                       ),
                       child: Row(
                         children: [
-                          Icon(Icons.location_on, color: PortColor.gold, size: 18),
+                          Icon(
+                            Icons.location_on,
+                            color: PortColor.gold,
+                            size: 18,
+                          ),
                           const SizedBox(width: 8),
                           Expanded(
                             child: TextConst(
@@ -361,7 +373,6 @@ class _TripStatusState extends State<TripStatus> {
                     ),
                   ),
               ],
-
             );
           },
         ),
@@ -371,71 +382,114 @@ class _TripStatusState extends State<TripStatus> {
 }
 
 /// ✅ CORRECTED Stream for matching bookings with ride_status filter
-Stream<List<Map<String, dynamic>>> fetchBookings(String driverVehicleType, context) {
+Stream<List<Map<String, dynamic>>> fetchBookings(
+  String driverVehicleType,
+  context,
+) {
   final profileViewModel = Provider.of<ProfileViewModel>(
     context,
     listen: false,
   );
+
   final driverId = profileViewModel.profileModel!.data!.id;
   final driverIdStr = driverId.toString();
+
+  print("👤 DRIVER ID => $driverIdStr");
 
   final bookings = FirebaseFirestore.instance.collection('order');
 
   return bookings.snapshots().map((snapshot) {
+    print("----------------------------------------------------");
+    print("📡 SNAPSHOT RECEIVED: ${snapshot.docs.length} documents");
+
     final filtered = snapshot.docs
         .where((doc) {
-      final data = doc.data() as Map<String, dynamic>;
+          final data = doc.data() as Map<String, dynamic>;
 
-      // ✅ CHECK 1: Ride status should be 1, 2, 3, or 4 ONLY
-      final rideStatus = data['ride_status'] ?? 0;
-      final isActiveStatus = rideStatus == 0 || rideStatus == 1 || rideStatus == 2 || rideStatus == 3;
+          print("\n📄 Document: ${doc.id}");
+          print("RAW DATA => $data");
 
-      if (!isActiveStatus) {
-        return false; // Skip if ride status is NOT 1,2,3,4
-      }
+          // =========================
+          // 🔍 CHECK RIDE STATUS
+          // =========================
 
-      // ✅ CHECK 2: Driver should be in available_driver_id list
-      final raw = data['available_driver_id'];
-      List<dynamic> ids = [];
+          final rideStatus = data['ride_status'] ?? 0;
+          print("➡️ ride_status: $rideStatus");
 
-      if (raw is List) {
-        ids = raw;
-      } else if (raw is String && raw.isNotEmpty) {
-        ids = [raw];
-      } else if (raw is int) {
-        ids = [raw];
-      }
+          final isActiveStatus =
+              rideStatus == 0 ||
+              rideStatus == 1 ||
+              rideStatus == 2 ||
+              rideStatus == 3;
 
-      final idStrings = ids.map((e) => e.toString()).toList();
-      final isDriverAvailable = idStrings.contains(driverIdStr);
+          print("✔️ isActiveStatus = $isActiveStatus");
 
-      return isDriverAvailable;
-    })
+          if (!isActiveStatus) {
+            print("❌ SKIPPED (Ride status invalid)");
+            return false;
+          }
+
+          // =========================
+          // 🔍 CHECK AVAILABLE DRIVER LIST
+          // =========================
+
+          final raw = data['available_driver_id'];
+          print("➡️ RAW available_driver_id = $raw (${raw.runtimeType})");
+
+          // Convert to list
+          List<dynamic> ids = [];
+
+          if (raw is List) {
+            ids = raw;
+          } else if (raw is String && raw.isNotEmpty) {
+            ids = [raw];
+          } else if (raw is int) {
+            ids = [raw];
+          }
+
+          print("➡️ Converted driver list: $ids");
+
+          final idStrings = ids.map((e) => e.toString()).toList();
+          print("➡️ Converted to String list: $idStrings");
+
+          final isDriverAvailable = idStrings.contains(driverIdStr);
+
+          print("✔️ isDriverAvailable = $isDriverAvailable");
+
+          if (!isDriverAvailable) {
+            print("❌ SKIPPED (Driver ID not found in list)");
+          }
+
+          return isDriverAvailable;
+        })
         .map((doc) {
-      final data = doc.data() as Map<String, dynamic>;
-      // Convert all fields to proper types
-      return {
-        'id': data['id']?.toString() ?? '', // Convert to string
-        'sender_name': data['sender_name']?.toString() ?? 'N/A',
-        'sender_phone': data['sender_phone']?.toString() ?? 'N/A',
-        'pickup_address': data['pickup_address']?.toString() ?? 'N/A',
-        'reciver_name': data['reciver_name']?.toString() ?? 'N/A',
-        'reciver_phone': data['reciver_phone']?.toString() ?? 'N/A',
-        'drop_address': data['drop_address']?.toString() ?? 'N/A',
-        'available_driver_id': data['available_driver_id'],
-        'document_id': doc.id, // Add document ID for reference
-        'amount': data['amount'] ?? 0,
-        'distance': data['distance'] ?? 0,
-      };
-    })
+          final data = doc.data() as Map<String, dynamic>;
+          print("\n🎯 ADDING FILTERED DATA => ${doc.id}");
+
+          return {
+            'id': data['id']?.toString() ?? '',
+            'sender_name': data['sender_name']?.toString() ?? 'N/A',
+            'sender_phone': data['sender_phone']?.toString() ?? 'N/A',
+            'pickup_address': data['pickup_address']?.toString() ?? 'N/A',
+            'reciver_name': data['reciver_name']?.toString() ?? 'N/A',
+            'reciver_phone': data['reciver_phone']?.toString() ?? 'N/A',
+            'drop_address': data['drop_address']?.toString() ?? 'N/A',
+            'available_driver_id': data['available_driver_id'],
+            'document_id': doc.id,
+            'order_type': data['order_type'] ?? 1,
+            'amount': data['amount'] ?? 0,
+            'distance': data['distance'] ?? 0,
+          };
+        })
         .toList();
 
-    print('📦 Available bookings (ONLY status 1,2,3,4): ${filtered.length}');
+    print("\n📦 FINAL FILTERED BOOKINGS: ${filtered.length}");
 
-    // Debug: Print status of filtered bookings
     for (var booking in filtered) {
-      print('🎯 Booking ID: ${booking['id']}');
+      print("👉 Booking ID: ${booking['id']} (Doc: ${booking['document_id']})");
     }
+
+    print("----------------------------------------------------");
 
     return filtered;
   });
@@ -507,7 +561,6 @@ class BookingCard extends StatelessWidget {
                   ),
                 ),
                 GestureDetector(
-
                   child: Container(
                     padding: EdgeInsets.symmetric(
                       vertical: Sizes.screenHeight * 0.006,
@@ -593,16 +646,20 @@ class BookingCard extends StatelessWidget {
 
             // Sender Details
             SizedBox(height: Sizes.screenHeight * 0.01),
-            _buildDetailRow(
-              icon: Icons.person_outline,
-              title: "Sender",
-              content: bookingData['sender_name'] ?? "N/A",
-            ),
-            _buildDetailRow(
-              icon: Icons.phone,
-              title: "Phone",
-              content: bookingData['sender_phone'] ?? "N/A",
-            ),
+
+            if (bookingData['order_type'] != 2) ...[
+              _buildDetailRow(
+                icon: Icons.person_outline,
+                title: "Sender",
+                content: bookingData['sender_name'] ?? "N/A",
+              ),
+              _buildDetailRow(
+                icon: Icons.phone,
+                title: "Phone",
+                content: bookingData['sender_phone'] ?? "N/A",
+              ),
+            ],
+
             _buildDetailRow(
               icon: Icons.location_on,
               title: "Pickup",
@@ -614,17 +671,22 @@ class BookingCard extends StatelessWidget {
             const Divider(height: 1),
 
             // Receiver Details
+            // Receiver Details
             SizedBox(height: Sizes.screenHeight * 0.01),
-            _buildDetailRow(
-              icon: Icons.person_outline,
-              title: "Receiver",
-              content: bookingData['reciver_name'] ?? "N/A",
-            ),
-            _buildDetailRow(
-              icon: Icons.phone,
-              title: "Phone",
-              content: bookingData['reciver_phone'] ?? "N/A",
-            ),
+
+            if (bookingData['order_type'] != 2) ...[
+              _buildDetailRow(
+                icon: Icons.person_outline,
+                title: "Receiver",
+                content: bookingData['reciver_name'] ?? "N/A",
+              ),
+              _buildDetailRow(
+                icon: Icons.phone,
+                title: "Phone",
+                content: bookingData['reciver_phone'] ?? "N/A",
+              ),
+            ],
+
             _buildDetailRow(
               icon: Icons.location_on,
               title: "Drop",
@@ -645,7 +707,15 @@ class BookingCard extends StatelessWidget {
                     onTap: () {
                       // FIX: Convert ID to string before passing
                       String bookingId = bookingData['id'].toString();
-                      assignRideViewModel.assignRideApi(context, 1, bookingId,bookingData);
+                      print("🚗 ACCEPT BTN PRESSED");
+                      print("📄 Firestore Document ID: $bookingId");
+                      print("📦 Full Booking Data: $bookingData");
+                      assignRideViewModel.assignRideApi(
+                        context,
+                        1,
+                        bookingId,
+                        bookingData,
+                      );
                     },
                     child: Container(
                       padding: EdgeInsets.symmetric(
@@ -658,23 +728,23 @@ class BookingCard extends StatelessWidget {
                       child: Center(
                         child: !assignRideViewModel.loading
                             ? Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            TextConst(
-                              title: 'Accept',
-                              color: PortColor.blackLight,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ],
-                        )
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  TextConst(
+                                    title: 'Accept',
+                                    color: PortColor.white,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ],
+                              )
                             : SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 2,
-                          ),
-                        ),
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2,
+                                ),
+                              ),
                       ),
                     ),
                   ),

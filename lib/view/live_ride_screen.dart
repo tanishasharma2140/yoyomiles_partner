@@ -299,7 +299,7 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
 
   // NEW: Ride Completed Dialog for Cash Payment
   Widget _buildRideCompletedDialog() {
- final liveRideVm = Provider.of<LiveRideViewModel>(context);
+    final liveRideVm = Provider.of<LiveRideViewModel>(context);
     return WillPopScope(
       onWillPop: () async => false,
       child: Dialog(
@@ -709,10 +709,10 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
               ),
               SizedBox(height: 20),
               // Swapper Button
-                SlideToButton(onAccepted: (){
-                  Navigator.of(context).pop();
-                  _handleCashPaymentCompleted();
-                }, title: "Pay Done")
+              SlideToButton(onAccepted: (){
+                Navigator.of(context).pop();
+                _handleCashPaymentCompleted();
+              }, title: "Pay Done")
 
             ],
           ),
@@ -1040,6 +1040,7 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
     required String content,
     bool isAddress = false,
     bool isHeader = false,
+    bool bold = false,
   }) {
     return Padding(
       padding: EdgeInsets.only(bottom: Sizes.screenHeight * 0.01),
@@ -1065,6 +1066,7 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
               title: content,
               size: Sizes.fontSizeFour,
               color: PortColor.black,
+              fontWeight: bold ? FontWeight.bold : FontWeight.w400,
               maxLines: isAddress ? 2 : 1,
               overflow: TextOverflow.ellipsis,
             ),
@@ -1304,22 +1306,38 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                   SizedBox(height: Sizes.screenHeight * 0.015),
                   _buildSectionHeader("Sender Details"),
                   SizedBox(height: Sizes.screenHeight * 0.01),
-                  _buildDetailRow(
-                    icon: Icons.person_outline,
-                    title: "Name",
-                    content: liveRideViewModel.liveOrderModel!.data!.senderName ?? "N/A",
-                  ),
-                  _buildDetailRow(
-                    icon: Icons.phone,
-                    title: "Phone",
-                    content: liveRideViewModel.liveOrderModel!.data!.senderPhone?.toString() ?? "N/A",
-                  ),
-                  _buildDetailRow(
-                    icon: Icons.location_on,
-                    title: "Address",
-                    content: liveRideViewModel.liveOrderModel!.data!.pickupAddress ?? "N/A",
-                    isAddress: true,
-                  ),
+
+// IF order_type = 2 → ONLY Address (Bold)
+                  if (liveRideViewModel.liveOrderModel!.data!.orderType.toString() == "2") ...[
+                    _buildDetailRow(
+                      icon: Icons.location_on,
+                      title: "Address",
+                      content: liveRideViewModel.liveOrderModel!.data!.pickupAddress ?? "N/A",
+                      isAddress: true,
+                      bold: true, // 👈 Add bold
+                    ),
+                  ]
+
+// ELSE → Full details
+                  else ...[
+                    _buildDetailRow(
+                      icon: Icons.person_outline,
+                      title: "Name",
+                      content: liveRideViewModel.liveOrderModel!.data!.senderName ?? "N/A",
+                    ),
+                    _buildDetailRow(
+                      icon: Icons.phone,
+                      title: "Phone",
+                      content: liveRideViewModel.liveOrderModel!.data!.senderPhone?.toString() ?? "N/A",
+                    ),
+                    _buildDetailRow(
+                      icon: Icons.location_on,
+                      title: "Address",
+                      content: liveRideViewModel.liveOrderModel!.data!.pickupAddress ?? "N/A",
+                      isAddress: true,
+                    ),
+                  ],
+
 
                   SizedBox(height: Sizes.screenHeight * 0.015),
                   Divider(height: 1),
@@ -1327,22 +1345,38 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                   SizedBox(height: Sizes.screenHeight * 0.015),
                   _buildSectionHeader("Receiver Details"),
                   SizedBox(height: Sizes.screenHeight * 0.01),
-                  _buildDetailRow(
-                    icon: Icons.person_outline,
-                    title: "Name",
-                    content: liveRideViewModel.liveOrderModel!.data!.reciverName ?? "N/A",
-                  ),
-                  _buildDetailRow(
-                    icon: Icons.phone,
-                    title: "Phone",
-                    content: liveRideViewModel.liveOrderModel!.data!.reciverPhone?.toString() ?? "N/A",
-                  ),
-                  _buildDetailRow(
-                    icon: Icons.location_on,
-                    title: "Address",
-                    content: liveRideViewModel.liveOrderModel!.data!.dropAddress ?? "N/A",
-                    isAddress: true,
-                  ),
+
+// IF order_type = 2 → ONLY Address (Bold)
+                  if (liveRideViewModel.liveOrderModel!.data!.orderType.toString() == "2") ...[
+                    _buildDetailRow(
+                      icon: Icons.location_on,
+                      title: "Address",
+                      content: liveRideViewModel.liveOrderModel!.data!.dropAddress ?? "N/A",
+                      isAddress: true,
+                      bold: true, // 👈 Bold here also
+                    ),
+                  ]
+
+// ELSE → Full details
+                  else ...[
+                    _buildDetailRow(
+                      icon: Icons.person_outline,
+                      title: "Name",
+                      content: liveRideViewModel.liveOrderModel!.data!.reciverName ?? "N/A",
+                    ),
+                    _buildDetailRow(
+                      icon: Icons.phone,
+                      title: "Phone",
+                      content: liveRideViewModel.liveOrderModel!.data!.reciverPhone?.toString() ?? "N/A",
+                    ),
+                    _buildDetailRow(
+                      icon: Icons.location_on,
+                      title: "Address",
+                      content: liveRideViewModel.liveOrderModel!.data!.dropAddress ?? "N/A",
+                      isAddress: true,
+                    ),
+                  ],
+
 
                   SizedBox(height: Sizes.screenHeight * 0.015),
                   Divider(height: 1),

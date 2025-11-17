@@ -35,7 +35,7 @@ class OnlineStatusViewModel with ChangeNotifier {
         final profileViewModel = Provider.of<ProfileViewModel>(context, listen: false);
 
         print("🟢 Calling profileApi()...");
-        await profileViewModel.profileApi(); // make sure profileApi() is async
+        await profileViewModel.profileApi(context); // make sure profileApi() is async
         print("✅ profileApi() completed");
 
         // 🟢 Print the received data

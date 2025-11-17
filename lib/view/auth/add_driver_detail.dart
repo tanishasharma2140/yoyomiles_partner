@@ -14,6 +14,7 @@ import 'package:http/http.dart' as http;
 import 'package:yoyomiles_partner/utils/routes/routes_name.dart';
 import 'package:yoyomiles_partner/view_model/profile_view_model.dart';
 import 'package:provider/provider.dart';
+import 'package:yoyomiles_partner/view_model/user_view_model.dart';
 
 class AddDriverDetail extends StatefulWidget {
   const AddDriverDetail({super.key});
@@ -149,7 +150,7 @@ class _AddDriverDetailState extends State<AddDriverDetail> {
           final profileVm = Provider.of<ProfileViewModel>(context, listen: false);
 
           // Refresh profile before navigating
-          await profileVm.profileApi();
+          await profileVm.profileApi(context);
           final profile = profileVm.profileModel?.data;
 
           if (profile == null) {
@@ -251,10 +252,11 @@ class _AddDriverDetailState extends State<AddDriverDetail> {
   @override
   Widget build(BuildContext context) {
     final String driveOperator = _isDrivingVehicle == true ? "1" : "2";
-    final args =
-        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>;
-    final String userId = args['user_id'].toString();
-    print("Received userId in AddDriverDetail: $userId");
+
+    // final args =
+    //     ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>;
+    // final String userId = args['user_id'].toString();
+    // print("Received userId in AddDriverDetail: $userId");
 
 
     return SafeArea(
@@ -312,11 +314,12 @@ class _AddDriverDetailState extends State<AddDriverDetail> {
 
               // Submit Button
               GestureDetector(
-                onTap: _isLoading ? null : () {
+                onTap: _isLoading ? null : () async {
                   if (_validateForm()) {
-
+                    UserViewModel userViewModel = UserViewModel();
+                    int? userId = await userViewModel.getUser();
                     _registerDriver(
-                      id: userId,
+                      id: userId.toString(),
                       driverName: _driverNameController.text,
                       drivingLicenceBack: _backLicense!,
                       drivingLicenceFront: _frontLicense!,

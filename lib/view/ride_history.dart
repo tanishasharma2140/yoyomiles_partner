@@ -25,7 +25,7 @@ class _RideHistoryState extends State<RideHistory> {
       rideHistoryViewModel.rideHistoryApi();
       final profileViewModel =
       Provider.of<ProfileViewModel>(context, listen: false);
-      profileViewModel.profileApi();
+      profileViewModel.profileApi(context);
     });
   }
 
@@ -204,14 +204,15 @@ class _RideHistoryState extends State<RideHistory> {
                   SizedBox(height: Sizes.screenHeight * 0.02),
 
                   // Sender Details Card
-                  _buildDetailCard(
-                    "Sender Details",
-                    Icons.person_outline,
-                    [
-                      _buildDetailRow("Name", ride.senderName ?? ""),
-                      _buildDetailRow("Phone", ride.senderPhone?.toString() ?? ""),
-                    ],
-                  ),
+                  if (ride.orderType != 2)
+                    _buildDetailCard(
+                      "Sender Details",
+                      Icons.person_outline,
+                      [
+                        _buildDetailRow("Name", ride.senderName ?? ""),
+                        _buildDetailRow("Phone", ride.senderPhone?.toString() ?? ""),
+                      ],
+                    ),
 
                   SizedBox(height: Sizes.screenHeight * 0.02),
 
@@ -221,14 +222,15 @@ class _RideHistoryState extends State<RideHistory> {
                   SizedBox(height: Sizes.screenHeight * 0.02),
 
                   // Receiver Details Card
-                  _buildDetailCard(
-                    "Receiver Details",
-                    Icons.person,
-                    [
-                      _buildDetailRow("Name", ride.reciverName ?? ""),
-                      _buildDetailRow("Phone", ride.reciverPhone?.toString() ?? ""),
-                    ],
-                  ),
+                  if (ride.orderType != 2)
+                    _buildDetailCard(
+                      "Receiver Details",
+                      Icons.person,
+                      [
+                        _buildDetailRow("Name", ride.reciverName ?? ""),
+                        _buildDetailRow("Phone", ride.reciverPhone?.toString() ?? ""),
+                      ],
+                    ),
 
                   SizedBox(height: Sizes.screenHeight * 0.02),
 

@@ -5,7 +5,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:yoyomiles_partner/repo/assign_ride_repo.dart';
-import 'package:yoyomiles_partner/utils/routes/routes_name.dart';
 import 'package:yoyomiles_partner/utils/utils.dart';
 import 'package:yoyomiles_partner/view/live_ride_screen.dart';
 import 'package:yoyomiles_partner/view_model/user_view_model.dart';
@@ -22,34 +21,52 @@ class AssignRideViewModel with ChangeNotifier {
   Future<void> assignRideApi(
       context,
       dynamic rideStatus,
-      String rideId,
+      String rideDocId,
       Map<String, dynamic> bookingData,
       ) async {
+
+    print("\n================ ACCEPT RIDE START ================");
     setLoading(true);
+
     final userId = await UserViewModel().getUser();
 
     Map data = {
       "driver_id": userId,
       "ride_status": rideStatus,
-      "ride_id": rideId,
+      "ride_id": bookingData['id'],  // API wale ride ID
     };
 
-    debugPrint(jsonEncode(data));
+    print("📤 Sending API Request: $data");
 
     _assignRideRepo.assignRideApi(data).then((value) async {
       setLoading(false);
 
+      print("📥 API Response: $value");
+
       if (value['success'] == true) {
-        // ✅ Ride accepted
-        await FirebaseFirestore.instance
-            .collection('order')
-            .doc(rideId)
-            .update({
-          'accepted_driver_id': userId,
-          'ride_started': true,
-        });
+        print("✅ API SUCCESS");
+
+        try {
+          print("📌 Updating Firestore Document: $rideDocId");
+
+          await FirebaseFirestore.instance
+              .collection('order')
+              .doc(rideDocId)
+              .update({
+            'accepted_driver_id': userId,
+            'ride_status': 1,
+            'ride_started': true,
+          });
+
+          print("🔥 Firestore Updated Successfully");
+
+        } catch (e) {
+          print("❌ FIRESTORE UPDATE FAILED: $e");
+        }
 
         Utils.showSuccessMessage(context, value["message"]);
+
+        print("➡ Navigating to LiveRideScreen");
 
         Navigator.push(
           context,
@@ -58,37 +75,23 @@ class AssignRideViewModel with ChangeNotifier {
           ),
         );
       }
-      // ⚠️ If ride already assigned (status 400)
+
       else if (value['status'] == 400) {
-        showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            title: const Text(
-              "Ride Assignment Failed",
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            content: Text(value["message"] ?? "Ride is already assigned to another driver."),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text("OK"),
-              ),
-            ],
-          ),
-        );
+        print("⚠️ RIDE ALREADY ASSIGNED TO SOMEONE ELSE");
       }
-      // ❌ Other failure
+
       else {
-        Utils.showErrorMessage(context, value["message"]);
+        print("❌ API FAILED: ${value["message"]}");
       }
+
     }).onError((error, stackTrace) {
       setLoading(false);
-      if (kDebugMode) {
-        print('error: $error');
-      }
+      print("💥 API ERROR: $error");
     });
+
+    print("================ ACCEPT RIDE END ================\n");
   }
+
 
 
 }
