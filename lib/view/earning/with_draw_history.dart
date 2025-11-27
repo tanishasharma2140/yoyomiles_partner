@@ -59,7 +59,7 @@ class _WithDrawHistoryState extends State<WithDrawHistory> {
       case 0:
         return 'Pending';
       case 2:
-        return 'Failed';
+        return 'Rejected';
       default:
         return 'Unknown';
     }
@@ -100,7 +100,7 @@ class _WithDrawHistoryState extends State<WithDrawHistory> {
 
   // ✅ FILTER CHIPS + FILTER API CALL MAPPING
   Widget _buildFilterChips() {
-    List<String> filters = ['All', 'Completed', 'Pending', 'Failed'];
+    List<String> filters = ['All', 'Completed', 'Pending', 'Rejected'];
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -136,11 +136,12 @@ class _WithDrawHistoryState extends State<WithDrawHistory> {
                   color: isSelected ? PortColor.gold : Colors.grey.shade300,
                 ),
               ),
-              child: Text(
+              child: TextConst(
+                title:
                 filter,
-                style: TextStyle(
-                    color: isSelected ? Colors.white : Colors.black87,
-                    fontWeight: FontWeight.w500),
+                  size: 13,
+                  color: isSelected ? Colors.white : Colors.black87,
+                  fontWeight: FontWeight.w500
               ),
             ),
           );
@@ -192,9 +193,12 @@ class _WithDrawHistoryState extends State<WithDrawHistory> {
   }
 
   // ✅ EACH ITEM CARD
+// ✅ EACH ITEM CARD
   Widget _buildWithdrawalItem(Data withdrawal) {
     int status = withdrawal.status ?? -1;
     Color statusColor = _getStatusColor(status);
+
+    final String rejectReason = (withdrawal.rejectReason ?? "").toString();
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -204,20 +208,26 @@ class _WithDrawHistoryState extends State<WithDrawHistory> {
         borderRadius: BorderRadius.circular(12),
         boxShadow: const [
           BoxShadow(
-              color: Colors.black12, blurRadius: 4, offset: Offset(0, 2)),
+            color: Colors.black12,
+            blurRadius: 4,
+            offset: Offset(0, 2),
+          ),
         ],
       ),
-
       child: Row(
         children: [
           // ✅ ICON
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-                color: PortColor.gold.withOpacity(0.1),
-                shape: BoxShape.circle),
-            child: Icon(Icons.account_balance,
-                color: PortColor.gold, size: 24),
+              color: PortColor.gold.withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.account_balance,
+              color: PortColor.gold,
+              size: 24,
+            ),
           ),
 
           const SizedBox(width: 12),
@@ -232,52 +242,66 @@ class _WithDrawHistoryState extends State<WithDrawHistory> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     TextConst(
-                      title:
-                      withdrawal.orderId ?? "Order",
-                        size: 16,
-                        color: Colors.black87,
+                      title: withdrawal.orderId ?? "Order",
+                      size: 16,
+                      color: Colors.black87,
                       fontWeight: FontWeight.w600,
                     ),
-                    TextConst(title:
-                      "₹${withdrawal.amount}",
-                        fontWeight: FontWeight.bold,
-                        size: 14,
-                        color: PortColor.gold
+                    TextConst(
+                      title: "₹${withdrawal.amount}",
+                      fontWeight: FontWeight.bold,
+                      size: 14,
+                      color: PortColor.gold,
                     ),
                   ],
                 ),
 
                 const SizedBox(height: 4),
 
+                // ✅ Reject reason (sirf Rejected pe)
+                if (status == 2 && rejectReason.isNotEmpty) ...[
+                  TextConst(
+                    title: "Reason: $rejectReason",
+                    size: 12,
+                    color: Colors.red.shade600,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  const SizedBox(height: 4),
+                ],
+
                 // ✅ Footer row
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    TextConst(title:
-                      formatDate(withdrawal.createdAt),
-                        size : 13, color: Colors.grey.shade600,
+                    TextConst(
+                      title: formatDate(withdrawal.createdAt),
+                      size: 13,
+                      color: Colors.grey.shade600,
                     ),
                     Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 4),
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
                         color: statusColor.withOpacity(0.15),
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: TextConst(title:
-                        _getStatusText(status),
+                      child: TextConst(
+                        title: _getStatusText(status),
                         color: statusColor,
                         size: 11,
                         fontWeight: FontWeight.w600,
                       ),
-                    )
+                    ),
                   ],
-                )
+                ),
               ],
             ),
-          )
+          ),
         ],
       ),
     );
   }
+
 }

@@ -39,7 +39,7 @@ class _ConstMapState extends State<ConstMap> {
   Set<Marker> _markers = {};
   Set<Polyline> _polylines = {};
 
-  static const String _mapsApiKey = 'AIzaSyANhzkw-SjvdzDvyPsUBDFmvEHfI9b8QqA';
+  static const String _mapsApiKey = 'AIzaSyB0mG3CGok9-9RZau5J_VThUP4OTbQ_SFM';
 
   @override
   void initState() {

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:yoyomiles_partner/generated/assets.dart';
 import 'package:yoyomiles_partner/res/app_fonts.dart';
 import 'package:yoyomiles_partner/res/const_map.dart';
@@ -17,6 +18,7 @@ import 'package:yoyomiles_partner/view_model/profile_view_model.dart';
 import 'package:provider/provider.dart';
 import 'package:yoyomiles_partner/view_model/update_ride_status_view_model.dart';
 
+
 class LiveRideScreen extends StatefulWidget {
   final Map<String, dynamic> booking;
   const LiveRideScreen({super.key, required this.booking});
@@ -26,6 +28,15 @@ class LiveRideScreen extends StatefulWidget {
 }
 
 class _LiveRideScreenState extends State<LiveRideScreen> {
+  double pickupLat = 0.0;
+  double pickupLng = 0.0;
+
+  double dropLat = 0.0;
+  double dropLng = 0.0;
+  bool isOtpVerified = false;
+
+
+  @override
   @override
   void initState() {
     super.initState();
@@ -34,14 +45,33 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
         context,
         listen: false,
       );
+
       liveRideViewModel.liveRideApi().then((_) {
-        // ✅ YEH LINE ADD KARO - Listener start karo after data load
+
+        if (liveRideViewModel.liveOrderModel?.data != null) {
+          final data = liveRideViewModel.liveOrderModel!.data!;
+
+          pickupLat = double.tryParse(data.pickupLatitute.toString()) ?? 0.0;
+          pickupLng = double.tryParse(data.pickLongitude.toString()) ?? 0.0;
+
+          dropLat = double.tryParse(data.dropLatitute.toString()) ?? 0.0;
+          dropLng = double.tryParse(data.dropLogitute.toString()) ?? 0.0;
+
+          print("📍 Pickup LatLng = $pickupLat , $pickupLng");
+          print("📍 Drop LatLng   = $dropLat , $dropLng");
+        }
+
         if (liveRideViewModel.liveOrderModel?.data?.id != null) {
-          _startRideStatusListener(liveRideViewModel.liveOrderModel!.data!.id.toString());
+          _startRideStatusListener(
+            liveRideViewModel.liveOrderModel!.data!.id.toString(),
+          );
         }
       });
     });
   }
+
+
+
 
   bool isSwitched = true;
   String? _currentAddress;
@@ -54,8 +84,17 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
   bool _showRideCancelledDialog = false;
 
 
+
+
   StreamSubscription<DocumentSnapshot>? _paymentSubscription;
   StreamSubscription<DocumentSnapshot>? _rideStatusSubscription;
+
+  void _openGoogleMapsDirections() {
+    final url =
+        "https://www.google.com/maps/dir/?api=1&origin=$pickupLat,$pickupLng&destination=$dropLat,$dropLng&travelmode=driving";
+
+    LauncherI.launchURL(url);
+  }
 
   // 🔥 WAITING FOR PAYMENT DIALOG - ALAG FUNCTION
   void _showWaitingForPaymentDialogMethod() {
@@ -540,62 +579,6 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
     });
   }
 
-  // NEW: Handle Reached button click with paymode condition
-  // void _handleReachedButtonClick() async {
-  //   final liveRideViewModel = Provider.of<LiveRideViewModel>(context, listen: false);
-  //   final orderId = liveRideViewModel.liveOrderModel!.data!.id.toString();
-  //
-  //   try {
-  //     // First get current order data to check paymode
-  //     final doc = await FirebaseFirestore.instance
-  //         .collection('order')
-  //         .doc(orderId)
-  //         .get();
-  //
-  //     if (doc.exists) {
-  //       final data = doc.data() as Map<String, dynamic>;
-  //       final payMode = data['paymode'] ?? 0;
-  //
-  //       print("💰 Reached button clicked - paymode: $payMode");
-  //
-  //       if (payMode == 1) {
-  //         // Cash payment - update to status 6 and show ride completed dialog
-  //         print("💵 Cash payment detected - updating to status 6");
-  //         await FirebaseFirestore.instance
-  //             .collection('order')
-  //             .doc(orderId)
-  //             .update({'ride_status': 6});
-  //
-  //         liveRideViewModel.liveOrderModel!.data!.rideStatus = 6;
-  //         Utils.showSuccessMessage(context, "Ride completed successfully!");
-  //
-  //         // Show ride completed dialog
-  //         Future.delayed(const Duration(milliseconds: 500), () {
-  //           _showRideCompletedDialogMethod();
-  //         });
-  //       } else {
-  //         // Online payment - update to status 5 and show waiting for payment
-  //         print("💳 Online payment detected - updating to status 5");
-  //         await FirebaseFirestore.instance
-  //             .collection('order')
-  //             .doc(orderId)
-  //             .update({'ride_status': 5});
-  //
-  //         liveRideViewModel.liveOrderModel!.data!.rideStatus = 5;
-  //         Utils.showSuccessMessage(context, "Ride status updated: Reached destination");
-  //
-  //         // Show waiting for payment dialog
-  //         Future.delayed(const Duration(milliseconds: 500), () {
-  //           _showWaitingForPaymentDialogMethod();
-  //         });
-  //       }
-  //       setState(() {});
-  //     }
-  //   } catch (e) {
-  //     Utils.showErrorMessage(context, "Failed to update ride status: $e");
-  //   }
-  // }
-
   void _handleReachedButtonClick() async {
     final liveRideViewModel = Provider.of<LiveRideViewModel>(context, listen: false);
     final orderId = liveRideViewModel.liveOrderModel!.data!.id.toString();
@@ -746,6 +729,76 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
     }
   }
 
+  void _showGoToMapDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(18),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+
+              Icon(Icons.check_circle, color: Colors.green, size: 40),
+              const SizedBox(height: 12),
+
+              const TextConst(title:
+                "OTP Verified",
+                size: 16,
+                fontWeight: FontWeight.w700,
+              ),
+
+              const SizedBox(height: 8),
+
+               TextConst(
+                 title:
+                "You can now open Google Maps for navigation.",
+                textAlign: TextAlign.center,
+                   size: 13, color: Colors.black54
+              ),
+
+              const SizedBox(height: 18),
+
+              InkWell(
+                onTap: () {
+                  Navigator.pop(context);
+                  _openGoogleMapsDirections();
+                },
+                borderRadius: BorderRadius.circular(8),
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  decoration: BoxDecoration(
+                    color: PortColor.gold,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Center(
+                    child: Text(
+                      "Go to Map",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+
+
+
+
 
   @override
   void dispose() {
@@ -754,6 +807,8 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
     _rideStatusSubscription?.cancel();
     super.dispose();
   }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -993,7 +1048,10 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
 
                               Navigator.of(context).pop();
                               Utils.showSuccessMessage(context, "OTP verified! Ride started.");
-                              setState(() {});
+                              setState(() {
+                                isOtpVerified = true;   // 👈 IMPORTANT
+                              });
+                              _showGoToMapDialog();
                             } else {
                               Utils.showErrorMessage(context, "Invalid OTP. Try again.");
                             }
@@ -1518,5 +1576,15 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
         ),
       ],
     );
+  }
+}
+
+class LauncherI {
+  static Future<void> launchURL(String url) async {
+    if (await canLaunch(url)) {
+      await launch(url);
+    } else {
+      throw "Could not launch $url";
+    }
   }
 }

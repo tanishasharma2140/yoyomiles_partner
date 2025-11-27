@@ -1373,7 +1373,7 @@ class _VehicleDetailState extends State<VehicleDetail> {
     try {
       var request = http.MultipartRequest(
         'POST',
-        Uri.parse('https://yoyomiles.codescarts.com/api/driver_register'),
+        Uri.parse('https://admin.yoyomiles.com/api/driver_register'),
       );
 
       print("📤 Sending User ID in API request: $userId");

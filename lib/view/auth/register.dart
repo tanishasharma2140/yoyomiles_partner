@@ -7,6 +7,7 @@ import 'package:yoyomiles_partner/res/constant_color.dart';
 import 'package:yoyomiles_partner/res/sizing_const.dart';
 import 'package:yoyomiles_partner/res/text_const.dart';
 import 'package:yoyomiles_partner/utils/routes/routes_name.dart';
+import 'package:yoyomiles_partner/view/auth/login.dart';
 import 'package:yoyomiles_partner/view/auth/owner_detail.dart';
 import 'package:yoyomiles_partner/view/auth/vehicle_detail.dart';
 import 'package:yoyomiles_partner/view/controller/yoyomiles_partner_con.dart';
@@ -98,6 +99,13 @@ class _RegisterState extends State<Register> {
       final profileViewModel =
       Provider.of<ProfileViewModel>(context, listen: false);
 
+      final profile = profileViewModel.profileModel?.data;
+      if (profile != null && profile.status == 0) {
+        Future.delayed(Duration(milliseconds: 200), () {
+          showAccountDeactivatedDialog(context);
+        });
+      }
+
       final activeRideVm =
       Provider.of<ActiveRideViewModel>(context, listen: false);
 
@@ -139,9 +147,87 @@ class _RegisterState extends State<Register> {
             Navigator.pushNamed(context, RoutesName.tripStatus);
           }
         }
+
       }
     });
   }
+
+  void showAccountDeactivatedDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) {
+        return Dialog(
+          backgroundColor: PortColor.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.block,
+                  color: Colors.redAccent,
+                  size: 38,
+                ),
+
+                const SizedBox(height: 16),
+
+                 TextConst(
+                   title:
+                  "Account Deactivated",
+                   size: 16,
+                   fontWeight: FontWeight.w700,
+                   color: Colors.black87,
+                ),
+
+                const SizedBox(height: 8),
+
+                 TextConst(
+                   title:
+                  "Your account has been deactivated.\nPlease contact the admin for assistance.",
+                  textAlign: TextAlign.center,
+                   size: 14,
+                   color: Colors.black54,
+                ),
+
+                const SizedBox(height: 22),
+
+                // OK button
+                Container(
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: Colors.redAccent,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: TextButton(
+                    onPressed: () =>     Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            Login(),
+                      ),
+                    ),
+                    child:  Text(
+                      "OK",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
 
 
   @override

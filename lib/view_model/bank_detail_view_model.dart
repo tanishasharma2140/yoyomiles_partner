@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:yoyomiles_partner/repo/bank_detail_repo.dart';
 import 'package:yoyomiles_partner/utils/routes/routes_name.dart';
 import 'package:yoyomiles_partner/utils/utils.dart';
+import 'package:yoyomiles_partner/view/bank_detail_view.dart';
 import 'package:yoyomiles_partner/view_model/bank_view_model.dart';
 import 'package:yoyomiles_partner/view_model/user_view_model.dart';
 
@@ -39,15 +40,35 @@ class BankDetailViewModel with ChangeNotifier {
       if (value['success'] == true) {
         final bankViewModel = Provider.of<BankViewModel>(context, listen: false);
         bankViewModel.bankDetailViewApi();
-        Utils.showSuccessMessage(context, "Added Successful");
-        Navigator.pushNamed(context, RoutesName.bankDetail);
+        Utils.showSuccessMessage(context,  value["message"]);
+        Navigator.push(
+          context,
+          PageRouteBuilder(
+            pageBuilder: (context, animation, secondaryAnimation) => BankDetailView(),
+            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+              const begin = Offset(0.0, 1.0);
+              const end = Offset.zero;
+              const curve = Curves.easeInOut;
+
+              var tween = Tween(
+                begin: begin,
+                end: end,
+              ).chain(CurveTween(curve: curve));
+              var offsetAnimation = animation.drive(tween);
+
+              return SlideTransition(position: offsetAnimation, child: child);
+            },
+            transitionDuration: Duration(milliseconds: 300),
+          ),
+        );
       } else {
-        Utils.showSuccessMessage(context, value["message"]);
+        Utils.showErrorMessage(context, value["message"]);
       }
     }).onError((error, stackTrace) {
       setLoading(false);
       if (kDebugMode) {
         print('error: $error');
+        Utils.showErrorMessage(context, 'error: $error');
       }
     });
   }

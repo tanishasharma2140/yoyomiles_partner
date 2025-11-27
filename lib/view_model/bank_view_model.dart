@@ -13,6 +13,11 @@ class BankViewModel with ChangeNotifier {
     notifyListeners();
   }
 
+  void clearBankData() {
+    _bankDetailModel = null;
+    notifyListeners();
+  }
+
   BankDetailModel? _bankDetailModel;
   BankDetailModel? get bankDetailModel => _bankDetailModel;
 

@@ -1,7 +1,15 @@
+import 'dart:async';
+
+import 'package:audioplayers/audioplayers.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:geocoding/geocoding.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:yoyomiles_partner/generated/assets.dart';
+import 'package:yoyomiles_partner/res/app_fonts.dart';
+import 'package:yoyomiles_partner/res/circular_wave_animation.dart';
 import 'package:yoyomiles_partner/res/const_without_polyline_map.dart';
 import 'package:yoyomiles_partner/res/constant_color.dart';
 import 'package:yoyomiles_partner/res/custom_appbar.dart';
@@ -10,6 +18,8 @@ import 'package:yoyomiles_partner/res/text_const.dart';
 import 'package:yoyomiles_partner/view_model/assign_ride_view_model.dart';
 import 'package:yoyomiles_partner/view_model/online_status_view_model.dart';
 import 'package:yoyomiles_partner/view_model/profile_view_model.dart';
+
+import '../view_model/update_ride_status_view_model.dart';
 
 class TripStatus extends StatefulWidget {
   const TripStatus({super.key});
@@ -21,6 +31,82 @@ class TripStatus extends StatefulWidget {
 class _TripStatusState extends State<TripStatus> {
   bool isSwitched = true;
   String? _currentAddress;
+  double currentLat = 0.0;
+  double currentLng = 0.0;
+  Map<String, Timer> bookingTimers = {};
+
+  final AudioPlayer _audioPlayer = AudioPlayer();
+  bool isRinging = false;
+  bool forceStop = false;
+
+  @override
+  void initState() {
+    super.initState();
+    getCurrentLocation();
+  }
+
+  Future<void> expireBooking(String documentId) async {
+    try {
+      print("⏳ Expiring booking after 1.5 minutes: $documentId");
+
+      // 🔥 1️⃣ Firebase status update
+      await FirebaseFirestore.instance
+          .collection('order')
+          .doc(documentId)
+          .update({'ride_status': 8});
+
+      // 🔥 2️⃣ Update Ride Status API (status 8 = cancelled by system)
+      final updateRideStatusVm =
+      Provider.of<UpdateRideStatusViewModel>(context, listen: false);
+
+      await updateRideStatusVm.updateRideApi(
+        context,
+        documentId,
+
+        "8", // Cancelled by driver/system
+      );
+
+      print("🚫 UpdateRideAPI fired (Status 8)");
+
+      // 🔥 3️⃣ Stop ringtone
+      stopRingtone();
+
+      print("✅ Booking $documentId expired successfully!");
+    } catch (e) {
+      print("❌ Error expiring booking: $e");
+    }
+  }
+
+
+
+  @override
+  void dispose() {
+    // Ensure ringtone stopped and player released
+    try {
+      bookingTimers.forEach((key, timer) => timer.cancel());
+      _audioPlayer.stop();
+      _audioPlayer.dispose();
+    } catch (_) {}
+    super.dispose();
+  }
+
+  void getCurrentLocation() async {
+    try {
+      Position pos = await Geolocator.getCurrentPosition();
+      currentLat = pos.latitude;
+      currentLng = pos.longitude;
+
+      List<Placemark> placemark = await placemarkFromCoordinates(
+        pos.latitude,
+        pos.longitude,
+      );
+      _currentAddress =
+          "${placemark.first.street}, ${placemark.first.locality}";
+      if (mounted) setState(() {});
+    } catch (e) {
+      print("⚠️ getCurrentLocation error: $e");
+    }
+  }
 
   void _showSwitchDialog() {
     showDialog(
@@ -67,7 +153,6 @@ class _TripStatusState extends State<TripStatus> {
                     InkWell(
                       onTap: () async {
                         await onlineStatusViewModel.onlineStatusApi(context, 0);
-
                         if (mounted) {
                           setState(() {
                             isSwitched = false;
@@ -91,7 +176,6 @@ class _TripStatusState extends State<TripStatus> {
                     ),
                     InkWell(
                       onTap: () {
-                        // ✅ Close dialog
                         Navigator.of(context).pop();
                       },
                       child: Container(
@@ -119,6 +203,65 @@ class _TripStatusState extends State<TripStatus> {
     );
   }
 
+  // --- AUDIO: play ringtone (fixed path + audio context) ---
+  Future<void> playRingtone() async {
+    print("🔔 playRingtone called");
+
+    if (isRinging) {
+      print("⛔ Already ringing - skip");
+      return;
+    }
+
+    try {
+      isRinging = true;
+
+      // Set AudioContext for Android (improves reliability on 12/13)
+      await _audioPlayer.setAudioContext(
+        const AudioContext(
+          android: AudioContextAndroid(
+            isSpeakerphoneOn: true,
+            stayAwake: true,
+            usageType: AndroidUsageType.alarm,
+            contentType: AndroidContentType.music,
+            audioFocus: AndroidAudioFocus.gain,
+          ),
+          iOS: AudioContextIOS(),
+        ),
+      );
+      print("🎧 AudioContext set");
+
+      // IMPORTANT: AssetSource should NOT include folder prefix when asset declared in pubspec with folder
+      await _audioPlayer.play(
+        AssetSource("ringtone-030-437513.mp3"),
+        volume: 1.0,
+      );
+      await _audioPlayer.setReleaseMode(ReleaseMode.loop);
+      print("✅ Play command sent and looping enabled");
+    } catch (e) {
+      print("❌ Error in playRingtone: $e");
+      // Ensure flag reset on error
+      isRinging = false;
+    }
+  }
+
+  Future<void> stopRingtone() async {
+    print("🛑 stopRingtone called");
+
+    forceStop = true; // 🔥 Prevents ringtone from starting again
+
+    if (!isRinging) return;
+
+    try {
+      await _audioPlayer.stop();
+    } catch (e) {
+      print("⚠️ error stopping audio: $e");
+    }
+
+    isRinging = false;
+    print("🔕 Ringtone fully stopped");
+  }
+
+
   @override
   Widget build(BuildContext context) {
     final profileViewModel = Provider.of<ProfileViewModel>(context);
@@ -131,7 +274,11 @@ class _TripStatusState extends State<TripStatus> {
         appBar: CustomAppBar(
           leading: IconButton(
             icon: const Icon(Icons.arrow_back, color: Colors.black),
-            onPressed: () => Navigator.pop(context),
+            onPressed: () {
+              // stop ringtone when leaving screen
+              stopRingtone();
+              Navigator.pop(context);
+            },
           ),
           name: profileViewModel.profileModel!.data!.driverName ?? "Known",
           imageUrl: profileViewModel.profileModel!.data!.ownerSelfie ?? "",
@@ -142,17 +289,14 @@ class _TripStatusState extends State<TripStatus> {
                 value: isSwitched,
                 onChanged: (value) {
                   if (value == false) {
-                    // 👇 Don't turn off immediately — just show dialog
                     _showSwitchDialog();
                   } else {
-                    // ✅ Turn ON instantly + call API
                     final onlineStatusViewModel =
                         Provider.of<OnlineStatusViewModel>(
                           context,
                           listen: false,
                         );
                     onlineStatusViewModel.onlineStatusApi(context, 1);
-
                     setState(() {
                       isSwitched = true;
                     });
@@ -164,13 +308,16 @@ class _TripStatusState extends State<TripStatus> {
                 inactiveTrackColor: Colors.blue,
               ),
             ),
-
             const SizedBox(width: 12),
           ],
         ),
         body: StreamBuilder<List<Map<String, dynamic>>>(
           stream: fetchBookings("", context),
           builder: (context, snapshot) {
+            print(
+              "📡 StreamBuilder update: connectionState=${snapshot.connectionState}, hasData=${snapshot.hasData}",
+            );
+
             if (snapshot.connectionState == ConnectionState.waiting) {
               return Center(
                 child: CircularProgressIndicator(color: PortColor.gold),
@@ -190,35 +337,147 @@ class _TripStatusState extends State<TripStatus> {
                   ],
                 ),
               );
-            } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Image.asset(
-                      Assets.assetsNoData,
-                      height: Sizes.screenHeight * 0.15,
+            }
+
+            final bookingList = snapshot.data ?? [];
+            print("📦 bookingList.length = ${bookingList.length}");
+
+            for (var booking in bookingList) {
+              String id = booking['document_id'];
+
+              if (!bookingTimers.containsKey(id)) {
+                print("⏳ Timer started for booking: $id");
+
+                bookingTimers[id] = Timer(Duration(seconds: 90), () {
+                  expireBooking(id);
+                });
+              }
+            }
+
+// CLEAR TIMER FOR BOOKINGS THAT ARE REMOVED FROM FIREBASE
+            bookingTimers.removeWhere((key, timer) {
+              bool exists = bookingList.any((b) => b['document_id'] == key);
+              if (!exists) {
+                print("🗑 Timer removed for expired/removed booking: $key");
+                timer.cancel();
+                return true;
+              }
+              return false;
+            });
+
+            // --- real-time ringtone trigger ---
+            if (!forceStop && bookingList.isNotEmpty) {
+              playRingtone();
+            } else {
+              stopRingtone();
+            }
+
+            // NO BOOKINGS UI
+            if (bookingList.isEmpty) {
+              return Stack(
+                children: [
+                  GoogleMap(
+                    initialCameraPosition: CameraPosition(
+                      target: LatLng(currentLat, currentLng),
+                      zoom: 15,
                     ),
-                    SizedBox(height: Sizes.screenHeight * 0.02),
-                    TextConst(
-                      title: "No Bookings Available",
-                      color: PortColor.gold,
-                      fontWeight: FontWeight.bold,
-                      size: Sizes.fontSizeSix,
+                    myLocationEnabled: true,
+                    myLocationButtonEnabled: false,
+                    compassEnabled: false,
+                    zoomControlsEnabled: false,
+                    scrollGesturesEnabled: false,
+                    zoomGesturesEnabled: false,
+                    rotateGesturesEnabled: false,
+                    tiltGesturesEnabled: false,
+                    onMapCreated: (controller) {},
+                  ),
+                  Align(
+                    alignment: const Alignment(0, -0.3),
+                    child: CircularWaveAnimation(
+                      size: 180,
+                      color: PortColor.gold.withOpacity(0.2),
+                      waveCount: 3,
+                      duration: const Duration(seconds: 2),
+                      child: Transform.translate(
+                        offset: const Offset(0, -12),
+                        child: Container(
+                          width: 110,
+                          height: 110,
+                          decoration: const BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.transparent,
+                          ),
+                          child: Image.asset(
+                            "assets/yellow_pin.png",
+                            fit: BoxFit.contain,
+                            color: PortColor.blackLight,
+                          ),
+                        ),
+                      ),
                     ),
-                    SizedBox(height: Sizes.screenHeight * 0.01),
-                    TextConst(
-                      title: "New bookings will appear here",
-                      color: PortColor.gray,
-                      size: Sizes.fontSizeFour,
+                  ),
+                  Align(
+                    alignment: Alignment.bottomCenter,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 22,
+                      ),
+                      decoration: const BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.vertical(
+                          top: Radius.circular(26),
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black26,
+                            blurRadius: 14,
+                            offset: Offset(0, -6),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: SizedBox(
+                              height: 6,
+                              child: LinearProgressIndicator(
+                                valueColor: AlwaysStoppedAnimation(
+                                  PortColor.gold,
+                                ),
+                                backgroundColor: Colors.grey.shade300,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 22),
+                          TextConst(
+                            title: "Waiting for a new ride request…",
+                            size: 18,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.grey.shade900,
+                          ),
+                          const SizedBox(height: 6),
+                          TextConst(
+                            title:
+                                "Stay online and you’ll receive a booking as soon as a customer requests a ride.",
+                            textAlign: TextAlign.center,
+                            size: 14,
+                            fontFamily: AppFonts.poppinsReg,
+                            color: Colors.grey.shade600,
+                          ),
+                          const SizedBox(height: 16),
+                        ],
+                      ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               );
             }
 
-            final bookingList = snapshot.data!;
-
+            // BOOKINGS UI
             return Stack(
               children: [
                 ///  FIXED MAP SECTION
@@ -232,9 +491,11 @@ class _TripStatusState extends State<TripStatus> {
                       onAddressFetched: (address) {
                         if (_currentAddress != address) {
                           WidgetsBinding.instance.addPostFrameCallback((_) {
-                            setState(() {
-                              _currentAddress = address;
-                            });
+                            if (mounted) {
+                              setState(() {
+                                _currentAddress = address;
+                              });
+                            }
                           });
                         }
                       },
@@ -329,6 +590,8 @@ class _TripStatusState extends State<TripStatus> {
                               itemBuilder: (context, index) {
                                 return BookingCard(
                                   bookingData: bookingList[index],
+                                  stopRingtoneCallback:
+                                      stopRingtone, // pass callback so accept button can stop ringtone
                                 );
                               },
                             ),
@@ -409,10 +672,6 @@ Stream<List<Map<String, dynamic>>> fetchBookings(
           print("\n📄 Document: ${doc.id}");
           print("RAW DATA => $data");
 
-          // =========================
-          // 🔍 CHECK RIDE STATUS
-          // =========================
-
           final rideStatus = data['ride_status'] ?? 0;
           print("➡️ ride_status: $rideStatus");
 
@@ -421,7 +680,6 @@ Stream<List<Map<String, dynamic>>> fetchBookings(
               rideStatus == 1 ||
               rideStatus == 2 ||
               rideStatus == 3;
-
           print("✔️ isActiveStatus = $isActiveStatus");
 
           if (!isActiveStatus) {
@@ -429,16 +687,10 @@ Stream<List<Map<String, dynamic>>> fetchBookings(
             return false;
           }
 
-          // =========================
-          // 🔍 CHECK AVAILABLE DRIVER LIST
-          // =========================
-
           final raw = data['available_driver_id'];
           print("➡️ RAW available_driver_id = $raw (${raw.runtimeType})");
 
-          // Convert to list
           List<dynamic> ids = [];
-
           if (raw is List) {
             ids = raw;
           } else if (raw is String && raw.isNotEmpty) {
@@ -453,7 +705,6 @@ Stream<List<Map<String, dynamic>>> fetchBookings(
           print("➡️ Converted to String list: $idStrings");
 
           final isDriverAvailable = idStrings.contains(driverIdStr);
-
           print("✔️ isDriverAvailable = $isDriverAvailable");
 
           if (!isDriverAvailable) {
@@ -495,11 +746,16 @@ Stream<List<Map<String, dynamic>>> fetchBookings(
   });
 }
 
-/// ✅ Separate Widget for Booking Card for better performance
+/// BookingCard modified to accept a stopRingtone callback
 class BookingCard extends StatelessWidget {
   final Map<String, dynamic> bookingData;
+  final VoidCallback? stopRingtoneCallback;
 
-  const BookingCard({super.key, required this.bookingData});
+  const BookingCard({
+    super.key,
+    required this.bookingData,
+    this.stopRingtoneCallback,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -523,7 +779,7 @@ class BookingCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Booking header
+            // header row
             Row(
               children: [
                 Container(
@@ -586,11 +842,9 @@ class BookingCard extends StatelessWidget {
               ],
             ),
 
-            // Amount and Distance below header - ALTERNATIVE DESIGN
             SizedBox(height: Sizes.screenHeight * 0.01),
             Row(
               children: [
-                // Amount with rupee icon
                 Container(
                   padding: EdgeInsets.symmetric(
                     horizontal: Sizes.screenWidth * 0.04,
@@ -615,7 +869,6 @@ class BookingCard extends StatelessWidget {
                   ),
                 ),
                 SizedBox(width: Sizes.screenWidth * 0.03),
-                // Distance with car icon
                 Container(
                   padding: EdgeInsets.symmetric(
                     horizontal: Sizes.screenWidth * 0.04,
@@ -641,12 +894,14 @@ class BookingCard extends StatelessWidget {
                 ),
               ],
             ),
+
             SizedBox(height: Sizes.screenHeight * 0.015),
             const Divider(height: 1),
-
-            // Sender Details
             SizedBox(height: Sizes.screenHeight * 0.01),
 
+            // sender/receiver and addresses (reuse your helper if you have it)
+            // For brevity reuse your existing row builder if available (we assume _buildDetailRow exists in same file)
+            // If not, you can paste the helper from previous code.
             if (bookingData['order_type'] != 2) ...[
               _buildDetailRow(
                 icon: Icons.person_outline,
@@ -659,7 +914,6 @@ class BookingCard extends StatelessWidget {
                 content: bookingData['sender_phone'] ?? "N/A",
               ),
             ],
-
             _buildDetailRow(
               icon: Icons.location_on,
               title: "Pickup",
@@ -669,9 +923,6 @@ class BookingCard extends StatelessWidget {
 
             SizedBox(height: Sizes.screenHeight * 0.01),
             const Divider(height: 1),
-
-            // Receiver Details
-            // Receiver Details
             SizedBox(height: Sizes.screenHeight * 0.01),
 
             if (bookingData['order_type'] != 2) ...[
@@ -686,7 +937,6 @@ class BookingCard extends StatelessWidget {
                 content: bookingData['reciver_phone'] ?? "N/A",
               ),
             ],
-
             _buildDetailRow(
               icon: Icons.location_on,
               title: "Drop",
@@ -698,18 +948,18 @@ class BookingCard extends StatelessWidget {
             const Divider(height: 1),
             SizedBox(height: Sizes.screenHeight * 0.015),
 
-            // Action Buttons
             Row(
-              // mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Expanded(
                   child: GestureDetector(
-                    onTap: () {
-                      // FIX: Convert ID to string before passing
+                    onTap: () async {
+                      if (stopRingtoneCallback != null) {
+                        stopRingtoneCallback!();   // ❌ no await
+                      }
+
                       String bookingId = bookingData['id'].toString();
-                      print("🚗 ACCEPT BTN PRESSED");
-                      print("📄 Firestore Document ID: $bookingId");
-                      print("📦 Full Booking Data: $bookingData");
+                      print("🚗 ACCEPT pressed for bookingId: $bookingId");
+
                       assignRideViewModel.assignRideApi(
                         context,
                         1,
@@ -727,15 +977,10 @@ class BookingCard extends StatelessWidget {
                       ),
                       child: Center(
                         child: !assignRideViewModel.loading
-                            ? Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  TextConst(
-                                    title: 'Accept',
-                                    color: PortColor.white,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ],
+                            ? TextConst(
+                                title: 'Accept',
+                                color: PortColor.white,
+                                fontWeight: FontWeight.w500,
                               )
                             : SizedBox(
                                 height: 20,
@@ -757,6 +1002,7 @@ class BookingCard extends StatelessWidget {
     );
   }
 
+  // Note: keep the same helper function implementation as in your project
   Widget _buildDetailRow({
     required IconData icon,
     required String title,

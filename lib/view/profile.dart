@@ -1,6 +1,8 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:yoyomiles_partner/res/constant_color.dart';
 import 'package:yoyomiles_partner/res/custom_text_field.dart';
+import 'package:yoyomiles_partner/res/image_preview_screen.dart';
 import 'package:yoyomiles_partner/res/sizing_const.dart';
 import 'package:yoyomiles_partner/res/text_const.dart';
 import 'package:yoyomiles_partner/view/splash_screen.dart';
@@ -53,19 +55,31 @@ class _ProfileState extends State<Profile> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         // Profile Image
-                        Container(
-                          width: Sizes.screenWidth * 0.25,
-                          height: Sizes.screenHeight * 0.12,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: PortColor.white,
-                              width: 3,
-                            ),
-                            image: DecorationImage(
-                              image: NetworkImage(
-                                  profileData.ownerSelfie ?? ""),
-                              fit: BoxFit.cover,
+                        GestureDetector(
+                          onTap: () {
+                            if (profileData.ownerSelfie!.isNotEmpty) {
+                              Navigator.push(
+                                context,
+                                CupertinoPageRoute(
+                                  builder: (_) => ImagePreviewScreen(imageUrl: profileData.ownerSelfie! ),
+                                ),
+                              );
+                            }
+                          },
+                          child: Container(
+                            width: Sizes.screenWidth * 0.25,
+                            height: Sizes.screenHeight * 0.12,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: PortColor.white,
+                                width: 3,
+                              ),
+                              image: DecorationImage(
+                                image: NetworkImage(
+                                    profileData.ownerSelfie ?? ""),
+                                fit: BoxFit.cover,
+                              ),
                             ),
                           ),
                         ),
@@ -147,8 +161,62 @@ class _ProfileState extends State<Profile> {
                       label: "Vehicle Number:",
                       value: profileData.vehicleNo ?? "N/A",
                     ),
+                    // Vehicle Information Section
+
                   ],
                 ),
+
+                _buildInfoCard(
+                  title: "Vehicle Information:",
+                  icon: Icons.local_shipping_outlined,
+                  children: [
+
+                    // 🚘 VEHICLE IMAGE
+                    GestureDetector(
+                      child: Center(
+                        child: Container(
+                          height: 130,
+                          width: double.infinity,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12),
+                            color: PortColor.scaffoldBgGrey,
+                            image: (profileData.vehicleTypeImage != null &&
+                                profileData.vehicleTypeImage!.isNotEmpty)
+                                ? DecorationImage(
+                              image: NetworkImage(profileData.vehicleTypeImage!),
+                              fit: BoxFit.contain,
+                            )
+                                : null,
+                          ),
+                          child: (profileData.vehicleTypeImage == null ||
+                              profileData.vehicleTypeImage!.isEmpty)
+                              ? const Center(
+                            child: Icon(
+                              Icons.local_shipping_rounded,
+                              color: Colors.grey,
+                              size: 60,
+                            ),
+                          )
+                              : null,
+                        ),
+                      ),
+                    ),
+
+                    SizedBox(height: Sizes.screenHeight * 0.02),
+
+                    _buildInfoRow(
+                      icon: Icons.directions_car,
+                      label: "Vehicle Body Type:",
+                      value: profileData.vehicleBodyTypeName ?? "N/A",
+                    ),
+                    _buildInfoRow(
+                      icon: Icons.directions_bus_filled,
+                      label: "Vehicle Name:",
+                      value: profileData.vehicleTypeName ?? "N/A",
+                    ),
+                  ],
+                ),
+
 
                 // Document Section - Aadhaar Card
                 _buildDocumentSection(
@@ -186,6 +254,8 @@ class _ProfileState extends State<Profile> {
       ),
     );
   }
+
+
 
   Widget _buildInfoCard({
     required String title,
@@ -336,27 +406,39 @@ class _ProfileState extends State<Profile> {
   }) {
     return Column(
       children: [
-        Container(
-          height: 120,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            color: PortColor.scaffoldBgGrey,
-            image: imageUrl.isNotEmpty
-                ? DecorationImage(
-              image: NetworkImage(imageUrl),
-              fit: BoxFit.cover,
+        GestureDetector(
+          onTap: () {
+            if (imageUrl.isNotEmpty) {
+              Navigator.push(
+                context,
+                CupertinoPageRoute(
+                  builder: (_) => ImagePreviewScreen(imageUrl: imageUrl),
+                ),
+              );
+            }
+          },
+          child: Container(
+            height: 120,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              color: PortColor.scaffoldBgGrey,
+              image: imageUrl.isNotEmpty
+                  ? DecorationImage(
+                image: NetworkImage(imageUrl),
+                fit: BoxFit.cover,
+              )
+                  : null,
+            ),
+            child: imageUrl.isEmpty
+                ? Center(
+              child: Icon(
+                Icons.document_scanner_outlined,
+                color: PortColor.gray,
+                size: 40,
+              ),
             )
                 : null,
           ),
-          child: imageUrl.isEmpty
-              ? Center(
-            child: Icon(
-              Icons.document_scanner_outlined,
-              color: PortColor.gray,
-              size: 40,
-            ),
-          )
-              : null,
         ),
         SizedBox(height: Sizes.screenHeight * 0.008),
         TextConst(

@@ -1,5 +1,6 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -135,7 +136,7 @@ class _MyAppState extends State<MyApp> {
           initialRoute: RoutesName.splash,
           onGenerateRoute: (settings){
             if (settings.name !=null){
-              return MaterialPageRoute(builder: Routers.generateRoute(settings.name!),
+              return CupertinoPageRoute(builder: Routers.generateRoute(settings.name!),
                 settings: settings,
               );
             }

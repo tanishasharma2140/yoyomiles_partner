@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:yoyomiles_partner/view/bank_detail_view.dart';
 import 'package:yoyomiles_partner/view_model/bank_view_model.dart';
 import 'package:yoyomiles_partner/view_model/withdraw_view_model.dart';
 import 'package:provider/provider.dart';
@@ -36,6 +37,8 @@ class _WalletSettlementState extends State<WalletSettlement> {
         listen: false,
       );
       transactionVm.transactionApi(context);
+      final bankVm = Provider.of<BankViewModel>(context, listen: false);
+      bankVm.bankDetailViewApi();
     });
   }
 
@@ -234,6 +237,56 @@ class _WalletSettlementState extends State<WalletSettlement> {
   }
 
   Widget _buildQuickActions() {
+    final bankVm = Provider.of<BankViewModel>(context);
+    final bool hasBank = bankVm.bankDetailModel != null;
+
+    void addBankAccount() {
+      Navigator.push(
+        context,
+        PageRouteBuilder(
+          pageBuilder: (context, animation, secondaryAnimation) => BankDetail(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            const begin = Offset(0.0, 1.0);
+            const end = Offset.zero;
+            const curve = Curves.easeInOut;
+
+            var tween = Tween(
+              begin: begin,
+              end: end,
+            ).chain(CurveTween(curve: curve));
+            var offsetAnimation = animation.drive(tween);
+
+            return SlideTransition(position: offsetAnimation, child: child);
+          },
+          transitionDuration: Duration(milliseconds: 300),
+        ),
+      );
+    }
+
+    void _goToBankHistory() {
+      Navigator.push(
+        context,
+        PageRouteBuilder(
+          pageBuilder: (context, animation, secondaryAnimation) => BankDetailView(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            const begin = Offset(0.0, 1.0);
+            const end = Offset.zero;
+            const curve = Curves.easeInOut;
+
+            var tween = Tween(
+              begin: begin,
+              end: end,
+            ).chain(CurveTween(curve: curve));
+            var offsetAnimation = animation.drive(tween);
+
+            return SlideTransition(position: offsetAnimation, child: child);
+          },
+          transitionDuration: Duration(milliseconds: 300),
+        ),
+      );
+    }
+
+
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 16),
       padding: EdgeInsets.all(16),
@@ -254,9 +307,9 @@ class _WalletSettlementState extends State<WalletSettlement> {
           ),
           _buildActionButton('History', Icons.history, _viewHistory),
           _buildActionButton(
-            'Add Bank',
-            Icons.account_balance,
-            _addBankAccount,
+            hasBank ? 'Bank History' : 'Add Bank',                 // text
+            hasBank ? Icons.history : Icons.account_balance,       // icon optional
+            hasBank ? _goToBankHistory : addBankAccount,          // navigation
           ),
 
           _buildActionButton('Due Wallet', Icons.wallet, _showDueWalletHelp),
@@ -271,7 +324,7 @@ class _WalletSettlementState extends State<WalletSettlement> {
       child: Column(
         children: [
           Container(
-            padding: EdgeInsets.all(12),
+            padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: PortColor.gold.withOpacity(0.1),
               shape: BoxShape.circle,
@@ -279,10 +332,10 @@ class _WalletSettlementState extends State<WalletSettlement> {
             ),
             child: Icon(icon, color: PortColor.gold, size: 20),
           ),
-          SizedBox(height: 8),
+          const SizedBox(height: 8),
           Text(
             text,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w500,
               color: Colors.black87,
@@ -292,6 +345,7 @@ class _WalletSettlementState extends State<WalletSettlement> {
       ),
     );
   }
+
 
   Widget _buildWithdrawalMethod(Map<String, dynamic> method) {
     return Container(
@@ -871,57 +925,69 @@ class _WalletSettlementState extends State<WalletSettlement> {
                     SizedBox(height: 16),
 
                     // Selected Bank
-                    Container(
-                      padding: EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.grey.shade50,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            padding: EdgeInsets.all(6),
+                    bankVm.bankDetailModel == null
+                        ? Padding(
+                            padding: const EdgeInsets.all(12),
+                            child: TextConst(
+                              title:
+                              "No bank account has been added,\nplease add a bank account first.",
+                              size: 13,
+                              color: PortColor.black,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          )
+                        : Container(
+                            padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
-                              color: PortColor.gold.withOpacity(0.1),
-                              shape: BoxShape.circle,
+                              color: Colors.grey.shade50,
+                              borderRadius: BorderRadius.circular(8),
                             ),
-                            child: Icon(
-                              Icons.account_balance,
-                              color: PortColor.gold,
-                              size: 16,
-                            ),
-                          ),
-                          SizedBox(width: 8),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                            child: Row(
                               children: [
-                                TextConst(
-                                  title:
-                                      bankVm
-                                          .bankDetailModel
-                                          ?.bankDetails
-                                          ?.bankName ??
-                                      "Known",
-                                  fontWeight: FontWeight.w600,
-                                  size: 14,
+                                Container(
+                                  padding: const EdgeInsets.all(6),
+                                  decoration: BoxDecoration(
+                                    color: PortColor.gold.withOpacity(0.1),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Icon(
+                                    Icons.account_balance,
+                                    color: PortColor.gold,
+                                    size: 16,
+                                  ),
                                 ),
-                                TextConst(
-                                  title:
-                                      bankVm
-                                          .bankDetailModel
-                                          ?.bankDetails
-                                          ?.accountNumber ??
-                                      "Known",
-                                  size: 12,
-                                  color: Colors.grey,
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      TextConst(
+                                        title:
+                                            bankVm
+                                                .bankDetailModel
+                                                ?.bankDetails
+                                                ?.bankName ??
+                                            "Unknown",
+                                        fontWeight: FontWeight.w600,
+                                        size: 14,
+                                      ),
+                                      TextConst(
+                                        title:
+                                            bankVm
+                                                .bankDetailModel
+                                                ?.bankDetails
+                                                ?.accountNumber ??
+                                            "Unknown",
+                                        size: 12,
+                                        color: Colors.grey,
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ],
                             ),
                           ),
-                        ],
-                      ),
-                    ),
                   ],
                 ),
               ),

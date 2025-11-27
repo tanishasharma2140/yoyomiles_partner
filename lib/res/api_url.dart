@@ -1,5 +1,5 @@
 class ApiUrl{
-  static const String baseUrl ="https://yoyomiles.codescarts.com/api/";
+  static const String baseUrl ="https://admin.yoyomiles.com/api/";
   static const String loginUrl="${baseUrl}driver_login";
   static const String registerUrl="${baseUrl}driver_register";
   static const String vehicleTypeUrl="${baseUrl}vehicletype";

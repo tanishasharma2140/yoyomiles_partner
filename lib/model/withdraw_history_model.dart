@@ -32,6 +32,7 @@ class Data {
   int? userId;
   String? orderId;
   int? status;
+  String? rejectReason;
   String? amount;
   String? createdAt;
 
@@ -40,6 +41,7 @@ class Data {
         this.userId,
         this.orderId,
         this.status,
+        this.rejectReason,
         this.amount,
         this.createdAt});
 
@@ -48,6 +50,7 @@ class Data {
     userId = json['user_id'];
     orderId = json['order_id'];
     status = json['status'];
+    rejectReason = json['reject_reason'];
     amount = json['amount'];
     createdAt = json['created_at'];
   }
@@ -58,6 +61,7 @@ class Data {
     data['user_id'] = userId;
     data['order_id'] = orderId;
     data['status'] = status;
+    data['reject_reason'] = rejectReason;
     data['amount'] = amount;
     data['created_at'] = createdAt;
     return data;

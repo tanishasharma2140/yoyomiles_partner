@@ -15,6 +15,8 @@ class DeleteBankDetailViewModel with ChangeNotifier {
     notifyListeners();
   }
 
+
+
   Future<void> deleteBankDetailApi(String userId, BuildContext context) async {
     setLoading(true);
     try {
@@ -25,6 +27,8 @@ class DeleteBankDetailViewModel with ChangeNotifier {
         Utils.showSuccessMessage(context, "Deleted Successfully!!");
 
         final bankViewModel = Provider.of<BankViewModel>(context, listen: false);
+        bankViewModel.clearBankData();
+
         await bankViewModel.bankDetailViewApi();
 
       } else {
