@@ -45,37 +45,37 @@ class _TripStatusState extends State<TripStatus> {
     getCurrentLocation();
   }
 
-  Future<void> expireBooking(String documentId) async {
-    try {
-      print("⏳ Expiring booking after 1.5 minutes: $documentId");
-
-      // 🔥 1️⃣ Firebase status update
-      await FirebaseFirestore.instance
-          .collection('order')
-          .doc(documentId)
-          .update({'ride_status': 8});
-
-      // 🔥 2️⃣ Update Ride Status API (status 8 = cancelled by system)
-      final updateRideStatusVm =
-      Provider.of<UpdateRideStatusViewModel>(context, listen: false);
-
-      await updateRideStatusVm.updateRideApi(
-        context,
-        documentId,
-
-        "8", // Cancelled by driver/system
-      );
-
-      print("🚫 UpdateRideAPI fired (Status 8)");
-
-      // 🔥 3️⃣ Stop ringtone
-      stopRingtone();
-
-      print("✅ Booking $documentId expired successfully!");
-    } catch (e) {
-      print("❌ Error expiring booking: $e");
-    }
-  }
+  // Future<void> expireBooking(String documentId) async {
+  //   try {
+  //     print("⏳ Expiring booking after 1.5 minutes: $documentId");
+  //
+  //     // 🔥 1️⃣ Firebase status update
+  //     await FirebaseFirestore.instance
+  //         .collection('order')
+  //         .doc(documentId)
+  //         .update({'ride_status': 9});
+  //
+  //     // 🔥 2️⃣ Update Ride Status API (status 8 = cancelled by system)
+  //     final updateRideStatusVm =
+  //     Provider.of<UpdateRideStatusViewModel>(context, listen: false);
+  //
+  //     await updateRideStatusVm.updateRideApi(
+  //       context,
+  //       documentId,
+  //
+  //       "9", // Cancelled by driver/system
+  //     );
+  //
+  //     print("🚫 UpdateRideAPI fired (Status 8)");
+  //
+  //     // 🔥 3️⃣ Stop ringtone
+  //     stopRingtone();
+  //
+  //     print("✅ Booking $documentId expired successfully!");
+  //   } catch (e) {
+  //     print("❌ Error expiring booking: $e");
+  //   }
+  // }
 
 
 
@@ -232,7 +232,7 @@ class _TripStatusState extends State<TripStatus> {
 
       // IMPORTANT: AssetSource should NOT include folder prefix when asset declared in pubspec with folder
       await _audioPlayer.play(
-        AssetSource("ringtone-030-437513.mp3"),
+        AssetSource("driver_ringtone.mp3"),
         volume: 1.0,
       );
       await _audioPlayer.setReleaseMode(ReleaseMode.loop);
@@ -345,13 +345,13 @@ class _TripStatusState extends State<TripStatus> {
             for (var booking in bookingList) {
               String id = booking['document_id'];
 
-              if (!bookingTimers.containsKey(id)) {
-                print("⏳ Timer started for booking: $id");
-
-                bookingTimers[id] = Timer(Duration(seconds: 90), () {
-                  expireBooking(id);
-                });
-              }
+              // if (!bookingTimers.containsKey(id)) {
+              //   print("⏳ Timer started for booking: $id");
+              //
+              //   bookingTimers[id] = Timer(Duration(seconds: 90), () {
+              //     expireBooking(id);
+              //   });
+              // }
             }
 
 // CLEAR TIMER FOR BOOKINGS THAT ARE REMOVED FROM FIREBASE

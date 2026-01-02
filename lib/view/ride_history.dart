@@ -265,10 +265,10 @@ class _RideHistoryState extends State<RideHistory> {
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
                             color: ride.rideStatus == 6
-                                ? Colors.red
+                                ? Colors.green
                                 : ride.rideStatus == 7
-                                ? Colors.orange
-                                : Colors.grey,
+                                ? Colors.red
+                                : Colors.red,
                           ),
                         ),
                       ),
@@ -335,7 +335,7 @@ class _RideHistoryState extends State<RideHistory> {
                       ),
                       Row(
                         children: List.generate(
-                          profile.profileModel?.data?.ratingCount ?? 0,
+                          ride.userRating ?? 0,
                               (index) => const Icon(Icons.star_rounded, color: Colors.amber, size: 18),
                         ),
                       ),
@@ -459,15 +459,7 @@ class _RideHistoryState extends State<RideHistory> {
               ),
             ],
           ),
-
-          // Connecting Line
-          Container(
-            margin: EdgeInsets.only(left: 8, right: 8, top: 8, bottom: 8),
-            width: 2,
-            height: 20,
-            color: Colors.orange.withOpacity(0.3),
-          ),
-
+          SizedBox(height: Sizes.screenHeight*0.01,),
           // Dropoff
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,

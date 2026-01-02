@@ -77,11 +77,12 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
   String? _currentAddress;
 
 
-  // 🔥 ALAG-ALAG FLAGS FOR DIFFERENT DIALOGS
-  bool _showWaitingForPaymentDialog = false;
+  // 🔥 FLAGS - NOT NEEDED ANYMORE FOR SCREENS
   bool _showPaymentSuccessDialog = false;
   bool _showRideCompletedDialog = false;
   bool _showRideCancelledDialog = false;
+  bool _mapPopupShown = false;
+
 
 
 
@@ -96,41 +97,22 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
     LauncherI.launchURL(url);
   }
 
-  // 🔥 WAITING FOR PAYMENT DIALOG - ALAG FUNCTION
-  void _showWaitingForPaymentDialogMethod() {
-    if (_showWaitingForPaymentDialog) {
-      print("⚠️ Waiting payment dialog already showing");
-      return;
-    }
-
+  // 🔥 NAVIGATE TO WAITING PAYMENT SCREEN
+  void _navigateToWaitingPaymentScreen() {
     final liveRideViewModel = Provider.of<LiveRideViewModel>(context, listen: false);
     final orderId = liveRideViewModel.liveOrderModel!.data!.id.toString();
 
-    print("🪟 Showing WAITING payment dialog for order: $orderId");
-
-    setState(() {
-      _showWaitingForPaymentDialog = true;
-    });
+    print("🪟 Navigating to WAITING payment screen for order: $orderId");
 
     _startPaymentListener(orderId);
 
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) {
-        return _buildWaitingForPaymentDialog();
-      },
-    ).then((_) {
-      print("🔒 Waiting payment dialog closed");
-      setState(() {
-        _showWaitingForPaymentDialog = false;
-      });
-      _paymentSubscription?.cancel();
-      _paymentSubscription = null;
-    });
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => WaitingForPaymentScreen(orderId: orderId),
+      ),
+    );
   }
 
-  // 🔥 PAYMENT SUCCESS DIALOG - ALAG FUNCTION
   void _showPaymentSuccessDialogMethod() {
     if (_showPaymentSuccessDialog) {
       print("⚠️ Payment success dialog already showing");
@@ -215,63 +197,6 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
             (route) => false,
       );
     });
-  }
-
-  // 🔥 ALAG-ALAG DIALOG WIDGETS
-  Widget _buildWaitingForPaymentDialog() {
-    return WillPopScope(
-      onWillPop: () async => false,
-      child: Dialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        backgroundColor: Colors.white,
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.access_time_filled,
-                color: Colors.orange,
-                size: 50,
-              ),
-              const SizedBox(height: 15),
-              Text(
-                "Waiting for Payment",
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.orange,
-                ),
-              ),
-              const SizedBox(height: 10),
-              Text(
-                "Please wait while the customer completes the payment.",
-                textAlign: TextAlign.center,
-                style: const TextStyle(color: Colors.grey),
-              ),
-              const SizedBox(height: 20),
-              const Column(
-                children: [
-                  CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.orange),
-                  ),
-                  SizedBox(height: 10),
-                  Text(
-                    "Waiting for payment...",
-                    style: TextStyle(
-                      color: Colors.orange,
-                      fontSize: 14,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
   }
 
   Widget _buildPaymentSuccessDialog() {
@@ -479,15 +404,15 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
           final rideStatus = data['ride_status'] ?? 0;
           print("📢 Payment Listener - ride_status: $rideStatus");
 
-          // 🔥 AGAR WAITING DIALOG SHOW HAI AUR STATUS 6 HO GAYA
-          if (_showWaitingForPaymentDialog && rideStatus == 6) {
-            print("💰 Payment successful detected! Closing waiting dialog and showing success");
+          // 🔥 AGAR STATUS 6 HO GAYA (PAYMENT SUCCESS)
+          if (rideStatus == 6) {
+            print("💰 Payment successful detected! Navigating back and showing success");
 
             WidgetsBinding.instance.addPostFrameCallback((_) {
-              // Pehle waiting dialog band karo
+              // Pop waiting screen
               Navigator.of(context).pop();
 
-              // Phir success dialog show karo
+              // Show success dialog
               _showPaymentSuccessDialogMethod();
             });
           }
@@ -535,50 +460,6 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
     }
   }
 
-  // Check if payment is already completed when reaching status 5
-  void _checkPaymentStatus() {
-    final liveRideViewModel = Provider.of<LiveRideViewModel>(context, listen: false);
-    final orderId = liveRideViewModel.liveOrderModel!.data!.id.toString();
-
-    print("🔍 Checking payment status for order: $orderId");
-
-    FirebaseFirestore.instance
-        .collection('order')
-        .doc(orderId)
-        .get()
-        .then((doc) {
-      if (doc.exists) {
-        final data = doc.data() as Map<String, dynamic>;
-        final rideStatus = data['ride_status'] ?? 0;
-        final payMode = data['paymode'] ?? 0;
-
-        print("📊 Current status - ride_status: $rideStatus, paymode: $payMode");
-
-        if (rideStatus == 5 && payMode == 2) {
-          print("💵 Showing waiting dialog from manual check");
-          // Check if already at status 6
-          if (rideStatus == 6) {
-            print("💰 Already paid - showing success dialog");
-            Future.delayed(const Duration(milliseconds: 300), () {
-              _showPaymentSuccessDialogMethod();
-            });
-          } else {
-            Future.delayed(const Duration(milliseconds: 300), () {
-              _showWaitingForPaymentDialogMethod();
-            });
-          }
-        } else if (rideStatus == 6) {
-          print("💰 Showing success dialog from manual check");
-          Future.delayed(const Duration(milliseconds: 300), () {
-            _showPaymentSuccessDialogMethod();
-          });
-        }
-      }
-    }).catchError((error) {
-      print("❌ Error checking payment status: $error");
-    });
-  }
-
   void _handleReachedButtonClick() async {
     final liveRideViewModel = Provider.of<LiveRideViewModel>(context, listen: false);
     final orderId = liveRideViewModel.liveOrderModel!.data!.id.toString();
@@ -597,7 +478,7 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
         print("💰 Reached button clicked - paymode: $payMode");
 
         if (payMode == 1) {
-          // Cash payment - update to status 5 and show collect payment dialog with swapper button
+          // Cash payment - update to status 5 and navigate to collect payment screen
           print("💵 Cash payment detected - updating to status 5");
           await FirebaseFirestore.instance
               .collection('order')
@@ -607,12 +488,16 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
           liveRideViewModel.liveOrderModel!.data!.rideStatus = 5;
           Utils.showSuccessMessage(context, "Reached destination!");
 
-          // Show collect payment dialog with swapper button
+          // Navigate to collect payment screen
           Future.delayed(const Duration(milliseconds: 500), () {
-            _showCollectPaymentDialogMethod();
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => CollectPaymentScreen(orderId: orderId),
+              ),
+            );
           });
         } else {
-          // Online payment - update to status 5 and show waiting for payment (SAME AS BEFORE)
+          // Online payment - update to status 5 and navigate to waiting screen
           print("💳 Online payment detected - updating to status 5");
           await FirebaseFirestore.instance
               .collection('order')
@@ -622,9 +507,9 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
           liveRideViewModel.liveOrderModel!.data!.rideStatus = 5;
           Utils.showSuccessMessage(context, "Ride status updated: Reached destination");
 
-          // Show waiting for payment dialog
+          // Navigate to waiting for payment screen
           Future.delayed(const Duration(milliseconds: 500), () {
-            _showWaitingForPaymentDialogMethod();
+            _navigateToWaitingPaymentScreen();
           });
         }
         setState(() {});
@@ -632,76 +517,6 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
     } catch (e) {
       Utils.showErrorMessage(context, "Failed to update ride status: $e");
     }
-  }
-
-  // New method for cash payment - collect payment dialog with swapper button
-  void _showCollectPaymentDialogMethod() {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-            side: BorderSide(color: PortColor.gold, width: 1.5),
-          ),
-          backgroundColor: Colors.white,
-          surfaceTintColor: Colors.white,
-          title: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                padding: EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.green.withOpacity(0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(Icons.location_on, color: Colors.green, size: 20),
-              ),
-              SizedBox(width: 8),
-              TextConst(
-                title: "Reached Destination",
-                size: 16,
-                fontWeight: FontWeight.w600,
-              ),
-            ],
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                padding: EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.grey[50],
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.grey[200]!),
-                ),
-                child: Row(
-                  children: [
-                    Icon(Icons.info_outline, color: Colors.blue, size: 16),
-                    SizedBox(width: 8),
-                    Expanded(
-                      child: TextConst(
-                        title: "Please collect payment from customer",
-                        size: 13,
-                        color: PortColor.blackLight,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(height: 20),
-              // Swapper Button
-              SlideToButton(onAccepted: (){
-                Navigator.of(context).pop();
-                _handleCashPaymentCompleted();
-              }, title: "Pay Done")
-
-            ],
-          ),
-        );
-      },
-    );
   }
 
   void _handleCashPaymentCompleted() async {
@@ -747,18 +562,18 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
               const SizedBox(height: 12),
 
               const TextConst(title:
-                "OTP Verified",
+              "OTP Verified",
                 size: 16,
                 fontWeight: FontWeight.w700,
               ),
 
               const SizedBox(height: 8),
 
-               TextConst(
-                 title:
-                "You can now open Google Maps for navigation.",
-                textAlign: TextAlign.center,
-                   size: 13, color: Colors.black54
+              TextConst(
+                  title:
+                  "You can now open Google Maps for navigation.",
+                  textAlign: TextAlign.center,
+                  size: 13, color: Colors.black54
               ),
 
               const SizedBox(height: 18),
@@ -808,6 +623,91 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
     super.dispose();
   }
 
+  void _showGoToMapPopupFromCurrentLocation() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => Dialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(18),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.map, color: PortColor.gold, size: 40),
+              const SizedBox(height: 12),
+
+              const Text(
+                "Go to Pickup Location",
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+
+              const SizedBox(height: 8),
+
+              const Text(
+                "Open Google Maps to navigate to pickup location.",
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 13, color: Colors.black54),
+              ),
+
+              const SizedBox(height: 18),
+
+              InkWell(
+                onTap: () async {
+                  Navigator.pop(context);
+                  await _openGoogleMapsFromCurrentLocation();
+                },
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  decoration: BoxDecoration(
+                    color: PortColor.gold,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Center(
+                    child: Text(
+                      "Go to Map",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openGoogleMapsFromCurrentLocation() async {
+    final pickupLatLng = "$pickupLat,$pickupLng";
+
+    final url =
+        "https://www.google.com/maps/dir/?api=1"
+        "&destination=$pickupLatLng"
+        "&travelmode=driving";
+
+    print("🗺️ Opening Google Maps: $url");
+
+    if (await canLaunch(url)) {
+      await launch(url);
+    } else {
+      Utils.showErrorMessage(context, "Could not open Google Maps");
+    }
+  }
+
+
+
 
 
   @override
@@ -831,7 +731,7 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
               height: double.infinity,
               child: ConstMap(
                 data: [widget.booking],
-                rideStatus: liveRideViewModel.liveOrderModel?.data?.rideStatus, // ✅ NEW: Ride status pass karo
+                rideStatus: liveRideViewModel.liveOrderModel?.data?.rideStatus,
                 onAddressFetched: (address) {
                   setState(() {
                     _currentAddress = address;
@@ -855,6 +755,13 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                       WidgetsBinding.instance.addPostFrameCallback((_) {
                         liveRideViewModel.liveOrderModel!.data!.rideStatus = rideStatus;
                         setState(() {});
+                      });
+                    }
+                    if (rideStatus == 2 && !_mapPopupShown) {
+                      _mapPopupShown = true;
+
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        _showGoToMapPopupFromCurrentLocation();
                       });
                     }
                   }
@@ -892,7 +799,6 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
     );
   }
 
-  // ... (Rest of the methods remain the same - _getButtonColor, _getButtonText, _showOtpDialog, _buildSectionHeader, _buildDetailRow, _getStatusText, _buildSheetContent)
   Color _getButtonColor(int? rideStatus) {
     switch (rideStatus) {
       case 1:
@@ -1049,7 +955,7 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                               Navigator.of(context).pop();
                               Utils.showSuccessMessage(context, "OTP verified! Ride started.");
                               setState(() {
-                                isOtpVerified = true;   // 👈 IMPORTANT
+                                isOtpVerified = true;
                               });
                               _showGoToMapDialog();
                             } else {
@@ -1243,10 +1149,8 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                     ),
                   ),
 
-                  // Amount and Distance as small badges
                   Column(
                     children: [
-                      // Amount Badge
                       Container(
                         padding: EdgeInsets.symmetric(
                           horizontal: Sizes.screenWidth * 0.025,
@@ -1271,7 +1175,6 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                         ),
                       ),
                       SizedBox(height: Sizes.screenHeight * 0.005),
-                      // Distance Badge
                       Container(
                         padding: EdgeInsets.symmetric(
                           horizontal: Sizes.screenWidth * 0.025,
@@ -1365,18 +1268,15 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                   _buildSectionHeader("Sender Details"),
                   SizedBox(height: Sizes.screenHeight * 0.01),
 
-// IF order_type = 2 → ONLY Address (Bold)
                   if (liveRideViewModel.liveOrderModel!.data!.orderType.toString() == "2") ...[
                     _buildDetailRow(
                       icon: Icons.location_on,
                       title: "Address",
                       content: liveRideViewModel.liveOrderModel!.data!.pickupAddress ?? "N/A",
                       isAddress: true,
-                      bold: true, // 👈 Add bold
+                      bold: true,
                     ),
                   ]
-
-// ELSE → Full details
                   else ...[
                     _buildDetailRow(
                       icon: Icons.person_outline,
@@ -1396,7 +1296,6 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                     ),
                   ],
 
-
                   SizedBox(height: Sizes.screenHeight * 0.015),
                   Divider(height: 1),
 
@@ -1404,18 +1303,15 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                   _buildSectionHeader("Receiver Details"),
                   SizedBox(height: Sizes.screenHeight * 0.01),
 
-// IF order_type = 2 → ONLY Address (Bold)
                   if (liveRideViewModel.liveOrderModel!.data!.orderType.toString() == "2") ...[
                     _buildDetailRow(
                       icon: Icons.location_on,
                       title: "Address",
                       content: liveRideViewModel.liveOrderModel!.data!.dropAddress ?? "N/A",
                       isAddress: true,
-                      bold: true, // 👈 Bold here also
+                      bold: true,
                     ),
                   ]
-
-// ELSE → Full details
                   else ...[
                     _buildDetailRow(
                       icon: Icons.person_outline,
@@ -1434,7 +1330,6 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                       isAddress: true,
                     ),
                   ],
-
 
                   SizedBox(height: Sizes.screenHeight * 0.015),
                   Divider(height: 1),
@@ -1494,7 +1389,6 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                                 _showOtpDialog(orderId.toString());
                                 return;
                               } else if (currentStatus == 4) {
-                                // Use the new function to handle reached button with paymode condition
                                 _handleReachedButtonClick();
                                 return;
                               }
@@ -1579,6 +1473,357 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
   }
 }
 
+// 🔥 NEW SCREEN: Waiting For Payment
+class WaitingForPaymentScreen extends StatelessWidget {
+  final String orderId;
+  const WaitingForPaymentScreen({super.key, required this.orderId});
+
+  @override
+  Widget build(BuildContext context) {
+    return WillPopScope(
+      onWillPop: () async => false,
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.access_time_filled,
+                  color: Colors.orange,
+                  size: 80,
+                ),
+                const SizedBox(height: 24),
+                Text(
+                  "Waiting for Payment",
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.orange,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  "Please wait while the customer completes the payment.",
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: Colors.grey,
+                    fontSize: 16,
+                  ),
+                ),
+                const SizedBox(height: 40),
+                CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.orange),
+                  strokeWidth: 3,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  "Waiting for payment...",
+                  style: TextStyle(
+                    color: Colors.orange,
+                    fontSize: 16,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class CollectPaymentScreen extends StatefulWidget {
+  final String orderId;
+  const CollectPaymentScreen({super.key, required this.orderId});
+
+  @override
+  State<CollectPaymentScreen> createState() => _CollectPaymentScreenState();
+}
+
+class _CollectPaymentScreenState extends State<CollectPaymentScreen> {
+  StreamSubscription<DocumentSnapshot>? _paymodeSubscription;
+  int _currentPaymode = 1; // Default to cash
+
+  @override
+  void initState() {
+    super.initState();
+    print("🎬 CollectPaymentScreen initState called");
+    print("📝 Order ID: ${widget.orderId}");
+    _startPaymodeListener();
+  }
+
+  // 🔥 Listen for paymode changes in real-time
+  void _startPaymodeListener() {
+    print("🔔 Starting paymode listener for order: ${widget.orderId}");
+    print("⏰ Listener started at: ${DateTime.now()}");
+
+    try {
+      _paymodeSubscription = FirebaseFirestore.instance
+          .collection('order')
+          .doc(widget.orderId)
+          .snapshots()
+          .listen((DocumentSnapshot snapshot) {
+        print("🔄 Real-time update received at: ${DateTime.now()}");
+        print("📦 Snapshot exists: ${snapshot.exists}");
+        print("📦 Snapshot has data: ${snapshot.data() != null}");
+
+        if (snapshot.exists && snapshot.data() != null) {
+          final data = snapshot.data() as Map<String, dynamic>;
+          final payMode = data['paymode'] ?? 1;
+
+          print("📢 Paymode Listener - Current paymode: $payMode");
+          print("📢 Previous paymode in UI: $_currentPaymode");
+          print("📊 Full order data: $data");
+
+          // 🔥 UPDATE UI WHEN PAYMODE CHANGES
+          if (_currentPaymode != payMode) {
+            print("🔄 Paymode changed from $_currentPaymode to $payMode - Updating UI!");
+            setState(() {
+              _currentPaymode = payMode;
+            });
+
+            if (payMode == 1) {
+              print("💵 Switched to CASH payment mode");
+            } else if (payMode == 2) {
+              print("💳 Switched to ONLINE payment mode");
+            }
+          } else {
+            print("ℹ️ Paymode unchanged: $payMode");
+          }
+        } else {
+          print("⚠️ Snapshot doesn't exist or has no data");
+        }
+      }, onError: (error) {
+        print("🔥 Paymode listener error: $error");
+      });
+
+      print("✅ Listener setup complete");
+    } catch (e) {
+      print("❌ Error starting paymode listener: $e");
+      print("❌ Error stack trace: ${StackTrace.current}");
+    }
+  }
+
+  @override
+  void dispose() {
+    print("🗑️ Disposing CollectPaymentScreen - Cancelling paymode listener");
+    _paymodeSubscription?.cancel();
+    super.dispose();
+  }
+
+  void _handlePaymentComplete(BuildContext context) async {
+    final liveRideViewModel = Provider.of<LiveRideViewModel>(context, listen: false);
+
+    try {
+      print("💵 Cash payment completed - updating to status 6");
+      await FirebaseFirestore.instance
+          .collection('order')
+          .doc(widget.orderId)
+          .update({'ride_status': 6});
+
+      liveRideViewModel.liveOrderModel!.data!.rideStatus = 6;
+      Utils.showSuccessMessage(context, "Ride completed successfully!");
+
+      // Navigate back and show completed dialog
+      Navigator.of(context).pop();
+
+      Future.delayed(const Duration(milliseconds: 300), () {
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => _buildRideCompletedDialog(context),
+        );
+      });
+    } catch (e) {
+      Utils.showErrorMessage(context, "Failed to complete ride: $e");
+    }
+  }
+
+  Widget _buildRideCompletedDialog(BuildContext context) {
+    final liveRideVm = Provider.of<LiveRideViewModel>(context);
+    return WillPopScope(
+      onWillPop: () async => false,
+      child: Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        backgroundColor: Colors.white,
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.check_circle,
+                color: Colors.green,
+                size: 50,
+              ),
+              const SizedBox(height: 15),
+              Text(
+                "Ride Completed!🎉🎉",
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: PortColor.gold,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                "Your ride has been completed successfully. Thank you!",
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.grey),
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: PortColor.gold,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  minimumSize: const Size(120, 45),
+                ),
+                onPressed: () {
+                  print("🏠 OK pressed from ride completed - Navigating to Register");
+                  Navigator.pop(context);
+                  Provider.of<UpdateRideStatusViewModel>(context, listen: false)
+                      .updateRideApi(context, liveRideVm.liveOrderModel!.data!.id.toString(), "6");
+                  Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute(builder: (context) => Register()),
+                        (route) => false,
+                  );
+                },
+                child: const Text(
+                  "OK",
+                  style: TextStyle(color: Colors.white, fontSize: 16),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    print("🎨 Building UI with paymode: $_currentPaymode");
+
+    return WillPopScope(
+      onWillPop: () async => false,
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // 🔥 DYNAMIC ICON BASED ON PAYMODE
+                Container(
+                  padding: EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: _currentPaymode == 1
+                        ? Colors.green.withOpacity(0.1)
+                        : Colors.orange.withOpacity(0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    _currentPaymode == 1
+                        ? Icons.location_on
+                        : Icons.access_time_filled,
+                    color: _currentPaymode == 1
+                        ? Colors.green
+                        : Colors.orange,
+                    size: _currentPaymode == 1 ? 60 : 80,
+                  ),
+                ),
+                SizedBox(height: 24),
+
+                // 🔥 DYNAMIC TITLE BASED ON PAYMODE
+                Text(
+                  _currentPaymode == 1
+                      ? "Reached Destination"
+                      : "Waiting for Payment",
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: _currentPaymode == 1
+                        ? Colors.black
+                        : Colors.orange,
+                  ),
+                ),
+                SizedBox(height: _currentPaymode == 1 ? 40 : 16),
+
+                // 🔥 DYNAMIC CONTENT BASED ON PAYMODE
+                if (_currentPaymode == 1) ...[
+                  // CASH PAYMENT UI
+                  Container(
+                    padding: EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[50],
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.grey[200]!),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.info_outline, color: Colors.blue, size: 24),
+                        SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            "Please collect payment from customer",
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.black87,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: 40),
+                  // SWIPE BUTTON FOR CASH PAYMENT
+                  SlideToButton(
+                    onAccepted: () => _handlePaymentComplete(context),
+                    title: "Pay Done",
+                  ),
+                ] else ...[
+                  // ONLINE PAYMENT UI
+                  Text(
+                    "Please wait while the customer completes the payment.",
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      color: Colors.grey,
+                      fontSize: 16,
+                    ),
+                  ),
+                  const SizedBox(height: 40),
+                  CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.orange),
+                    strokeWidth: 3,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    "Waiting for payment...",
+                    style: TextStyle(
+                      color: Colors.orange,
+                      fontSize: 16,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// 🔥 REMOVE THIS - No longer needed as separate screen
+// WaitingForPaymentScreen is now part of CollectPaymentScreen
 class LauncherI {
   static Future<void> launchURL(String url) async {
     if (await canLaunch(url)) {

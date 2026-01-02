@@ -27,6 +27,7 @@ class OwnerDetail extends StatefulWidget {
 }
 
 class _OwnerDetailState extends State<OwnerDetail> {
+  String? mobileNumber;
   final TextEditingController _nameController = TextEditingController();
   final ImagePicker _picker = ImagePicker();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
@@ -92,6 +93,12 @@ class _OwnerDetailState extends State<OwnerDetail> {
 
   @override
   Widget build(BuildContext context) {
+    final args =
+    ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+
+    if (args != null && mobileNumber == null) {
+      mobileNumber = args['phone'];
+    }
     return SafeArea(
       top: false,
       bottom: true,
@@ -515,6 +522,7 @@ class _OwnerDetailState extends State<OwnerDetail> {
       // Add form fields
       request.fields.addAll({
         "owner_name": _nameController.text.trim(),
+        "phone": mobileNumber ??"",
         "owner_doc_status": '1',
         "vehicle_doc_status": '2',
         "driver_doc_status": '2',

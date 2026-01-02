@@ -2,8 +2,6 @@ import 'package:flutter/foundation.dart';
 import 'package:yoyomiles_partner/model/vehicle_name_model.dart';
 import 'package:yoyomiles_partner/repo/vehicle_name_repo.dart';
 
-
-
 class VehicleNameViewModel with ChangeNotifier {
   final _vehicleNameRepo = VehicleNameRepo();
   bool _loading = false;

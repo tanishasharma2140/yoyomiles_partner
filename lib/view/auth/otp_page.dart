@@ -13,7 +13,8 @@ import 'package:yoyomiles_partner/view_model/auth_view_model.dart';
 import 'package:provider/provider.dart';
 
 class OtpPage extends StatefulWidget {
-  const OtpPage({super.key});
+  final String mobile;
+  const OtpPage({super.key,required this.mobile});
 
   @override
   State<OtpPage> createState() => _OtpPageState();
@@ -25,12 +26,6 @@ class _OtpPageState extends State<OtpPage> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      Map arguments =
-          ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
-      Provider.of<AuthViewModel>(context, listen: false)
-          .sendOtpApi(arguments["mobileNumber"], context);
-    });
 
     _startTimer();
   }
@@ -40,7 +35,7 @@ class _OtpPageState extends State<OtpPage> {
 
   void _startTimer() {
     setState(() {
-      _timerCountdown = 60;
+      _timerCountdown = 120;
     });
 
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
@@ -56,9 +51,8 @@ class _OtpPageState extends State<OtpPage> {
 
   @override
   Widget build(BuildContext context) {
-    final authViewModel = Provider.of<AuthViewModel>(context);
-    Map arguments =
-        ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+    final loginViewModel = Provider.of<AuthViewModel>(context);
+
     return SafeArea(
       top: false,
       bottom: true,
@@ -85,7 +79,7 @@ class _OtpPageState extends State<OtpPage> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  TextConst(title: arguments["mobileNumber"]),
+                  TextConst(title: widget.mobile),
                   SizedBox(width: Sizes.screenWidth * 0.02),
                   GestureDetector(
                     onTap: (){
@@ -145,8 +139,11 @@ class _OtpPageState extends State<OtpPage> {
                     int.tryParse(_otpController.text.trim()) != null
                     ? () {
                   final enteredOtp = _otpController.text.trim();
-                  authViewModel.verifyOtpApi(
-                      arguments["mobileNumber"], enteredOtp, arguments["user_id"], context);
+                  loginViewModel.verifyOtpApi(
+                    widget.mobile,  // ✔ safe
+                    enteredOtp,
+                    context,
+                  );;
                 }
                     : null,
                 child: Container(
@@ -159,7 +156,7 @@ class _OtpPageState extends State<OtpPage> {
                     borderRadius: BorderRadius.circular(25),
                   ),
                   alignment: Alignment.center,
-                  child: !authViewModel.otpLoading ?TextConst(
+                  child: !loginViewModel.verifyingOtp ?TextConst(
                     title:
                     "VERIFY",
                     fontFamily: AppFonts.kanitReg,
@@ -178,18 +175,29 @@ class _OtpPageState extends State<OtpPage> {
                 child: GestureDetector(
                   onTap: _timerCountdown == 0
                       ? () {
-                          _startTimer();
-                        }
+                    // 🔁 Restart timer
+                    setState(() {
+                      _timerCountdown = 120; // 2 minutes
+                      _startTimer();
+                    });
+
+                    // ✅ CALL RESEND OTP API
+                    context
+                        .read<AuthViewModel>()
+                        .otpReSentApi(widget.mobile, context);
+                  }
                       : null,
                   child: TextConst(
-                    title:
-                    _timerCountdown > 0
+                    title: _timerCountdown > 0
                         ? "RESEND OTP ($_timerCountdown s)"
                         : "RESEND OTP",
-                    color: _timerCountdown > 0 ? PortColor.blue : PortColor.blue,
+                    color: _timerCountdown > 0
+                        ? PortColor.blue.withOpacity(0.5)
+                        : PortColor.blue,
                     fontWeight: FontWeight.w400,
                   ),
                 ),
+
               ),
             ],
           ),

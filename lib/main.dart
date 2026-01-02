@@ -25,6 +25,7 @@ import 'package:yoyomiles_partner/view_model/fuel_type_view_model.dart';
 import 'package:yoyomiles_partner/view_model/help_topics_view_model.dart';
 import 'package:yoyomiles_partner/view_model/live_ride_view_model.dart';
 import 'package:yoyomiles_partner/view_model/online_status_view_model.dart';
+import 'package:yoyomiles_partner/view_model/otp_count_view_model.dart';
 import 'package:yoyomiles_partner/view_model/payment_view_model.dart';
 import 'package:yoyomiles_partner/view_model/policy_view_model.dart';
 import 'package:yoyomiles_partner/view_model/profile_view_model.dart';
@@ -126,6 +127,7 @@ class _MyAppState extends State<MyApp> {
           ChangeNotifierProvider(create: (context)=> DailyWeeklyViewModel()),
           ChangeNotifierProvider(create: (context)=> WithdrawViewModel()),
           ChangeNotifierProvider(create: (context)=> WithdrawHistoryViewModel()),
+          ChangeNotifierProvider(create: (context)=> OtpCountViewModel()),
           Provider<NotificationService>(
             create: (_) => NotificationService(navigatorKey: navigatorKey),
           ),

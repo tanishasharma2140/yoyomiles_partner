@@ -31,8 +31,9 @@ class ApiUrl{
 
 
 
-  static const String sendOtpUrl ="https://otp.fctechteam.org/send_otp.php?mode=test&digit=4&mobile=";
+  static const String sendOtpUrl ="https://otp.fctechteam.org/send_otp.php?mode=live&digit=4&mobile=";
   static const String verifyOtpUrl ="https://otp.fctechteam.org/verifyotp.php?mobile=";
+  static const String countOtpUrl ="${baseUrl}count_otp";
 
 
 }

@@ -26,7 +26,6 @@ class AddDriverDetail extends StatefulWidget {
 class _AddDriverDetailState extends State<AddDriverDetail> {
   bool? _isDrivingVehicle;
   final TextEditingController _driverNameController = TextEditingController();
-  final TextEditingController _driverPhoneController = TextEditingController();
 
   File? _frontLicense;
   File? _backLicense;
@@ -85,7 +84,6 @@ class _AddDriverDetailState extends State<AddDriverDetail> {
     required String driverName,
     required File drivingLicenceBack,
     required File drivingLicenceFront,
-    required String phone,
     required String driveOperator,
     required BuildContext context,
   }) async {
@@ -109,7 +107,6 @@ class _AddDriverDetailState extends State<AddDriverDetail> {
         "vehicle_doc_status": "2",
         "driver_doc_status": "1",
         "driver_name": driverName,
-        "phone": phone,
         "fcm": fcmToken.toString(),
         "drive_operator": driveOperator,
       });
@@ -234,10 +231,6 @@ class _AddDriverDetailState extends State<AddDriverDetail> {
       _showErrorDialog(context, "Please enter driver name");
       return false;
     }
-    if (_driverPhoneController.text.isEmpty) {
-      _showErrorDialog(context, "Please enter driver phone number");
-      return false;
-    }
     if (_frontLicense == null) {
       _showErrorDialog(context, "Please upload front license");
       return false;
@@ -304,10 +297,6 @@ class _AddDriverDetailState extends State<AddDriverDetail> {
               _buildDriverNameSection(),
               const SizedBox(height: 20),
 
-              // Driver Phone Number Section
-              _buildDriverPhoneSection(),
-              const SizedBox(height: 20),
-
               // Upload Driver License Section
               _buildLicenseUploadSection(),
               const SizedBox(height: 100),
@@ -323,7 +312,6 @@ class _AddDriverDetailState extends State<AddDriverDetail> {
                       driverName: _driverNameController.text,
                       drivingLicenceBack: _backLicense!,
                       drivingLicenceFront: _frontLicense!,
-                      phone: _driverPhoneController.text,
                       driveOperator: driveOperator,
                       context: context,
                     );
@@ -535,32 +523,6 @@ class _AddDriverDetailState extends State<AddDriverDetail> {
     );
   }
 
-  Widget _buildDriverPhoneSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const TextConst(
-          title:
-          'Driver Phone Number*',
-          color: Colors.black54,
-          fontWeight: FontWeight.w600,
-          size: 15,
-        ),
-        const SizedBox(height: 8),
-        CustomTextField(
-          controller: _driverPhoneController,
-          hintText: "Driver Phone Number",
-          hintStyle: TextStyle(color: PortColor.gray),
-          keyboardType: TextInputType.phone,
-          maxLength: 10,
-          inputFormatters: [
-            FilteringTextInputFormatter.digitsOnly,
-          ],
-        )
-      ],
-    );
-  }
-
   Widget _buildLicenseUploadSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -669,7 +631,6 @@ class _AddDriverDetailState extends State<AddDriverDetail> {
   @override
   void dispose() {
     _driverNameController.dispose();
-    _driverPhoneController.dispose();
     super.dispose();
   }
 }

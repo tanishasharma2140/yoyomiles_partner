@@ -27,8 +27,6 @@ class Routers {
         return (context) => const Login();
       case RoutesName.splash:
         return (context) => const SplashScreen();
-      case RoutesName.otp:
-        return (context) => const OtpPage();
       case RoutesName.owner:
         return (context) =>  OwnerDetail();
       case RoutesName.register:

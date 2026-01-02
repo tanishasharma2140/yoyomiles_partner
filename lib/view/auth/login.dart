@@ -23,11 +23,9 @@ class Login extends StatefulWidget {
 class _LoginState extends State<Login> {
   bool isTermsAgreed = false;
   bool isTDSAgreed = false;
-  final TextEditingController mobileController = TextEditingController();
   @override
   Widget build(BuildContext context) {
-    final authViewModel = Provider.of<AuthViewModel>(context);
-
+    final loginViewModel = Provider.of<AuthViewModel>(context);
     return SafeArea(
       top: false,
       bottom: true,
@@ -90,7 +88,7 @@ class _LoginState extends State<Login> {
                   size: Sizes.fontSizeSix,
                 ),
                 TextField(
-                  controller: mobileController,
+                  controller: loginViewModel.phoneController,
                   cursorColor: PortColor.gray,
                   keyboardType: TextInputType.phone,
                   maxLength: 10,
@@ -276,13 +274,13 @@ class _LoginState extends State<Login> {
                 GestureDetector(
                   onTap: () {
                     if (isTermsAgreed && isTDSAgreed) {
-                      if (mobileController.text.length == 10 &&
-                          RegExp(r'^\d{10}$').hasMatch(mobileController.text)) {
+                      if (loginViewModel.phoneController.text.length == 10 &&
+                          RegExp(r'^\d{10}$').hasMatch(loginViewModel.phoneController.text)) {
                         final loginViewModel = Provider.of<AuthViewModel>(
                           context,
                           listen: false,
                         );
-                        loginViewModel.loginApi(mobileController.text,fcmToken.toString(), context);
+                        loginViewModel.otpSentApi(loginViewModel.phoneController.text, context);
                       } else {
                         Utils.showErrorMessage(
                           context,
@@ -305,7 +303,7 @@ class _LoginState extends State<Login> {
                       borderRadius: BorderRadius.circular(25),
                     ),
                     alignment: Alignment.center,
-                    child: !authViewModel.loading
+                    child: !loginViewModel.loading
                         ? TextConst(
                             title: "LOGIN",
                             color: PortColor.black,
