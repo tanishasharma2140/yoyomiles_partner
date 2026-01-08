@@ -64,7 +64,7 @@ class AssignRideViewModel with ChangeNotifier {
           print("❌ FIRESTORE UPDATE FAILED: $e");
         }
 
-        Utils.showSuccessMessage(context, value["message"]);
+        // Utils.showSuccessMessage(context, value["message"]);
 
         print("➡ Navigating to LiveRideScreen");
 

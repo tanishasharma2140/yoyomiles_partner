@@ -460,19 +460,14 @@ class _WalletSettlementState extends State<WalletSettlement> {
   }
 
   Widget _buildTransactionItem(transaction) {
-    // Assuming you have payment_by field in your Data model
-    // If not, you need to add it to your Data class
-    int paymentBy = transaction.paymetBy ?? 1; // Default to 1 if null
+    int paymentBy = transaction.paymetBy ?? 1;
 
-    // Determine transaction type and status
-    bool isCredit =
-        transaction.amount != null && double.parse(transaction.amount!) > 0;
     String paymentStatus = _getPaymentStatus(paymentBy);
     String statusText = _getStatusText(paymentBy);
 
     return Container(
-      margin: EdgeInsets.only(bottom: 12),
-      padding: EdgeInsets.all(12),
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.grey[50],
         borderRadius: BorderRadius.circular(12),
@@ -482,8 +477,9 @@ class _WalletSettlementState extends State<WalletSettlement> {
         ),
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Status Icon
+          // 🔹 STATUS ICON
           Container(
             width: 40,
             height: 40,
@@ -497,146 +493,155 @@ class _WalletSettlementState extends State<WalletSettlement> {
               size: 20,
             ),
           ),
-          SizedBox(width: 12),
+
+          const SizedBox(width: 12),
+
+          // 🔹 DETAILS SECTION
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Case 1: payment_by = 1
+
+                // =======================
+                // PAYMENT BY = 1 (ONLINE)
+                // =======================
                 if (paymentBy == 1) ...[
-                  RichText(
-                    text: TextSpan(
-                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                      children: [
-                        TextSpan(
-                          text:
-                              'Total Amount: ₹${transaction.totalAmount ?? '0.00'}',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w500,
-                            color: Colors.green,
-                          ),
-                        ),
-                      ],
+                  Text(
+                    'Total Amount: ₹${transaction.totalAmount ?? '0.00'}',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.green,
                     ),
                   ),
-                  SizedBox(height: 2),
-                  RichText(
-                    text: TextSpan(
-                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                      children: [
-                        TextSpan(
-                          text:
-                              'Platform Fee: ${transaction.platformFee ?? 'N/A'}',
-                          style: TextStyle(
-                            color: Colors.orange[600],
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
+                  const SizedBox(height: 2),
+                  Text(
+                    'Platform Fee: ${transaction.platformFee ?? 'N/A'}',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.orange[700],
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
-                  SizedBox(height: 2),
-                  RichText(
-                    text: TextSpan(
-                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                      children: [
-                        TextSpan(
-                          text:
-                              'Final Amount: ₹${transaction.amount ?? '0.00'}',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w500,
-                            color: Colors.blue,
-                          ),
-                        ),
-                      ],
+                  const SizedBox(height: 2),
+                  Text(
+                    'Final Amount: ₹${transaction.amount ?? '0.00'}',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.blue,
                     ),
                   ),
-                  SizedBox(height: 2),
+                  const SizedBox(height: 2),
                   Text(
                     transaction.orderId ?? 'N/A',
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontWeight: FontWeight.w600,
-                      color: PortColor.gray,
-                      fontSize: 14,
+                      color: Colors.grey,
+                      fontSize: 13,
                     ),
                   ),
                 ],
 
-                // Case 2: payment_by = 2
+                // =======================
+                // PAYMENT BY = 2 (DUE)
+                // =======================
                 if (paymentBy == 2) ...[
-                  RichText(
-                    text: TextSpan(
-                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                      children: [
-                        TextSpan(
-                          text:
-                              'Total Amount: ₹${transaction.totalAmount ?? '0.00'}',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w500,
-                            color: Colors.green,
-                          ),
-                        ),
-                      ],
+                  Text(
+                    'Total Amount: ₹${transaction.totalAmount ?? '0.00'}',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.green,
                     ),
                   ),
-                  SizedBox(height: 2),
+                  const SizedBox(height: 2),
                   Text(
                     transaction.orderId ?? 'N/A',
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontWeight: FontWeight.w600,
-                      color: PortColor.gray,
-                      fontSize: 14,
+                      color: Colors.grey,
+                      fontSize: 13,
                     ),
                   ),
                 ],
 
-                // Case 3: payment_by = 3
+                // =======================
+                // PAYMENT BY = 3 (OFFLINE)
+                // =======================
                 if (paymentBy == 3) ...[
-                  // No Order ID for case 3
-                  RichText(
-                    text: TextSpan(
-                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                      children: [
-                        TextSpan(
-                          text:
-                              'Total Amount: ₹${transaction.totalAmount ?? '0.00'}',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w500,
-                            color: Colors.green,
-                          ),
-                        ),
-                      ],
+                  Text(
+                    'Total Amount: ₹${transaction.totalAmount ?? '0.00'}',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.green,
                     ),
                   ),
-                  SizedBox(height: 2),
-                  RichText(
-                    text: TextSpan(
-                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                      children: [
-                        TextSpan(
-                          text:
-                              'Platform Fee: ${transaction.platformFee ?? 'N/A'}',
-                          style: TextStyle(
-                            color: Colors.orange[600],
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
+                  const SizedBox(height: 2),
+                  Text(
+                    'Platform Fee: ${transaction.platformFee ?? 'N/A'}',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.orange[700],
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ],
 
-                // Date - Common for all cases
-                SizedBox(height: 4),
+                // ==========================
+                // 🔥 PAYMENT BY = 6 (WALLET)
+                // ==========================
+                if (paymentBy == 6) ...[
+                  const Text(
+                    'Paid from User Wallet',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.purple,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Total Amount: ₹${transaction.totalAmount ?? '0.00'}',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.green,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'Platform Fee: ${transaction.platformFee ?? 'N/A'}',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.orange[700],
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'Final Amount: ₹${transaction.amount ?? '0.00'}',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.blue,
+                    ),
+                  ),
+                ],
+
+                const SizedBox(height: 4),
+
+                // 🔹 DATE
                 Text(
                   _formatDate(transaction.createdAt),
-                  style: TextStyle(fontSize: 11, color: Colors.grey),
+                  style: const TextStyle(fontSize: 11, color: Colors.grey),
                 ),
 
-                // Status Badge
+                // 🔹 STATUS BADGE
                 Container(
-                  margin: EdgeInsets.only(top: 6),
-                  padding: EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  margin: const EdgeInsets.only(top: 6),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
                     color: _getStatusColor(paymentBy).withOpacity(0.1),
                     borderRadius: BorderRadius.circular(6),
@@ -653,7 +658,7 @@ class _WalletSettlementState extends State<WalletSettlement> {
                         size: 10,
                         color: _getStatusColor(paymentBy),
                       ),
-                      SizedBox(width: 4),
+                      const SizedBox(width: 4),
                       Text(
                         statusText,
                         style: TextStyle(
@@ -669,48 +674,19 @@ class _WalletSettlementState extends State<WalletSettlement> {
             ),
           ),
 
-          // Right side amount column
+          // 🔹 AMOUNT COLUMN
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              // Amount display based on payment_by
-              if (paymentBy == 1 || paymentBy == 3)
-                Text(
-                  '₹${transaction.amount ?? '0.00'}',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.blue,
-                    fontSize: 16,
-                  ),
+              Text(
+                '₹${transaction.amount ?? '0.00'}',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: _getStatusColor(paymentBy),
+                  fontSize: 16,
                 ),
-
-              if (paymentBy == 2)
-                Text(
-                  '₹${transaction.totalAmount ?? '0.00'}',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.green,
-                    fontSize: 16,
-                  ),
-                ),
-
-              SizedBox(height: 4),
-
-              // Label based on payment_by
-              if (paymentBy == 1)
-                Text(
-                  'After Fee',
-                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                ),
-
-              if (paymentBy == 2 || paymentBy == 3)
-                Text(
-                  'Total',
-                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                ),
-
-              // Payment Method
-              SizedBox(height: 2),
+              ),
+              const SizedBox(height: 4),
               Text(
                 paymentStatus,
                 style: TextStyle(
@@ -735,12 +711,13 @@ class _WalletSettlementState extends State<WalletSettlement> {
         return 'Due Payment';
       case 3:
         return 'Offline Payment';
+      case 6:
+        return 'From User Wallet';
       default:
         return 'Unknown';
     }
   }
 
-  // Helper function to get status text
   String _getStatusText(int paymentBy) {
     switch (paymentBy) {
       case 1:
@@ -749,38 +726,43 @@ class _WalletSettlementState extends State<WalletSettlement> {
         return 'Due';
       case 3:
         return 'Offline';
+      case 6:
+        return 'Wallet';
       default:
         return 'Unknown';
     }
   }
 
-  // Helper function to get status color
   Color _getStatusColor(int paymentBy) {
     switch (paymentBy) {
-      case 1: // Online
+      case 1:
         return Colors.blue;
-      case 2: // Due Payment
+      case 2:
         return Colors.orange;
-      case 3: // Offline
+      case 3:
         return Colors.green;
+      case 6:
+        return Colors.purple; // 🔥 wallet color
       default:
         return Colors.grey;
     }
   }
 
-  // Helper function to get status icon
   IconData _getStatusIcon(int paymentBy) {
     switch (paymentBy) {
-      case 1: // Online
-        return Icons.online_prediction;
-      case 2: // Due Payment
+      case 1:
+        return Icons.credit_card;
+      case 2:
         return Icons.pending;
-      case 3: // Offline
-        return Icons.offline_pin;
+      case 3:
+        return Icons.money;
+      case 6:
+        return Icons.account_balance_wallet;
       default:
-        return Icons.help;
+        return Icons.help_outline;
     }
   }
+
 
   // Helper function to format date
   String _formatDate(String? dateString) {
@@ -1231,8 +1213,6 @@ class _WalletSettlementState extends State<WalletSettlement> {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        String amount = '';
-        final TextEditingController _amountController = TextEditingController();
 
         return Dialog(
           backgroundColor: Colors.white,
@@ -1294,7 +1274,7 @@ class _WalletSettlementState extends State<WalletSettlement> {
                 SizedBox(height: 20),
 
                 CustomTextField(
-                  controller: _amountController,
+                  controller: amountController,
                   labelText: 'Enter Amount',
                   keyboardType: TextInputType.number,
                 ),
@@ -1305,7 +1285,7 @@ class _WalletSettlementState extends State<WalletSettlement> {
                   children: [
                     // Cancel Button
                     Expanded(
-                      child: Container(
+                      child: SizedBox(
                         height: 50,
                         child: OutlinedButton(
                           onPressed: () {
@@ -1339,9 +1319,9 @@ class _WalletSettlementState extends State<WalletSettlement> {
                         child: ElevatedButton(
                           onPressed: () {
                             payment.paymentApi(
-                              context,
-                              _amountController.text,
+                              amountController.text,
                               "",
+                              context,
                             );
                           },
                           style: ElevatedButton.styleFrom(

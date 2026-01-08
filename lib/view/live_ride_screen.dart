@@ -461,63 +461,103 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
   }
 
   void _handleReachedButtonClick() async {
-    final liveRideViewModel = Provider.of<LiveRideViewModel>(context, listen: false);
-    final orderId = liveRideViewModel.liveOrderModel!.data!.id.toString();
+    final liveRideViewModel =
+    Provider.of<LiveRideViewModel>(context, listen: false);
+
+    final orderId =
+    liveRideViewModel.liveOrderModel!.data!.id.toString();
 
     try {
-      // First get current order data to check paymode
       final doc = await FirebaseFirestore.instance
           .collection('order')
           .doc(orderId)
           .get();
 
-      if (doc.exists) {
-        final data = doc.data() as Map<String, dynamic>;
-        final payMode = data['paymode'] ?? 0;
+      if (!doc.exists) return;
 
-        print("💰 Reached button clicked - paymode: $payMode");
+      final data = doc.data() as Map<String, dynamic>;
+      final payMode = data['paymode'] ?? 1;
 
-        if (payMode == 1) {
-          // Cash payment - update to status 5 and navigate to collect payment screen
-          print("💵 Cash payment detected - updating to status 5");
-          await FirebaseFirestore.instance
-              .collection('order')
-              .doc(orderId)
-              .update({'ride_status': 5});
+      print("💰 Reached tapped | payMode = $payMode");
 
-          liveRideViewModel.liveOrderModel!.data!.rideStatus = 5;
-          Utils.showSuccessMessage(context, "Reached destination!");
+      /// 🔥 WALLET PAYMENT (paymode == 3)
+      if (payMode == 3) {
+        print("👛 Wallet payment detected → completing ride directly");
 
-          // Navigate to collect payment screen
-          Future.delayed(const Duration(milliseconds: 500), () {
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) => CollectPaymentScreen(orderId: orderId),
-              ),
-            );
-          });
-        } else {
-          // Online payment - update to status 5 and navigate to waiting screen
-          print("💳 Online payment detected - updating to status 5");
-          await FirebaseFirestore.instance
-              .collection('order')
-              .doc(orderId)
-              .update({'ride_status': 5});
+        await FirebaseFirestore.instance
+            .collection('order')
+            .doc(orderId)
+            .update({'ride_status': 6});
 
-          liveRideViewModel.liveOrderModel!.data!.rideStatus = 5;
-          Utils.showSuccessMessage(context, "Ride status updated: Reached destination");
+        liveRideViewModel.liveOrderModel!.data!.rideStatus = 6;
 
-          // Navigate to waiting for payment screen
-          Future.delayed(const Duration(milliseconds: 500), () {
-            _navigateToWaitingPaymentScreen();
-          });
-        }
-        setState(() {});
+        Utils.showSuccessMessage(
+          context,
+          "Ride completed successfully (Wallet)",
+        );
+
+        Future.delayed(const Duration(milliseconds: 300), () {
+          _showRideCompletedDialogMethod();
+        });
+
+        return;
+      }
+
+      /// 💵 CASH PAYMENT
+      if (payMode == 1) {
+        print("💵 Cash payment → move to collect payment");
+
+        await FirebaseFirestore.instance
+            .collection('order')
+            .doc(orderId)
+            .update({'ride_status': 5});
+
+        liveRideViewModel.liveOrderModel!.data!.rideStatus = 5;
+
+        Utils.showSuccessMessage(context, "Reached destination!");
+
+        Future.delayed(const Duration(milliseconds: 300), () {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) =>
+                  CollectPaymentScreen(orderId: orderId),
+            ),
+          );
+        });
+
+        return;
+      }
+
+      /// 💳 ONLINE PAYMENT
+      if (payMode == 2) {
+        print("💳 Online payment → waiting for payment");
+
+        await FirebaseFirestore.instance
+            .collection('order')
+            .doc(orderId)
+            .update({'ride_status': 5});
+
+        liveRideViewModel.liveOrderModel!.data!.rideStatus = 5;
+
+        Utils.showSuccessMessage(
+          context,
+          "Ride status updated: Reached destination",
+        );
+
+        Future.delayed(const Duration(milliseconds: 300), () {
+          _navigateToWaitingPaymentScreen();
+        });
+
+        return;
       }
     } catch (e) {
-      Utils.showErrorMessage(context, "Failed to update ride status: $e");
+      Utils.showErrorMessage(
+        context,
+        "Failed to update ride status: $e",
+      );
     }
   }
+
 
   void _handleCashPaymentCompleted() async {
     final liveRideViewModel = Provider.of<LiveRideViewModel>(context, listen: false);
