@@ -29,6 +29,8 @@ class DailyWeeklyViewModel with ChangeNotifier {
     Map data = {"driver_id": driverId,
       "type": type // type = 1 daily, type = 2 weekly
     };
+    print("yyyyyy");
+    print(data);
 
     _dailyWeeklyRepo
         .dailyWeeklyApi(data)

@@ -441,17 +441,15 @@ class _WalletSettlementState extends State<WalletSettlement> {
             ),
           ] else ...[
             // ✅ Show Transaction List if data available
-            SizedBox(
-              height: 400,
-              child: ListView.builder(
-                shrinkWrap: true,
-                itemCount: transaction.transactionsModel!.data!.length,
-                itemBuilder: (context, index) {
-                  final transactionData =
-                      transaction.transactionsModel!.data![index];
-                  return _buildTransactionItem(transactionData);
-                },
-              ),
+            ListView.builder(
+              shrinkWrap: true,
+              physics: NeverScrollableScrollPhysics(),
+              itemCount: transaction.transactionsModel!.data!.length,
+              itemBuilder: (context, index) {
+                final transactionData =
+                    transaction.transactionsModel!.data![index];
+                return _buildTransactionItem(transactionData);
+              },
             ),
           ],
         ],

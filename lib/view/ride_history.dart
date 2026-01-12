@@ -324,23 +324,29 @@ class _RideHistoryState extends State<RideHistory> {
                   SizedBox(height: Sizes.screenHeight * 0.02),
 
                   // Rating
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      TextConst(
-                        title: "Ride Rating",
-                        size: Sizes.fontSizeSeven,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.grey,
-                      ),
-                      Row(
-                        children: List.generate(
-                          ride.userRating ?? 0,
-                              (index) => const Icon(Icons.star_rounded, color: Colors.amber, size: 18),
+                  if (ride.userRating != null && ride.userRating! > 0)
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        TextConst(
+                          title: "Ride Rating",
+                          size: Sizes.fontSizeSeven,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey,
                         ),
-                      ),
-                    ],
-                  ),
+                        Row(
+                          children: List.generate(
+                            ride.userRating!,
+                                (index) => const Icon(
+                              Icons.star_rounded,
+                              color: Colors.amber,
+                              size: 18,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+
                 ],
               ),
             ),
