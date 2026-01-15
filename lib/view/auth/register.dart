@@ -128,9 +128,9 @@ class _RegisterState extends State<Register> {
 
       if (hasRide) {
         if (mounted) {
-          Navigator.pushReplacement(
+          Navigator.push(
             context,
-            MaterialPageRoute(
+            CupertinoPageRoute(
               builder: (context) =>
                   LiveRideScreen(booking: activeModel!.data!.toJson()),
             ),
@@ -142,7 +142,10 @@ class _RegisterState extends State<Register> {
 
         if (profileModel != null &&
             profileModel.data != null &&
-            profileModel.data!.onlineStatus == 1) {
+            profileModel.data!.onlineStatus == 1 &&
+            profileModel.data!.verifyDocument != 1 &&
+            profileModel.data!.verifyDocument != 3) {
+
           if (mounted) {
             Navigator.pushNamed(context, RoutesName.tripStatus);
           }

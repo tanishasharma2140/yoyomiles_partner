@@ -85,7 +85,7 @@ class _RideHistoryState extends State<RideHistory> {
                       children: [
                         TextConst(
                           title: "Ride History",
-                          size: Sizes.fontSizeEight + 2,
+                          size: Sizes.fontSizeEight,
                           fontWeight: FontWeight.bold,
                           color: Colors.black87,
                         ),
@@ -190,16 +190,6 @@ class _RideHistoryState extends State<RideHistory> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Header Row
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      TextConst(
-                        title: "Booking ID",
-                        size: Sizes.fontSizeSeven - 2,
-                        color: Colors.grey,
-                      ),
-                    ],
-                  ),
 
                   SizedBox(height: Sizes.screenHeight * 0.02),
 

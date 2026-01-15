@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:audioplayers/audioplayers.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -16,10 +15,10 @@ import 'package:yoyomiles_partner/res/custom_appbar.dart';
 import 'package:yoyomiles_partner/res/sizing_const.dart';
 import 'package:yoyomiles_partner/res/text_const.dart';
 import 'package:yoyomiles_partner/view_model/assign_ride_view_model.dart';
+import 'package:yoyomiles_partner/view_model/driver_ignored_ride_view_model.dart';
 import 'package:yoyomiles_partner/view_model/online_status_view_model.dart';
 import 'package:yoyomiles_partner/view_model/profile_view_model.dart';
-
-import '../view_model/update_ride_status_view_model.dart';
+import 'package:yoyomiles_partner/view_model/user_view_model.dart';
 
 class TripStatus extends StatefulWidget {
   const TripStatus({super.key});
@@ -39,12 +38,13 @@ class _TripStatusState extends State<TripStatus> {
   bool isRinging = false;
   bool forceStop = false;
   bool hasPlayedOnce = false; // 🔥 NEW: Prevents multiple play attempts
-
+  int userIds=0;
   @override
   void initState() {
     super.initState();
     getCurrentLocation();
   }
+
 
   @override
   void dispose() {
@@ -59,6 +59,10 @@ class _TripStatusState extends State<TripStatus> {
 
   void getCurrentLocation() async {
     try {
+      final userId = await UserViewModel().getUser();
+      setState(() {
+        userIds= userId!;
+      });
       Position pos = await Geolocator.getCurrentPosition();
       currentLat = pos.latitude;
       currentLng = pos.longitude;
@@ -68,7 +72,7 @@ class _TripStatusState extends State<TripStatus> {
         pos.longitude,
       );
       _currentAddress =
-      "${placemark.first.street}, ${placemark.first.locality}";
+          "${placemark.first.street}, ${placemark.first.locality}";
       if (mounted) setState(() {});
     } catch (e) {
       print("⚠️ getCurrentLocation error: $e");
@@ -205,10 +209,7 @@ class _TripStatusState extends State<TripStatus> {
       print("🎧 AudioContext set");
 
       // IMPORTANT: AssetSource should NOT include folder prefix when asset declared in pubspec with folder
-      await _audioPlayer.play(
-        AssetSource("driver_ringtone.mp3"),
-        volume: 1.0,
-      );
+      await _audioPlayer.play(AssetSource("driver_ringtone.mp3"), volume: 1.0);
       await _audioPlayer.setReleaseMode(ReleaseMode.loop);
       print("✅ Play command sent and looping enabled");
     } catch (e) {
@@ -237,11 +238,9 @@ class _TripStatusState extends State<TripStatus> {
     print("🔕 Ringtone fully stopped");
   }
 
-
   @override
   Widget build(BuildContext context) {
     final profileViewModel = Provider.of<ProfileViewModel>(context);
-
     return SafeArea(
       top: false,
       bottom: true,
@@ -268,10 +267,10 @@ class _TripStatusState extends State<TripStatus> {
                     _showSwitchDialog();
                   } else {
                     final onlineStatusViewModel =
-                    Provider.of<OnlineStatusViewModel>(
-                      context,
-                      listen: false,
-                    );
+                        Provider.of<OnlineStatusViewModel>(
+                          context,
+                          listen: false,
+                        );
                     onlineStatusViewModel.onlineStatusApi(context, 1);
                     setState(() {
                       isSwitched = true;
@@ -430,7 +429,7 @@ class _TripStatusState extends State<TripStatus> {
                           const SizedBox(height: 6),
                           TextConst(
                             title:
-                            "Stay online and you'll receive a booking as soon as a customer requests a ride.",
+                                "Stay online and you'll receive a booking as soon as a customer requests a ride.",
                             textAlign: TextAlign.center,
                             size: 14,
                             fontFamily: AppFonts.poppinsReg,
@@ -556,10 +555,18 @@ class _TripStatusState extends State<TripStatus> {
                               padding: const EdgeInsets.symmetric(vertical: 8),
                               itemCount: bookingList.length,
                               itemBuilder: (context, index) {
+                                print("fklfkl ${bookingList[index]['rideStatus']
+                                }");
+                                // if(bookingList[index]['rideStatus'] !=0 && bookingList[index]['accepted_driver_id'].toString() != userIds.toString()){
+                                //   print("fdkdnfkjfd");
+                                //   return SizedBox.shrink();
+                                //
+                                // }
+
                                 return BookingCard(
                                   bookingData: bookingList[index],
                                   stopRingtoneCallback:
-                                  stopRingtone, // pass callback so accept button can stop ringtone
+                                      stopRingtone, // pass callback so accept button can stop ringtone
                                 );
                               },
                             ),
@@ -614,9 +621,9 @@ class _TripStatusState extends State<TripStatus> {
 
 /// ✅ CORRECTED Stream for matching bookings with ride_status filter
 Stream<List<Map<String, dynamic>>> fetchBookings(
-    String driverVehicleType,
-    context,
-    ) {
+  String driverVehicleType,
+  context,
+) {
   final profileViewModel = Provider.of<ProfileViewModel>(
     context,
     listen: false,
@@ -635,71 +642,76 @@ Stream<List<Map<String, dynamic>>> fetchBookings(
 
     final filtered = snapshot.docs
         .where((doc) {
-      final data = doc.data() as Map<String, dynamic>;
+          final data = doc.data();
 
-      print("\n📄 Document: ${doc.id}");
-      print("RAW DATA => $data");
+          print("\n📄 Document: ${doc.id}");
+          print("RAW DATA => $data");
 
-      final rideStatus = data['ride_status'] ?? 0;
-      print("➡️ ride_status: $rideStatus");
+          final rideStatus = data['ride_status'] ?? 0;
+          print("➡️ ride_status: $rideStatus");
 
-      final isActiveStatus =
-          rideStatus == 0 ||
-              rideStatus == 1 ||
-              rideStatus == 2 ||
-              rideStatus == 3;
-      print("✔️ isActiveStatus = $isActiveStatus");
+          final isActiveStatus =
+              rideStatus == 0 || // pending
+              rideStatus == 1 || //  accpet
+              rideStatus == 2 || // start
+              rideStatus == 3; // reach pickup
+          print("✔️ isActiveStatus = $isActiveStatus");
 
-      if (!isActiveStatus) {
-        print("❌ SKIPPED (Ride status invalid)");
-        return false;
-      }
+          if (!isActiveStatus) {
+            print("❌ SKIPPED (Ride status invalid)");
+            return false;
+          }
+          // if(rideStatus !=0 && data['accepted_driver_id'].toString() != driverId.toString()){
+          //   return false;
+          // }
 
-      final raw = data['available_driver_id'];
-      print("➡️ RAW available_driver_id = $raw (${raw.runtimeType})");
+          final raw = data['available_driver_id'];
+          print("➡️ RAW available_driver_id = $raw (${raw.runtimeType})");
 
-      List<dynamic> ids = [];
-      if (raw is List) {
-        ids = raw;
-      } else if (raw is String && raw.isNotEmpty) {
-        ids = [raw];
-      } else if (raw is int) {
-        ids = [raw];
-      }
+          List<dynamic> ids = [];
+          if (raw is List) {
+            ids = raw;
+          } else if (raw is String && raw.isNotEmpty) {
+            ids = [raw];
+          } else if (raw is int) {
+            ids = [raw];
+          }
 
-      print("➡️ Converted driver list: $ids");
+          print("➡️ Converted driver list: $ids");
 
-      final idStrings = ids.map((e) => e.toString()).toList();
-      print("➡️ Converted to String list: $idStrings");
+          final idStrings = ids.map((e) => e.toString()).toList();
+          print("➡️ Converted to String list: $idStrings");
 
-      final isDriverAvailable = idStrings.contains(driverIdStr);
-      print("✔️ isDriverAvailable = $isDriverAvailable");
+          final isDriverAvailable = idStrings.contains(driverIdStr);
+          print("✔️ isDriverAvailable = $isDriverAvailable");
 
-      if (!isDriverAvailable) {
-        print("❌ SKIPPED (Driver ID not found in list)");
-      }
+          if (!isDriverAvailable) {
+            print("❌ SKIPPED (Driver ID not found in list)");
+          }
 
-      return isDriverAvailable;
-    })
+          return isDriverAvailable;
+        })
         .map((doc) {
-      final data = doc.data() as Map<String, dynamic>;
-      print("\n🎯 ADDING FILTERED DATA => ${doc.id}");
+          final data = doc.data();
+          print("\n🎯 ADDING FILTERED DATA => ${doc.id}");
 
-      return {
-        'id': data['id']?.toString() ?? '',
-        'sender_name': data['sender_name']?.toString() ?? 'N/A',
-        'sender_phone': data['sender_phone']?.toString() ?? 'N/A',
-        'pickup_address': data['pickup_address']?.toString() ?? 'N/A',
-        'reciver_name': data['reciver_name']?.toString() ?? 'N/A',
-        'reciver_phone': data['reciver_phone']?.toString() ?? 'N/A',
-        'drop_address': data['drop_address']?.toString() ?? 'N/A',
-        'available_driver_id': data['available_driver_id'],
-        'document_id': doc.id,
-        'order_type': data['order_type'] ?? 1,
-        'amount': data['amount'] ?? 0,
-        'distance': data['distance'] ?? 0,
-      };
-    })
+          return {
+            'id': data['id']?.toString() ?? '',
+            'sender_name': data['sender_name']?.toString() ?? 'N/A',
+            'sender_phone': data['sender_phone']?.toString() ?? 'N/A',
+            'pickup_address': data['pickup_address']?.toString() ?? 'N/A',
+            'reciver_name': data['reciver_name']?.toString() ?? 'N/A',
+            'reciver_phone': data['reciver_phone']?.toString() ?? 'N/A',
+            'drop_address': data['drop_address']?.toString() ?? 'N/A',
+            'available_driver_id': data['available_driver_id'],
+            'document_id': doc.id,
+            'order_type': data['order_type'] ?? 1,
+            'amount': data['amount'] ?? 0,
+            'distance': data['distance'] ?? 0,
+            'accepted_driver_id': data['accepted_driver_id'] ?? 0,
+            'rideStatus': data['ride_status']??0,
+          };
+        })
         .toList();
 
     print("\n📦 FINAL FILTERED BOOKINGS: ${filtered.length}");
@@ -728,6 +740,7 @@ class BookingCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final assignRideViewModel = Provider.of<AssignRideViewModel>(context);
+    final ignoredRideVm = Provider.of<DriverIgnoredRideViewModel>(context);
 
     return Container(
       margin: EdgeInsets.symmetric(
@@ -801,6 +814,37 @@ class BookingCard extends StatelessWidget {
                         TextConst(
                           title: 'Call',
                           color: PortColor.blackLight,
+                          size: Sizes.fontSizeFour,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                SizedBox(width: Sizes.screenWidth * 0.02),
+                GestureDetector(
+                  onTap: () {
+                    ignoredRideVm.driverIgnoredRideApi(
+                      context: context,
+                      orderId: bookingData['id'].toString(),
+                    );
+                  },
+                  child: Container(
+                    padding: EdgeInsets.symmetric(
+                      vertical: Sizes.screenHeight * 0.006,
+                      horizontal: Sizes.screenWidth * 0.03,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.red.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.red.withOpacity(0.3)),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.close, color: Colors.red, size: 16),
+                        SizedBox(width: Sizes.screenWidth * 0.01),
+                        TextConst(
+                          title: 'Ignore',
+                          color: Colors.red,
                           size: Sizes.fontSizeFour,
                         ),
                       ],
@@ -947,18 +991,18 @@ class BookingCard extends StatelessWidget {
                       child: Center(
                         child: !assignRideViewModel.loading
                             ? TextConst(
-                          title: 'Accept',
-                          color: PortColor.white,
-                          fontWeight: FontWeight.w500,
-                        )
+                                title: 'Accept',
+                                color: PortColor.white,
+                                fontWeight: FontWeight.w500,
+                              )
                             : SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 2,
-                          ),
-                        ),
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2,
+                                ),
+                              ),
                       ),
                     ),
                   ),

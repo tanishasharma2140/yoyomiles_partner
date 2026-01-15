@@ -1039,7 +1039,7 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
   }
 
   Widget _buildDetailRow({
-    required IconData icon,
+    IconData? icon,   // ← optional
     required String title,
     required String content,
     bool isAddress = false,
@@ -1049,12 +1049,15 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
     return Padding(
       padding: EdgeInsets.only(bottom: Sizes.screenHeight * 0.01),
       child: Row(
-        crossAxisAlignment: isAddress
-            ? CrossAxisAlignment.start
-            : CrossAxisAlignment.center,
+        crossAxisAlignment:
+        isAddress ? CrossAxisAlignment.start : CrossAxisAlignment.center,
         children: [
-          Icon(icon, color: PortColor.gold, size: 16),
-          SizedBox(width: Sizes.screenWidth * 0.02),
+          /// ONLY SHOW ICON IF NOT NULL
+          if (icon != null) ...[
+            Icon(icon, color: PortColor.gold, size: 16),
+            SizedBox(width: Sizes.screenWidth * 0.02),
+          ],
+
           Container(
             width: Sizes.screenWidth * (isHeader ? 0.25 : 0.15),
             child: TextConst(
@@ -1064,7 +1067,9 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
               color: PortColor.blackLight,
             ),
           ),
+
           SizedBox(width: Sizes.screenWidth * 0.02),
+
           Expanded(
             child: TextConst(
               title: content,
@@ -1079,6 +1084,7 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
       ),
     );
   }
+
 
   String _getStatusText(int? rideStatus) {
     switch (rideStatus) {
@@ -1173,14 +1179,12 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _buildDetailRow(
-                          icon: Icons.confirmation_number,
                           title: "Booking ID",
                           content: liveRideViewModel.liveOrderModel!.data!.id.toString(),
                           isHeader: true,
                         ),
                         SizedBox(height: Sizes.screenHeight * 0.008),
                         _buildDetailRow(
-                          icon: Icons.directions_car,
                           title: "Vehicle Type",
                           content: liveRideViewModel.liveOrderModel!.data!.vehicleName??"N/A",
                           isHeader: true,
@@ -1513,7 +1517,6 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
   }
 }
 
-// 🔥 NEW SCREEN: Waiting For Payment
 class WaitingForPaymentScreen extends StatelessWidget {
   final String orderId;
   const WaitingForPaymentScreen({super.key, required this.orderId});

@@ -27,6 +27,8 @@ class ApiUrl{
   static const String dailyWeeklyUrl="${baseUrl}daily_weekly_info";
   static const String withdrawUrl="${baseUrl}withdraws";
   static const String withdrawHistoryUrl="${baseUrl}withdraw-history";
+  static const String driverIgnoreRideOrderUrl ="${baseUrl}driver-ignore-ride-order";
+
 
 
 
@@ -36,4 +38,4 @@ class ApiUrl{
   static const String countOtpUrl ="${baseUrl}count_otp";
 
 
-}
+} 
