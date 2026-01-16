@@ -27,10 +27,15 @@ class UpdateRideStatusViewModel with ChangeNotifier {
     _updateRideStatusRepo.updateRideApi(data).then((value) async {
       setLoading(false);
       if (value['success'] == true) {
+        // Navigator.pushNamedAndRemoveUntil(
+        //   context,
+        //   RoutesName.tripStatus,
+        //       (route) => false,
+        // );
         Navigator.pushNamedAndRemoveUntil(
           context,
-          RoutesName.register,
-              (route) => false,
+          RoutesName.tripStatus,
+              (route) => route.settings.name == RoutesName.register,
         );
         Utils.showSuccessMessage(context, "Ride status updated successfully!");
       } else {

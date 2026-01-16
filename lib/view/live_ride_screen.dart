@@ -16,6 +16,7 @@ import 'package:yoyomiles_partner/view/auth/register.dart';
 import 'package:yoyomiles_partner/view_model/live_ride_view_model.dart';
 import 'package:yoyomiles_partner/view_model/profile_view_model.dart';
 import 'package:provider/provider.dart';
+import 'package:yoyomiles_partner/view_model/ride_view_model.dart';
 import 'package:yoyomiles_partner/view_model/update_ride_status_view_model.dart';
 
 
@@ -62,9 +63,9 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
         }
 
         if (liveRideViewModel.liveOrderModel?.data?.id != null) {
-          _startRideStatusListener(
-            liveRideViewModel.liveOrderModel!.data!.id.toString(),
-          );
+          // _startRideStatusListener(
+          //   liveRideViewModel.liveOrderModel!.data!.id.toString(),
+          // );
         }
       });
     });
@@ -80,7 +81,6 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
   // 🔥 FLAGS - NOT NEEDED ANYMORE FOR SCREENS
   bool _showPaymentSuccessDialog = false;
   bool _showRideCompletedDialog = false;
-  bool _showRideCancelledDialog = false;
   bool _mapPopupShown = false;
 
 
@@ -104,7 +104,7 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
 
     print("🪟 Navigating to WAITING payment screen for order: $orderId");
 
-    _startPaymentListener(orderId);
+    // _startPaymentListener(orderId);
 
     Navigator.of(context).push(
       MaterialPageRoute(
@@ -167,37 +167,7 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
   }
 
   // 🔥 NEW: RIDE CANCELLED DIALOG
-  void _showRideCancelledDialogMethod(String userName) {
-    if (_showRideCancelledDialog) {
-      print("⚠️ Ride cancelled dialog already showing");
-      return;
-    }
 
-    print("❌ Showing RIDE CANCELLED dialog by user: $userName");
-
-    setState(() {
-      _showRideCancelledDialog = true;
-    });
-
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) {
-        return _buildRideCancelledDialog(userName);
-      },
-    ).then((_) {
-      print("🔒 Ride cancelled dialog closed");
-      setState(() {
-        _showRideCancelledDialog = false;
-      });
-
-      // ✅ Register screen par navigate karo
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (context) => Register()),
-            (route) => false,
-      );
-    });
-  }
 
   Widget _buildPaymentSuccessDialog() {
     return WillPopScope(
@@ -264,6 +234,7 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
   // NEW: Ride Completed Dialog for Cash Payment
   Widget _buildRideCompletedDialog() {
     final liveRideVm = Provider.of<LiveRideViewModel>(context);
+    final ride = Provider.of<RideViewModel>(context);
     return WillPopScope(
       onWillPop: () async => false,
       child: Dialog(
@@ -313,6 +284,8 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                     MaterialPageRoute(builder: (context) => Register()),
                         (route) => false,
                   );
+                  ride.setActiveRideData(null);
+                  ride.disable78();
                 },
                 child: const Text(
                   "OK",
@@ -390,77 +363,78 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
   }
 
   // Listen for ride_status changes for payment flow
-  void _startPaymentListener(String orderId) {
-    print("🔔 Starting payment listener for order: $orderId");
-
-    try {
-      _paymentSubscription = FirebaseFirestore.instance
-          .collection('order')
-          .doc(orderId)
-          .snapshots()
-          .listen((DocumentSnapshot snapshot) {
-        if (snapshot.exists && snapshot.data() != null) {
-          final data = snapshot.data() as Map<String, dynamic>;
-          final rideStatus = data['ride_status'] ?? 0;
-          print("📢 Payment Listener - ride_status: $rideStatus");
-
-          // 🔥 AGAR STATUS 6 HO GAYA (PAYMENT SUCCESS)
-          if (rideStatus == 6) {
-            print("💰 Payment successful detected! Navigating back and showing success");
-
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              // Pop waiting screen
-              Navigator.of(context).pop();
-
-              // Show success dialog
-              _showPaymentSuccessDialogMethod();
-            });
-          }
-        }
-      }, onError: (error) {
-        print("🔥 Payment listener error: $error");
-      });
-    } catch (e) {
-      print("❌ Error starting payment listener: $e");
-    }
-  }
+  // void _startPaymentListener(String orderId) {
+  //   print("🔔 Starting payment listener for order: $orderId");
+  //
+  //   try {
+  //     _paymentSubscription = FirebaseFirestore.instance
+  //         .collection('order')
+  //         .doc(orderId)
+  //         .snapshots()
+  //         .listen((DocumentSnapshot snapshot) {
+  //       if (snapshot.exists && snapshot.data() != null) {
+  //         final data = snapshot.data() as Map<String, dynamic>;
+  //         final rideStatus = data['ride_status'] ?? 0;
+  //         print("📢 Payment Listener - ride_status: $rideStatus");
+  //
+  //         // 🔥 AGAR STATUS 6 HO GAYA (PAYMENT SUCCESS)
+  //         if (rideStatus == 6) {
+  //           print("💰 Payment successful detected! Navigating back and showing success");
+  //
+  //           WidgetsBinding.instance.addPostFrameCallback((_) {
+  //             // Pop waiting screen
+  //             Navigator.of(context).pop();
+  //
+  //             // Show success dialog
+  //             _showPaymentSuccessDialogMethod();
+  //           });
+  //         }
+  //       }
+  //     }, onError: (error) {
+  //       print("🔥 Payment listener error: $error");
+  //     });
+  //   } catch (e) {
+  //     print("❌ Error starting payment listener: $e");
+  //   }
+  // }
 
   // ✅ FIXED: Listen for ride status changes (specifically for status 7 - cancelled)
-  void _startRideStatusListener(String orderId) {
-    print("🔔 Starting ride status listener for order: $orderId");
-
-    try {
-      _rideStatusSubscription = FirebaseFirestore.instance
-          .collection('order')
-          .doc(orderId)
-          .snapshots()
-          .listen((DocumentSnapshot snapshot) {
-        if (snapshot.exists && snapshot.data() != null) {
-          final data = snapshot.data() as Map<String, dynamic>;
-          final rideStatus = data['ride_status'] ?? 0;
-          final userName = data['sender_name'] ?? 'User';
-
-          print("📢 Ride Status Listener - ride_status: $rideStatus, user: $userName");
-
-          // 🔥 AGAR RIDE STATUS 7 HO GAYA (CANCELLED)
-          if (rideStatus == 7 && !_showRideCancelledDialog) {
-            print("❌ Ride cancelled detected! Showing cancelled dialog");
-
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              // Cancel dialog show karo
-              _showRideCancelledDialogMethod(userName);
-            });
-          }
-        }
-      }, onError: (error) {
-        print("🔥 Ride status listener error: $error");
-      });
-    } catch (e) {
-      print("❌ Error starting ride status listener: $e");
-    }
-  }
+  // void _startRideStatusListener(String orderId) {
+  //   print("🔔 Starting ride status listener for order: $orderId");
+  //
+  //   try {
+  //     _rideStatusSubscription = FirebaseFirestore.instance
+  //         .collection('order')
+  //         .doc(orderId)
+  //         .snapshots()
+  //         .listen((DocumentSnapshot snapshot) {
+  //       if (snapshot.exists && snapshot.data() != null) {
+  //         final data = snapshot.data() as Map<String, dynamic>;
+  //         final rideStatus = data['ride_status'] ?? 0;
+  //         final userName = data['sender_name'] ?? 'User';
+  //
+  //         print("📢 Ride Status Listener - ride_status: $rideStatus, user: $userName");
+  //
+  //         // 🔥 AGAR RIDE STATUS 7 HO GAYA (CANCELLED)
+  //         if (rideStatus == 7 && !_showRideCancelledDialog) {
+  //           print("❌ Ride cancelled detected! Showing cancelled dialog");
+  //
+  //           WidgetsBinding.instance.addPostFrameCallback((_) {
+  //             // Cancel dialog show karo
+  //             _showRideCancelledDialogMethod(userName);
+  //           });
+  //         }
+  //       }
+  //     }, onError: (error) {
+  //       print("🔥 Ride status listener error: $error");
+  //     });
+  //   } catch (e) {
+  //     print("❌ Error starting ride status listener: $e");
+  //   }
+  // }
 
   void _handleReachedButtonClick() async {
+    final rideStatus = Provider.of<RideViewModel>(context , listen: false);
     final liveRideViewModel =
     Provider.of<LiveRideViewModel>(context, listen: false);
 
@@ -468,15 +442,7 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
     liveRideViewModel.liveOrderModel!.data!.id.toString();
 
     try {
-      final doc = await FirebaseFirestore.instance
-          .collection('order')
-          .doc(orderId)
-          .get();
-
-      if (!doc.exists) return;
-
-      final data = doc.data() as Map<String, dynamic>;
-      final payMode = data['paymode'] ?? 1;
+      final payMode = rideStatus.activeRideData?['payMode'] ?? 1;
 
       print("💰 Reached tapped | payMode = $payMode");
 
@@ -484,12 +450,10 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
       if (payMode == 3) {
         print("👛 Wallet payment detected → completing ride directly");
 
-        await FirebaseFirestore.instance
-            .collection('order')
-            .doc(orderId)
-            .update({'ride_status': 6});
+        rideStatus.updateRideStatus(6);
 
-        liveRideViewModel.liveOrderModel!.data!.rideStatus = 6;
+
+        // liveRideViewModel.liveOrderModel!.data!.rideStatus = 6;
 
         Utils.showSuccessMessage(
           context,
@@ -512,7 +476,7 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
             .doc(orderId)
             .update({'ride_status': 5});
 
-        liveRideViewModel.liveOrderModel!.data!.rideStatus = 5;
+        // liveRideViewModel.liveOrderModel!.data!.rideStatus = 5;
 
         Utils.showSuccessMessage(context, "Reached destination!");
 
@@ -537,7 +501,7 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
             .doc(orderId)
             .update({'ride_status': 5});
 
-        liveRideViewModel.liveOrderModel!.data!.rideStatus = 5;
+        // liveRideViewModel.liveOrderModel!.data!.rideStatus = 5;
 
         Utils.showSuccessMessage(
           context,
@@ -555,32 +519,6 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
         context,
         "Failed to update ride status: $e",
       );
-    }
-  }
-
-
-  void _handleCashPaymentCompleted() async {
-    final liveRideViewModel = Provider.of<LiveRideViewModel>(context, listen: false);
-    final orderId = liveRideViewModel.liveOrderModel!.data!.id.toString();
-
-    try {
-      print("💵 Cash payment completed - updating to status 6");
-      await FirebaseFirestore.instance
-          .collection('order')
-          .doc(orderId)
-          .update({'ride_status': 6});
-
-      liveRideViewModel.liveOrderModel!.data!.rideStatus = 6;
-      Utils.showSuccessMessage(context, "Ride completed successfully!");
-
-      // Show ride completed dialog
-      Future.delayed(const Duration(milliseconds: 500), () {
-        _showRideCompletedDialogMethod();
-      });
-
-      setState(() {});
-    } catch (e) {
-      Utils.showErrorMessage(context, "Failed to complete ride: $e");
     }
   }
 
@@ -746,10 +684,6 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
     }
   }
 
-
-
-
-
   @override
   Widget build(BuildContext context) {
     final profileViewModel = Provider.of<ProfileViewModel>(context);
@@ -764,76 +698,51 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
           name: profileViewModel.profileModel!.data!.driverName!,
           imageUrl: profileViewModel.profileModel!.data!.ownerSelfie ?? "",
         ),
-        body: Stack(
-          children: [
-            SizedBox(
-              width: double.infinity,
-              height: double.infinity,
-              child: ConstMap(
-                data: [widget.booking],
-                rideStatus: liveRideViewModel.liveOrderModel?.data?.rideStatus,
-                onAddressFetched: (address) {
-                  setState(() {
-                    _currentAddress = address;
-                  });
-                },
-              ),
-            ),
-
-            if (liveRideViewModel.liveOrderModel?.data?.id != null)
-              StreamBuilder<DocumentSnapshot>(
-                stream: FirebaseFirestore.instance
-                    .collection('order')
-                    .doc(liveRideViewModel.liveOrderModel!.data!.id.toString())
-                    .snapshots(),
-                builder: (context, snapshot) {
-                  if (snapshot.hasData && snapshot.data!.exists) {
-                    final data = snapshot.data!.data() as Map<String, dynamic>;
-                    final rideStatus = data['ride_status'] ?? 0;
-
-                    if (liveRideViewModel.liveOrderModel!.data!.rideStatus != rideStatus) {
-                      WidgetsBinding.instance.addPostFrameCallback((_) {
-                        liveRideViewModel.liveOrderModel!.data!.rideStatus = rideStatus;
-                        setState(() {});
+        body: Consumer<RideViewModel>(
+          builder: (context,rideVm,child,) {
+            final activeRideData = rideVm.activeRideData;
+            return Stack(
+              children: [
+                SizedBox(
+                  width: double.infinity,
+                  height: double.infinity,
+                  child: ConstMap(
+                    data: [widget.booking],
+                    rideStatus: liveRideViewModel.liveOrderModel?.data?.rideStatus,
+                    onAddressFetched: (address) {
+                      setState(() {
+                        _currentAddress = address;
                       });
-                    }
-                    if (rideStatus == 2 && !_mapPopupShown) {
-                      _mapPopupShown = true;
-
-                      WidgetsBinding.instance.addPostFrameCallback((_) {
-                        _showGoToMapPopupFromCurrentLocation();
-                      });
-                    }
-                  }
-                  return const SizedBox.shrink();
-                },
-              ),
-
-            DraggableScrollableSheet(
-              initialChildSize: 0.35,
-              minChildSize: 0.28,
-              maxChildSize: 0.65,
-              builder: (context, scrollController) {
-                return Container(
-                  decoration: BoxDecoration(
-                    color: PortColor.white,
-                    borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(20),
-                      topRight: Radius.circular(20),
-                    ),
-                    boxShadow: const [
-                      BoxShadow(
-                        color: Colors.black26,
-                        blurRadius: 10,
-                        offset: Offset(0, -2),
-                      ),
-                    ],
+                    },
                   ),
-                  child: _buildSheetContent(scrollController),
-                );
-              },
-            ),
-          ],
+                ),
+                   DraggableScrollableSheet(
+                  initialChildSize: 0.35,
+                  minChildSize: 0.28,
+                  maxChildSize: 0.65,
+                  builder: (context, scrollController) {
+                    return Container(
+                      decoration: BoxDecoration(
+                        color: PortColor.white,
+                        borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(20),
+                          topRight: Radius.circular(20),
+                        ),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Colors.black26,
+                            blurRadius: 10,
+                            offset: Offset(0, -2),
+                          ),
+                        ],
+                      ),
+                      child: _buildSheetContent(scrollController,activeRideData),
+                    );
+                  },
+                ),
+              ],
+            );
+          }
         ),
       ),
     );
@@ -879,7 +788,7 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
       context,
       listen: false,
     );
-
+    final rideStatus = Provider.of<RideViewModel>(context,listen: false);
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -966,31 +875,16 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                         onPressed: () async {
                           final enteredOtp = _otpController.text.trim();
                           if (enteredOtp.isEmpty) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text("Please enter OTP"),
-                                backgroundColor: Colors.red,
-                              ),
-                            );
+                             Utils.showErrorMessage(context, "Please enter OTP");
                             return;
                           }
-
                           try {
-                            final doc = await FirebaseFirestore.instance
-                                .collection('order')
-                                .doc(orderId)
-                                .get();
+                            final firestoreOtp =  rideStatus.activeRideData?['otp'];
+                            print("otpdfdd$firestoreOtp");
+                            print(enteredOtp);
 
-                            final firestoreOtp =
-                                doc.data()?['otp']?.toString() ?? "";
-
-                            if (firestoreOtp == enteredOtp) {
-                              await FirebaseFirestore.instance
-                                  .collection('order')
-                                  .doc(orderId)
-                                  .update({'ride_status': 4});
-
-                              liveRideViewModel.liveOrderModel!.data!.rideStatus = 4;
+                            if (firestoreOtp.toString() == enteredOtp.toString()) {
+                              rideStatus.updateRideStatus(4);
 
                               Navigator.of(context).pop();
                               Utils.showSuccessMessage(context, "OTP verified! Ride started.");
@@ -1087,6 +981,8 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
 
 
   String _getStatusText(int? rideStatus) {
+    print("kjkjkjk");
+    print(rideStatus);
     switch (rideStatus) {
       case 1:
         return "Accepted by Driver";
@@ -1107,7 +1003,7 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
     }
   }
 
-  Widget _buildSheetContent(ScrollController scrollController) {
+  Widget _buildSheetContent(ScrollController scrollController, Map<String, dynamic>? activeRideData) {
     final liveRideViewModel = Provider.of<LiveRideViewModel>(context);
     final updateRideStatus = Provider.of<UpdateRideStatusViewModel>(context);
 
@@ -1153,7 +1049,9 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
         ],
       );
     }
-
+    print('lololo');
+ print(activeRideData);
+    final rideStatus = Provider.of<RideViewModel>(context);
     return Column(
       children: [
         Container(
@@ -1392,7 +1290,7 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                         SizedBox(width: Sizes.screenWidth * 0.02),
                         Expanded(
                           child: TextConst(
-                            title: "Current Status: ${_getStatusText(liveRideViewModel.liveOrderModel!.data!.rideStatus)}",
+                            title: "Current Status: ${_getStatusText(activeRideData?['rideStatus'])}",
                             size: Sizes.fontSizeFive,
                             fontWeight: FontWeight.w600,
                             color: PortColor.gold,
@@ -1412,22 +1310,15 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                           onTap: () async {
                             final liveRideViewModel = Provider.of<LiveRideViewModel>(context, listen: false);
                             final orderId = liveRideViewModel.liveOrderModel!.data!.id;
-                            int currentStatus = liveRideViewModel.liveOrderModel!.data!.rideStatus ?? 1;
+                            int currentStatus = activeRideData?['rideStatus'] ?? 1;
 
                             try {
                               if (currentStatus == 1) {
-                                await FirebaseFirestore.instance
-                                    .collection('order')
-                                    .doc(orderId.toString())
-                                    .update({'ride_status': 2});
-                                liveRideViewModel.liveOrderModel!.data!.rideStatus = 2;
+                                rideStatus.updateRideStatus(2);
+                                _showGoToMapPopupFromCurrentLocation();
                                 Utils.showSuccessMessage(context, "Ride status updated: Start for Pickup Location");
                               } else if (currentStatus == 2) {
-                                await FirebaseFirestore.instance
-                                    .collection('order')
-                                    .doc(orderId.toString())
-                                    .update({'ride_status': 3});
-                                liveRideViewModel.liveOrderModel!.data!.rideStatus = 3;
+                                rideStatus.updateRideStatus(3);
                                 Utils.showSuccessMessage(context, "Ride status updated: Arrived at Pickup Point");
                               } else if (currentStatus == 3) {
                                 _showOtpDialog(orderId.toString());
@@ -1447,12 +1338,12 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                               vertical: Sizes.screenHeight * 0.014,
                             ),
                             decoration: BoxDecoration(
-                              color: _getButtonColor(liveRideViewModel.liveOrderModel!.data!.rideStatus),
+                              color: _getButtonColor(activeRideData?['rideStatus']),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Center(
                               child: TextConst(
-                                title: _getButtonText(liveRideViewModel.liveOrderModel!.data!.rideStatus),
+                                title: _getButtonText(activeRideData?['rideStatus']),
                                 color: Colors.white,
                                 fontWeight: FontWeight.w600,
                                 size: Sizes.fontSizeFive,
@@ -1462,7 +1353,7 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                         ),
                       ),
 
-                      if (liveRideViewModel.liveOrderModel!.data!.rideStatus! < 4) ...[
+                      if (activeRideData?['rideStatus']! < 4) ...[
                         SizedBox(width: Sizes.screenWidth * 0.03),
                         Expanded(
                           child: GestureDetector(
@@ -1472,6 +1363,7 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                                 liveRideViewModel.liveOrderModel!.data!.id.toString(),
                                 "8",
                               );
+                              // rideStatus.setActiveRideData(null);
                             },
                             child: Container(
                               padding: EdgeInsets.symmetric(
@@ -1667,7 +1559,7 @@ class _CollectPaymentScreenState extends State<CollectPaymentScreen> {
           .doc(widget.orderId)
           .update({'ride_status': 6});
 
-      liveRideViewModel.liveOrderModel!.data!.rideStatus = 6;
+      // liveRideViewModel.liveOrderModel!.data!.rideStatus = 6;
       Utils.showSuccessMessage(context, "Ride completed successfully!");
 
       // Navigate back and show completed dialog
@@ -1686,6 +1578,7 @@ class _CollectPaymentScreenState extends State<CollectPaymentScreen> {
   }
 
   Widget _buildRideCompletedDialog(BuildContext context) {
+    final rideStatus = Provider.of<RideViewModel>(context);
     final liveRideVm = Provider.of<LiveRideViewModel>(context);
     return WillPopScope(
       onWillPop: () async => false,
@@ -1737,6 +1630,8 @@ class _CollectPaymentScreenState extends State<CollectPaymentScreen> {
                     MaterialPageRoute(builder: (context) => Register()),
                         (route) => false,
                   );
+                   rideStatus.setActiveRideData(null);
+                  rideStatus.disable78();
                 },
                 child: const Text(
                   "OK",

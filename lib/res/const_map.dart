@@ -117,21 +117,26 @@ class _ConstMapState extends State<ConstMap> {
         desiredAccuracy: LocationAccuracy.best,
       );
 
-      setState(() async {
-        _currentPosition = LatLng(position.latitude, position.longitude);
+      final currentIcon = await BitmapDescriptor.fromAssetImage(
+        const ImageConfiguration(size: Size(74, 74)),
+        Assets.assetsHueCurrent,
+      );
 
-        _currentLocationMarker = Marker(
-          markerId: const MarkerId("currentLocation"),
-          position: _currentPosition!,
-          icon: await BitmapDescriptor.fromAssetImage(
-            const ImageConfiguration(size: Size(74, 74)),
-            Assets.assetsHueCurrent,
-          ),
-          infoWindow: const InfoWindow(title: "You are here"),
-        );
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        setState(() {
+          _currentPosition = LatLng(position.latitude, position.longitude);
 
-        _markers.add(_currentLocationMarker!);
+          _currentLocationMarker = Marker(
+            markerId: const MarkerId("currentLocation"),
+            position: _currentPosition!,
+            icon: currentIcon,
+            infoWindow: const InfoWindow(title: "You are here"),
+          );
+
+          _markers.add(_currentLocationMarker!);
+        });
       });
+
 
       _fetchAddress(position.latitude, position.longitude);
       _addBookingMarkers();
@@ -275,8 +280,10 @@ class _ConstMapState extends State<ConstMap> {
   /// Draw polylines based on ride status
   Future<void> _drawPolylinesBasedOnStatus(Map<String, dynamic> booking) async {
     // Clear existing polylines
-    setState(() {
-      _polylines.clear();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      setState(() {
+        _polylines.clear();
+      });
     });
 
     if (widget.rideStatus == null) return;
@@ -320,18 +327,22 @@ class _ConstMapState extends State<ConstMap> {
       List<LatLng> routeToDrop = await _getRoutePoints(pickupLatLng, dropLatLng);
 
       if (routeToDrop.isNotEmpty) {
-        setState(() {
-          _polylines.add(Polyline(
-            polylineId: PolylineId("pickup_to_drop_status_4"),
-            points: routeToDrop,
-            color: PortColor.buttonBlue, // Different color for status 4
-            width: 3,
-          ));
-        });
+        WidgetsBinding.instance.addPostFrameCallback((_) async {
+          setState(() {
+            _polylines.add(
+              Polyline(
+                polylineId: PolylineId("pickup_to_drop_status_4"),
+                points: routeToDrop,
+                color: PortColor.buttonBlue,
+                width: 3,
+              ),
+            );
+          });
 
-        // ✅ USE moveCameraOnPolyline FUNCTION HERE
-        await moveCameraOnPolyline(routeToDrop);
+          await moveCameraOnPolyline(routeToDrop);
+        });
       }
+
     }
 
     // ✅ CURRENT LOCATION SE PICKUP TAK POLYLINE (Status 1-3)
@@ -343,18 +354,22 @@ class _ConstMapState extends State<ConstMap> {
       List<LatLng> routeToPickup = await _getRoutePoints(_currentPosition!, pickupLatLng);
 
       if (routeToPickup.isNotEmpty) {
-        setState(() {
-          _polylines.add(Polyline(
-            polylineId: PolylineId("driver_to_pickup"),
-            points: routeToPickup,
-            color: Colors.blue,
-            width: 3,
-          ));
-        });
+        WidgetsBinding.instance.addPostFrameCallback((_) async {
+          setState(() {
+            _polylines.add(
+              Polyline(
+                polylineId: PolylineId("driver_to_pickup"),
+                points: routeToPickup,
+                color: Colors.blue,
+                width: 3,
+              ),
+            );
+          });
 
-        // ✅ USE moveCameraOnPolyline FUNCTION HERE
-        await moveCameraOnPolyline(routeToPickup);
+          await moveCameraOnPolyline(routeToPickup);
+        });
       }
+
     }
 
     // ✅ PICKUP SE DROP TAK POLYLINE (Status 5+)
@@ -366,18 +381,22 @@ class _ConstMapState extends State<ConstMap> {
       List<LatLng> routeToDrop = await _getRoutePoints(pickupLatLng, dropLatLng);
 
       if (routeToDrop.isNotEmpty) {
-        setState(() {
-          _polylines.add(Polyline(
-            polylineId: PolylineId("pickup_to_drop"),
-            points: routeToDrop,
-            color: Colors.green,
-            width: 3,
-          ));
-        });
+        WidgetsBinding.instance.addPostFrameCallback((_) async {
+          setState(() {
+            _polylines.add(
+              Polyline(
+                polylineId: PolylineId("pickup_to_drop"),
+                points: routeToDrop,
+                color: Colors.green,
+                width: 3,
+              ),
+            );
+          });
 
-        // ✅ USE moveCameraOnPolyline FUNCTION HERE
-        await moveCameraOnPolyline(routeToDrop);
+          await moveCameraOnPolyline(routeToDrop);
+        });
       }
+
     }
 
     if (widget.rideStatus! >= 5 && _currentPosition != null && dropLatLng != null) {
@@ -388,19 +407,26 @@ class _ConstMapState extends State<ConstMap> {
       List<LatLng> routeToFinal = await _getRoutePoints(_currentPosition!, dropLatLng);
 
       if (routeToFinal.isNotEmpty) {
-        setState(() {
-          _polylines.add(Polyline(
-            polylineId: PolylineId("driver_to_drop"),
-            points: routeToFinal,
-            color: Colors.orange,
-            width: 3,
-            patterns: [PatternItem.dash(10), PatternItem.gap(5)],
-          ));
-        });
+        WidgetsBinding.instance.addPostFrameCallback((_) async {
+          setState(() {
+            _polylines.add(
+              Polyline(
+                polylineId: PolylineId("driver_to_drop"),
+                points: routeToFinal,
+                color: Colors.orange,
+                width: 3,
+                patterns: [
+                  PatternItem.dash(10),
+                  PatternItem.gap(5),
+                ],
+              ),
+            );
+          });
 
-        // ✅ USE moveCameraOnPolyline FUNCTION HERE (Optional)
-        await moveCameraOnPolyline(routeToFinal);
+          await moveCameraOnPolyline(routeToFinal);
+        });
       }
+
     }
   }
 
@@ -481,31 +507,37 @@ class _ConstMapState extends State<ConstMap> {
       if (pickupLatLng != null) {
         final pickupIcon = await resizeMarkerIcon(Assets.assetsCurrentLocation, 65);
 
-        setState(() {
-          _markers.add(
-            Marker(
-              markerId: MarkerId("pickup_${booking['id']}"),
-              position: pickupLatLng!,
-              infoWindow: const InfoWindow(title: "Pickup Location"),
-              icon: pickupIcon,
-            ),
-          );
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          setState(() {
+            _markers.add(
+              Marker(
+                markerId: MarkerId("pickup_${booking['id']}"),
+                position: pickupLatLng!,
+                infoWindow: const InfoWindow(title: "Pickup Location"),
+                icon: pickupIcon,
+              ),
+            );
+          });
         });
+
       }
 
       if (dropLatLng != null) {
         final dropIcon = await resizeMarkerIcon(Assets.assetsDropLocation, 65);
 
-        setState(() {
-          _markers.add(
-            Marker(
-              markerId: MarkerId("drop_${booking['id']}"),
-              position: dropLatLng!,
-              infoWindow: const InfoWindow(title: "Drop Location"),
-              icon: dropIcon,
-            ),
-          );
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          setState(() {
+            _markers.add(
+              Marker(
+                markerId: MarkerId("drop_${booking['id']}"),
+                position: dropLatLng!,
+                infoWindow: const InfoWindow(title: "Drop Location"),
+                icon: dropIcon,
+              ),
+            );
+          });
         });
+
       }
     }
 

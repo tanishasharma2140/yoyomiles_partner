@@ -17,6 +17,7 @@ import 'package:yoyomiles_partner/view_model/active_ride_view_model.dart';
 import 'package:yoyomiles_partner/view_model/online_status_view_model.dart';
 import 'package:yoyomiles_partner/view_model/profile_view_model.dart';
 import 'package:provider/provider.dart';
+import 'package:yoyomiles_partner/view_model/ride_view_model.dart';
 import 'package:yoyomiles_partner/view_model/user_view_model.dart';
 
 class Register extends StatefulWidget {
@@ -127,6 +128,8 @@ class _RegisterState extends State<Register> {
       }
 
       if (hasRide) {
+        final ride = Provider.of<RideViewModel>(context, listen: false);
+        ride.handleRideUpdate("", context);
         if (mounted) {
           Navigator.push(
             context,

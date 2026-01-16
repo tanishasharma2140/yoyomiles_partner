@@ -18,7 +18,80 @@ import 'package:yoyomiles_partner/view_model/assign_ride_view_model.dart';
 import 'package:yoyomiles_partner/view_model/driver_ignored_ride_view_model.dart';
 import 'package:yoyomiles_partner/view_model/online_status_view_model.dart';
 import 'package:yoyomiles_partner/view_model/profile_view_model.dart';
+import 'package:yoyomiles_partner/view_model/ride_view_model.dart';
 import 'package:yoyomiles_partner/view_model/user_view_model.dart';
+
+class RingtoneManager {
+  static final RingtoneManager _instance = RingtoneManager._internal();
+  factory RingtoneManager() => _instance;
+  RingtoneManager._internal();
+
+  final AudioPlayer _audioPlayer = AudioPlayer();
+  bool _isRinging = false;
+  bool _isDisposed = false;
+
+  Future<void> playRingtone() async {
+    if (_isDisposed) {
+      print("⚠️ RingtoneManager disposed, cannot play");
+      return;
+    }
+
+    print("🔔 Playing ringtone");
+    try {
+      // Pehle purana band karo
+      if (_isRinging) {
+        print("⏹️ Stopping previous ringtone");
+        await _audioPlayer.stop();
+      }
+
+      _isRinging = true;
+
+      await _audioPlayer.setAudioContext(
+        const AudioContext(
+          android: AudioContextAndroid(
+            isSpeakerphoneOn: true,
+            stayAwake: true,
+            usageType: AndroidUsageType.alarm,
+            contentType: AndroidContentType.music,
+            audioFocus: AndroidAudioFocus.gain,
+          ),
+          iOS: AudioContextIOS(),
+        ),
+      );
+
+      await _audioPlayer.play(AssetSource("driver_ringtone.mp3"), volume: 1.0);
+      await _audioPlayer.setReleaseMode(ReleaseMode.loop);
+      print("✅ Ringtone started");
+    } catch (e) {
+      print("❌ Ringtone error: $e");
+      _isRinging = false;
+    }
+  }
+
+  Future<void> stopRingtone() async {
+    if (_isDisposed) return;
+    if (!_isRinging) return;
+
+    print("🛑 Stopping ringtone");
+    try {
+      await _audioPlayer.stop();
+      _isRinging = false;
+      print("🔕 Ringtone stopped");
+    } catch (e) {
+      print("⚠️ Stop error: $e");
+    }
+  }
+
+  bool get isRinging => _isRinging;
+
+  void dispose() {
+    _isDisposed = true;
+    try {
+      _audioPlayer.stop();
+      _audioPlayer.dispose();
+    } catch (_) {}
+  }
+}
 
 class TripStatus extends StatefulWidget {
   const TripStatus({super.key});
@@ -34,25 +107,33 @@ class _TripStatusState extends State<TripStatus> {
   double currentLng = 0.0;
   Map<String, Timer> bookingTimers = {};
 
-  final AudioPlayer _audioPlayer = AudioPlayer();
-  bool isRinging = false;
-  bool forceStop = false;
-  bool hasPlayedOnce = false; // 🔥 NEW: Prevents multiple play attempts
-  int userIds=0;
+  // 🔥 Use global ringtone manager
+  final RingtoneManager _ringtoneManager = RingtoneManager();
+
+  // 🔥 Track processed bookings
+  Set<String> _seenBookingIds = {};
+  StreamSubscription? _bookingSubscription;
+
+  int userIds = 0;
+
+  // 🔥 Track if ride is being accepted to prevent navigation issues
+  bool _isAcceptingRide = false;
+
   @override
   void initState() {
     super.initState();
     getCurrentLocation();
+    final ride = Provider.of<RideViewModel>(context, listen: false);
+    ride.handleRideUpdate("", context);
   }
-
 
   @override
   void dispose() {
-    // Ensure ringtone stopped and player released
     try {
+      _bookingSubscription?.cancel();
       bookingTimers.forEach((key, timer) => timer.cancel());
-      _audioPlayer.stop();
-      _audioPlayer.dispose();
+      // Stop ringtone on dispose
+      _ringtoneManager.stopRingtone();
     } catch (_) {}
     super.dispose();
   }
@@ -61,7 +142,7 @@ class _TripStatusState extends State<TripStatus> {
     try {
       final userId = await UserViewModel().getUser();
       setState(() {
-        userIds= userId!;
+        userIds = userId!;
       });
       Position pos = await Geolocator.getCurrentPosition();
       currentLat = pos.latitude;
@@ -74,6 +155,7 @@ class _TripStatusState extends State<TripStatus> {
       _currentAddress =
           "${placemark.first.street}, ${placemark.first.locality}";
       if (mounted) setState(() {});
+      Provider.of<ConstMapController>(context,listen: false).toggleLightMode(true);
     } catch (e) {
       print("⚠️ getCurrentLocation error: $e");
     }
@@ -174,73 +256,11 @@ class _TripStatusState extends State<TripStatus> {
     );
   }
 
-  // 🔥 FIXED: Play ringtone only once, continuously loop
-  Future<void> playRingtone() async {
-    print("🔔 playRingtone called");
-
-    // 🚫 STOP if already played or force stopped
-    if (hasPlayedOnce || forceStop) {
-      print("⛔ Ringtone already playing or stopped - skip");
-      return;
-    }
-
-    if (isRinging) {
-      print("⛔ Already ringing - skip");
-      return;
-    }
-
-    try {
-      isRinging = true;
-      hasPlayedOnce = true; // 🔥 Mark as played
-
-      // Set AudioContext for Android (improves reliability on 12/13)
-      await _audioPlayer.setAudioContext(
-        const AudioContext(
-          android: AudioContextAndroid(
-            isSpeakerphoneOn: true,
-            stayAwake: true,
-            usageType: AndroidUsageType.alarm,
-            contentType: AndroidContentType.music,
-            audioFocus: AndroidAudioFocus.gain,
-          ),
-          iOS: AudioContextIOS(),
-        ),
-      );
-      print("🎧 AudioContext set");
-
-      // IMPORTANT: AssetSource should NOT include folder prefix when asset declared in pubspec with folder
-      await _audioPlayer.play(AssetSource("driver_ringtone.mp3"), volume: 1.0);
-      await _audioPlayer.setReleaseMode(ReleaseMode.loop);
-      print("✅ Play command sent and looping enabled");
-    } catch (e) {
-      print("❌ Error in playRingtone: $e");
-      // Ensure flag reset on error
-      isRinging = false;
-      hasPlayedOnce = false; // Allow retry on error
-    }
-  }
-
-  Future<void> stopRingtone() async {
-    print("🛑 stopRingtone called");
-
-    forceStop = true; // 🔥 Prevents ringtone from starting again
-    hasPlayedOnce = false; // 🔥 Reset for next booking session
-
-    if (!isRinging) return;
-
-    try {
-      await _audioPlayer.stop();
-    } catch (e) {
-      print("⚠️ error stopping audio: $e");
-    }
-
-    isRinging = false;
-    print("🔕 Ringtone fully stopped");
-  }
 
   @override
   Widget build(BuildContext context) {
     final profileViewModel = Provider.of<ProfileViewModel>(context);
+    final mapCtrl = Provider.of<ConstMapController>(context);
     return SafeArea(
       top: false,
       bottom: true,
@@ -250,8 +270,7 @@ class _TripStatusState extends State<TripStatus> {
           leading: IconButton(
             icon: const Icon(Icons.arrow_back, color: Colors.black),
             onPressed: () {
-              // stop ringtone when leaving screen
-              stopRingtone();
+              _ringtoneManager.stopRingtone();
               Navigator.pop(context);
             },
           ),
@@ -286,78 +305,72 @@ class _TripStatusState extends State<TripStatus> {
             const SizedBox(width: 12),
           ],
         ),
-        body: StreamBuilder<List<Map<String, dynamic>>>(
-          stream: fetchBookings("", context),
-          builder: (context, snapshot) {
-            print(
-              "📡 StreamBuilder update: connectionState=${snapshot.connectionState}, hasData=${snapshot.hasData}",
-            );
+        body: Consumer<RideViewModel>(
+          builder: (context, rideVM, child) {
+            print("hgfhg ${rideVM.allRideData}");
+            final bookingList = rideVM.allRideData ?? [];
 
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return Center(
-                child: CircularProgressIndicator(color: PortColor.gold),
-              );
-            } else if (snapshot.hasError) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.error_outline, color: PortColor.red, size: 50),
-                    SizedBox(height: Sizes.screenHeight * 0.02),
-                    TextConst(
-                      title: 'Error loading bookings',
-                      color: PortColor.red,
-                      size: Sizes.fontSizeFive,
-                    ),
-                  ],
-                ),
-              );
-            }
+            // if (_isAcceptingRide) {
+            //   print("⏸️ Accepting ride - ignoring stream updates");
+            //   return _buildLoadingScreen();
+            // }
+            //
+            // final currentBookingIds = bookingList
+            //     .map((b) => b['document_id'] as String)
+            //     .toSet();
+            //
+            // // 🔥 Detect NEW bookings only
+            // final newBookings = currentBookingIds.difference(_seenBookingIds);
+            //
+            // print(
+            //   "📊 Current: ${currentBookingIds.length}, Seen: ${_seenBookingIds.length}, New: ${newBookings.length}",
+            // );
+            //
+            // // Play ringtone for new bookings
+            // if (newBookings.isNotEmpty && !_ringtoneManager.isRinging) {
+            //   print("🆕 NEW BOOKING DETECTED: $newBookings");
+            //   _ringtoneManager.playRingtone();
+            // }
+            //
+            // // Stop ringtone when all bookings are gone
+            // if (bookingList.isEmpty && _ringtoneManager.isRinging) {
+            //   print("📭 No bookings - stopping ringtone");
+            //   _ringtoneManager.stopRingtone();
+            //   _seenBookingIds.clear();
+            // }
+            // else if (bookingList.isNotEmpty) {
+            //   // Update seen bookings
+            //   _seenBookingIds = currentBookingIds;
+            // }
+            //
+            // // CLEAR EXPIRED TIMERS
+            // bookingTimers.removeWhere((key, timer) {
+            //   bool exists = bookingList.any((b) => b['document_id'] == key);
+            //   if (!exists) {
+            //     timer.cancel();
+            //     return true;
+            //   }
+            //   return false;
+            // });
 
-            final bookingList = snapshot.data ?? [];
-            print("📦 bookingList.length = ${bookingList.length}");
+            return Stack(
+              children: [
+                Positioned.fill(
+                  top: 0,
+                  child: ConstWithoutPolylineMap(
+                    // isLightMode: false,
 
-            // CLEAR TIMER FOR BOOKINGS THAT ARE REMOVED FROM FIREBASE
-            bookingTimers.removeWhere((key, timer) {
-              bool exists = bookingList.any((b) => b['document_id'] == key);
-              if (!exists) {
-                print("🗑 Timer removed for expired/removed booking: $key");
-                timer.cancel();
-                return true;
-              }
-              return false;
-            });
-
-            // 🔥 FIXED: Play ringtone ONLY ONCE when bookings appear
-            if (bookingList.isNotEmpty && !forceStop) {
-              playRingtone(); // Will only play once due to hasPlayedOnce flag
-            } else if (bookingList.isEmpty) {
-              // 🔥 Reset flags when no bookings
-              if (isRinging) {
-                stopRingtone();
-              }
-              forceStop = false; // Allow next session to play
-            }
-
-            // NO BOOKINGS UI
-            if (bookingList.isEmpty) {
-              return Stack(
-                children: [
-                  GoogleMap(
-                    initialCameraPosition: CameraPosition(
-                      target: LatLng(currentLat, currentLng),
-                      zoom: 15,
-                    ),
-                    myLocationEnabled: true,
-                    myLocationButtonEnabled: false,
-                    compassEnabled: false,
-                    zoomControlsEnabled: false,
-                    scrollGesturesEnabled: false,
-                    zoomGesturesEnabled: false,
-                    rotateGesturesEnabled: false,
-                    tiltGesturesEnabled: false,
-                    onMapCreated: (controller) {},
+                    backIconAllowed: false,
+                    onAddressFetched: (address) {
+                      if (_currentAddress != address && mounted) {
+                        setState(() {
+                          _currentAddress = address;
+                        });
+                      }
+                    }, controller: mapCtrl,
                   ),
+                ),
+                if (bookingList.isEmpty) ...[
                   Align(
                     alignment: const Alignment(0, -0.3),
                     child: CircularWaveAnimation(
@@ -440,144 +453,105 @@ class _TripStatusState extends State<TripStatus> {
                       ),
                     ),
                   ),
-                ],
-              );
-            }
-
-            // BOOKINGS UI
-            return Stack(
-              children: [
-                ///  FIXED MAP SECTION
-                Positioned.fill(
-                  top: 0,
-                  bottom: MediaQuery.of(context).size.height * 0.25,
-                  child: SizedBox(
-                    height: Sizes.screenHeight * 0.2,
-                    child: ConstWithoutPolylineMap(
-                      backIconAllowed: false,
-                      onAddressFetched: (address) {
-                        if (_currentAddress != address) {
-                          WidgetsBinding.instance.addPostFrameCallback((_) {
-                            if (mounted) {
-                              setState(() {
-                                _currentAddress = address;
-                              });
-                            }
-                          });
-                        }
-                      },
-                    ),
-                  ),
-                ),
-
-                ///  DRAGGABLE SCROLLABLE BOOKING LIST
-                DraggableScrollableSheet(
-                  initialChildSize: 0.6,
-                  minChildSize: 0.6,
-                  maxChildSize: 0.6,
-                  builder: (context, scrollController) {
-                    return Container(
-                      decoration: BoxDecoration(
-                        color: PortColor.white,
-                        borderRadius: const BorderRadius.only(
-                          topLeft: Radius.circular(20),
-                          topRight: Radius.circular(20),
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
-                            blurRadius: 8,
-                            offset: const Offset(0, -2),
+                ] else
+                  DraggableScrollableSheet(
+                    initialChildSize: 0.6,
+                    minChildSize: 0.6,
+                    maxChildSize: 0.6,
+                    builder: (context, scrollController) {
+                      return Container(
+                        decoration: BoxDecoration(
+                          color: PortColor.white,
+                          borderRadius: const BorderRadius.only(
+                            topLeft: Radius.circular(20),
+                            topRight: Radius.circular(20),
                           ),
-                        ],
-                      ),
-                      child: Column(
-                        children: [
-                          // Drag Handle
-                          Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 10),
-                            child: Container(
-                              width: 40,
-                              height: 5,
-                              decoration: BoxDecoration(
-                                color: Colors.grey[300],
-                                borderRadius: BorderRadius.circular(10),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 8,
+                              offset: const Offset(0, -2),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 10),
+                              child: Container(
+                                width: 40,
+                                height: 5,
+                                decoration: BoxDecoration(
+                                  color: Colors.grey[300],
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
                               ),
                             ),
-                          ),
-
-                          // Header Row
-                          Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 8,
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  Icons.local_shipping,
-                                  color: PortColor.gold,
-                                ),
-                                const SizedBox(width: 8),
-                                TextConst(
-                                  title: "Available Bookings",
-                                  size: Sizes.fontSizeSix,
-                                  fontWeight: FontWeight.bold,
-                                  color: PortColor.black,
-                                ),
-                                const Spacer(),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                    vertical: 4,
-                                  ),
-                                  decoration: BoxDecoration(
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 8,
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.local_shipping,
                                     color: PortColor.gold,
-                                    borderRadius: BorderRadius.circular(12),
                                   ),
-                                  child: TextConst(
-                                    title: "${bookingList.length}",
-                                    color: PortColor.white,
-                                    size: Sizes.fontSizeFour,
+                                  const SizedBox(width: 8),
+                                  TextConst(
+                                    title: "Available Bookings",
+                                    size: Sizes.fontSizeSix,
                                     fontWeight: FontWeight.bold,
+                                    color: PortColor.black,
                                   ),
+                                  const Spacer(),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 4,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: PortColor.gold,
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: TextConst(
+                                      title: "${bookingList.length}",
+                                      color: PortColor.white,
+                                      size: Sizes.fontSizeFour,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const Divider(height: 1, color: Colors.grey),
+                            Expanded(
+                              child: ListView.builder(
+                                controller: scrollController,
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 8,
                                 ),
-                              ],
+                                itemCount: bookingList.length,
+                                itemBuilder: (context, index) {
+                                  return BookingCard(
+                                    bookingData: bookingList[index],
+                                    onAccept: (bookingId) {
+                                      _handleAcceptRide(
+                                        bookingId,
+                                        bookingList[index],
+                                      );
+                                    },
+                                  );
+                                },
+                              ),
                             ),
-                          ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
 
-                          const Divider(height: 1, color: Colors.grey),
-
-                          // Booking List
-                          Expanded(
-                            child: ListView.builder(
-                              controller: scrollController,
-                              padding: const EdgeInsets.symmetric(vertical: 8),
-                              itemCount: bookingList.length,
-                              itemBuilder: (context, index) {
-                                print("fklfkl ${bookingList[index]['rideStatus']
-                                }");
-                                // if(bookingList[index]['rideStatus'] !=0 && bookingList[index]['accepted_driver_id'].toString() != userIds.toString()){
-                                //   print("fdkdnfkjfd");
-                                //   return SizedBox.shrink();
-                                //
-                                // }
-
-                                return BookingCard(
-                                  bookingData: bookingList[index],
-                                  stopRingtoneCallback:
-                                      stopRingtone, // pass callback so accept button can stop ringtone
-                                );
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                ),
-
-                ///  TOP CURRENT ADDRESS BANNER
                 if (_currentAddress != null)
                   Positioned(
                     top: 40,
@@ -617,124 +591,76 @@ class _TripStatusState extends State<TripStatus> {
       ),
     );
   }
-}
 
-/// ✅ CORRECTED Stream for matching bookings with ride_status filter
-Stream<List<Map<String, dynamic>>> fetchBookings(
-  String driverVehicleType,
-  context,
-) {
-  final profileViewModel = Provider.of<ProfileViewModel>(
-    context,
-    listen: false,
-  );
-
-  final driverId = profileViewModel.profileModel!.data!.id;
-  final driverIdStr = driverId.toString();
-
-  print("👤 DRIVER ID => $driverIdStr");
-
-  final bookings = FirebaseFirestore.instance.collection('order');
-
-  return bookings.snapshots().map((snapshot) {
-    print("----------------------------------------------------");
-    print("📡 SNAPSHOT RECEIVED: ${snapshot.docs.length} documents");
-
-    final filtered = snapshot.docs
-        .where((doc) {
-          final data = doc.data();
-
-          print("\n📄 Document: ${doc.id}");
-          print("RAW DATA => $data");
-
-          final rideStatus = data['ride_status'] ?? 0;
-          print("➡️ ride_status: $rideStatus");
-
-          final isActiveStatus =
-              rideStatus == 0 || // pending
-              rideStatus == 1 || //  accpet
-              rideStatus == 2 || // start
-              rideStatus == 3; // reach pickup
-          print("✔️ isActiveStatus = $isActiveStatus");
-
-          if (!isActiveStatus) {
-            print("❌ SKIPPED (Ride status invalid)");
-            return false;
-          }
-          // if(rideStatus !=0 && data['accepted_driver_id'].toString() != driverId.toString()){
-          //   return false;
-          // }
-
-          final raw = data['available_driver_id'];
-          print("➡️ RAW available_driver_id = $raw (${raw.runtimeType})");
-
-          List<dynamic> ids = [];
-          if (raw is List) {
-            ids = raw;
-          } else if (raw is String && raw.isNotEmpty) {
-            ids = [raw];
-          } else if (raw is int) {
-            ids = [raw];
-          }
-
-          print("➡️ Converted driver list: $ids");
-
-          final idStrings = ids.map((e) => e.toString()).toList();
-          print("➡️ Converted to String list: $idStrings");
-
-          final isDriverAvailable = idStrings.contains(driverIdStr);
-          print("✔️ isDriverAvailable = $isDriverAvailable");
-
-          if (!isDriverAvailable) {
-            print("❌ SKIPPED (Driver ID not found in list)");
-          }
-
-          return isDriverAvailable;
-        })
-        .map((doc) {
-          final data = doc.data();
-          print("\n🎯 ADDING FILTERED DATA => ${doc.id}");
-
-          return {
-            'id': data['id']?.toString() ?? '',
-            'sender_name': data['sender_name']?.toString() ?? 'N/A',
-            'sender_phone': data['sender_phone']?.toString() ?? 'N/A',
-            'pickup_address': data['pickup_address']?.toString() ?? 'N/A',
-            'reciver_name': data['reciver_name']?.toString() ?? 'N/A',
-            'reciver_phone': data['reciver_phone']?.toString() ?? 'N/A',
-            'drop_address': data['drop_address']?.toString() ?? 'N/A',
-            'available_driver_id': data['available_driver_id'],
-            'document_id': doc.id,
-            'order_type': data['order_type'] ?? 1,
-            'amount': data['amount'] ?? 0,
-            'distance': data['distance'] ?? 0,
-            'accepted_driver_id': data['accepted_driver_id'] ?? 0,
-            'rideStatus': data['ride_status']??0,
-          };
-        })
-        .toList();
-
-    print("\n📦 FINAL FILTERED BOOKINGS: ${filtered.length}");
-
-    for (var booking in filtered) {
-      print("👉 Booking ID: ${booking['id']} (Doc: ${booking['document_id']})");
+  // 🔥 Centralized accept handler
+  void _handleAcceptRide(
+    String bookingId,
+    Map<String, dynamic> bookingData,
+  ) async {
+    if (_isAcceptingRide) {
+      print("⚠️ Already accepting a ride");
+      return;
     }
 
-    print("----------------------------------------------------");
+    print("🚗 ACCEPT pressed for bookingId: $bookingId");
 
-    return filtered;
-  });
+    // Stop ringtone immediately
+    _ringtoneManager.stopRingtone();
+
+    // Set accepting flag
+    setState(() {
+      _isAcceptingRide = true;
+    });
+
+    try {
+      final assignRideViewModel = Provider.of<AssignRideViewModel>(
+        context,
+        listen: false,
+      );
+
+      await assignRideViewModel.assignRideApi(
+        context,
+        1,
+        bookingId,
+        bookingData,
+      );
+    } catch (e) {
+      print("❌ Accept ride error: $e");
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isAcceptingRide = false;
+        });
+      }
+    }
+  }
+
+  Widget _buildLoadingScreen() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          CircularProgressIndicator(color: PortColor.gold),
+          SizedBox(height: Sizes.screenHeight * 0.02),
+          TextConst(
+            title: 'Accepting ride...',
+            size: Sizes.fontSizeFive,
+            color: PortColor.black,
+          ),
+        ],
+      ),
+    );
+  }
 }
 
-/// BookingCard modified to accept a stopRingtone callback
 class BookingCard extends StatelessWidget {
   final Map<String, dynamic> bookingData;
-  final VoidCallback? stopRingtoneCallback;
+  final Function(String) onAccept;
 
   const BookingCard({
     super.key,
     required this.bookingData,
-    this.stopRingtoneCallback,
+    required this.onAccept,
   });
 
   @override
@@ -760,7 +686,6 @@ class BookingCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // header row
             Row(
               children: [
                 Container(
@@ -823,6 +748,9 @@ class BookingCard extends StatelessWidget {
                 SizedBox(width: Sizes.screenWidth * 0.02),
                 GestureDetector(
                   onTap: () {
+                    // Stop ringtone on ignore
+                    RingtoneManager().stopRingtone();
+
                     ignoredRideVm.driverIgnoredRideApi(
                       context: context,
                       orderId: bookingData['id'].toString(),
@@ -853,7 +781,6 @@ class BookingCard extends StatelessWidget {
                 ),
               ],
             ),
-
             SizedBox(height: Sizes.screenHeight * 0.01),
             Row(
               children: [
@@ -893,7 +820,7 @@ class BookingCard extends StatelessWidget {
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.directions_car, color: Colors.blue, size: 18),
+                      Icon(Icons.social_distance, color: Colors.blue, size: 18),
                       SizedBox(width: Sizes.screenWidth * 0.01),
                       TextConst(
                         title: '${bookingData['distance'] ?? '0'} km',
@@ -906,14 +833,9 @@ class BookingCard extends StatelessWidget {
                 ),
               ],
             ),
-
             SizedBox(height: Sizes.screenHeight * 0.015),
             const Divider(height: 1),
             SizedBox(height: Sizes.screenHeight * 0.01),
-
-            // sender/receiver and addresses (reuse your helper if you have it)
-            // For brevity reuse your existing row builder if available (we assume _buildDetailRow exists in same file)
-            // If not, you can paste the helper from previous code.
             if (bookingData['order_type'] != 2) ...[
               _buildDetailRow(
                 icon: Icons.person_outline,
@@ -932,11 +854,9 @@ class BookingCard extends StatelessWidget {
               content: bookingData['pickup_address'] ?? "N/A",
               isAddress: true,
             ),
-
             SizedBox(height: Sizes.screenHeight * 0.01),
             const Divider(height: 1),
             SizedBox(height: Sizes.screenHeight * 0.01),
-
             if (bookingData['order_type'] != 2) ...[
               _buildDetailRow(
                 icon: Icons.person_outline,
@@ -964,21 +884,9 @@ class BookingCard extends StatelessWidget {
               children: [
                 Expanded(
                   child: GestureDetector(
-                    onTap: () async {
-                      // 🔥 Stop ringtone immediately
-                      if (stopRingtoneCallback != null) {
-                        stopRingtoneCallback!();
-                      }
-
+                    onTap: () {
                       String bookingId = bookingData['id'].toString();
-                      print("🚗 ACCEPT pressed for bookingId: $bookingId");
-
-                      assignRideViewModel.assignRideApi(
-                        context,
-                        1,
-                        bookingId,
-                        bookingData,
-                      );
+                      onAccept(bookingId);
                     },
                     child: Container(
                       padding: EdgeInsets.symmetric(
@@ -1015,7 +923,6 @@ class BookingCard extends StatelessWidget {
     );
   }
 
-  // Note: keep the same helper function implementation as in your project
   Widget _buildDetailRow({
     required IconData icon,
     required String title,

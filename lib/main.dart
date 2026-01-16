@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:yoyomiles_partner/firebase_options.dart';
+import 'package:yoyomiles_partner/res/const_without_polyline_map.dart';
 import 'package:yoyomiles_partner/res/notification_service.dart';
 import 'package:yoyomiles_partner/res/sizing_const.dart';
 import 'package:yoyomiles_partner/utils/routes/routes.dart';
@@ -31,6 +32,7 @@ import 'package:yoyomiles_partner/view_model/payment_view_model.dart';
 import 'package:yoyomiles_partner/view_model/policy_view_model.dart';
 import 'package:yoyomiles_partner/view_model/profile_view_model.dart';
 import 'package:yoyomiles_partner/view_model/ride_history_view_model.dart';
+import 'package:yoyomiles_partner/view_model/ride_view_model.dart';
 import 'package:yoyomiles_partner/view_model/transaction_view_model.dart';
 import 'package:yoyomiles_partner/view_model/update_ride_status_view_model.dart';
 import 'package:yoyomiles_partner/view_model/vehicle_body_detail_view_model.dart';
@@ -130,8 +132,9 @@ class _MyAppState extends State<MyApp> {
           ChangeNotifierProvider(create: (context)=> WithdrawHistoryViewModel()),
           ChangeNotifierProvider(create: (context)=> OtpCountViewModel()),
           ChangeNotifierProvider(create: (context)=> DriverIgnoredRideViewModel()),
-          Provider<NotificationService>(
-            create: (_) => NotificationService(navigatorKey: navigatorKey),
+          ChangeNotifierProvider(create: (context)=> RideViewModel()),
+          ChangeNotifierProvider(create: (context)=> ConstMapController()),
+          Provider<NotificationService>(create: (_) => NotificationService(navigatorKey: navigatorKey),
           ),
         ],
         child: MaterialApp(
