@@ -21,6 +21,7 @@ import 'package:yoyomiles_partner/view_model/call_back_view_model.dart';
 import 'package:yoyomiles_partner/view_model/cities_view_model.dart';
 import 'package:yoyomiles_partner/view_model/daily_weekly_view_model.dart';
 import 'package:yoyomiles_partner/view_model/delete_bank_detail_view_model.dart';
+import 'package:yoyomiles_partner/view_model/delete_old_order_view_model.dart';
 import 'package:yoyomiles_partner/view_model/driver_ignored_ride_view_model.dart';
 import 'package:yoyomiles_partner/view_model/driver_vehicle_view_model.dart';
 import 'package:yoyomiles_partner/view_model/fuel_type_view_model.dart';
@@ -33,6 +34,7 @@ import 'package:yoyomiles_partner/view_model/policy_view_model.dart';
 import 'package:yoyomiles_partner/view_model/profile_view_model.dart';
 import 'package:yoyomiles_partner/view_model/ride_history_view_model.dart';
 import 'package:yoyomiles_partner/view_model/ride_view_model.dart';
+import 'package:yoyomiles_partner/view_model/ringtone_view_model.dart';
 import 'package:yoyomiles_partner/view_model/transaction_view_model.dart';
 import 'package:yoyomiles_partner/view_model/update_ride_status_view_model.dart';
 import 'package:yoyomiles_partner/view_model/vehicle_body_detail_view_model.dart';
@@ -134,6 +136,8 @@ class _MyAppState extends State<MyApp> {
           ChangeNotifierProvider(create: (context)=> DriverIgnoredRideViewModel()),
           ChangeNotifierProvider(create: (context)=> RideViewModel()),
           ChangeNotifierProvider(create: (context)=> ConstMapController()),
+          ChangeNotifierProvider(create: (context)=> RingtoneViewModel()),
+          ChangeNotifierProvider(create: (context)=> DeleteOldOrderViewModel()),
           Provider<NotificationService>(create: (_) => NotificationService(navigatorKey: navigatorKey),
           ),
         ],

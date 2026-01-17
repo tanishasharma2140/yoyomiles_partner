@@ -1,10 +1,7 @@
 import 'dart:async';
-import 'package:audioplayers/audioplayers.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:yoyomiles_partner/generated/assets.dart';
 import 'package:yoyomiles_partner/res/app_fonts.dart';
@@ -15,83 +12,14 @@ import 'package:yoyomiles_partner/res/custom_appbar.dart';
 import 'package:yoyomiles_partner/res/sizing_const.dart';
 import 'package:yoyomiles_partner/res/text_const.dart';
 import 'package:yoyomiles_partner/view_model/assign_ride_view_model.dart';
+import 'package:yoyomiles_partner/view_model/delete_old_order_view_model.dart';
 import 'package:yoyomiles_partner/view_model/driver_ignored_ride_view_model.dart';
 import 'package:yoyomiles_partner/view_model/online_status_view_model.dart';
 import 'package:yoyomiles_partner/view_model/profile_view_model.dart';
 import 'package:yoyomiles_partner/view_model/ride_view_model.dart';
+import 'package:yoyomiles_partner/view_model/ringtone_view_model.dart';
 import 'package:yoyomiles_partner/view_model/user_view_model.dart';
 
-class RingtoneManager {
-  static final RingtoneManager _instance = RingtoneManager._internal();
-  factory RingtoneManager() => _instance;
-  RingtoneManager._internal();
-
-  final AudioPlayer _audioPlayer = AudioPlayer();
-  bool _isRinging = false;
-  bool _isDisposed = false;
-
-  Future<void> playRingtone() async {
-    if (_isDisposed) {
-      print("⚠️ RingtoneManager disposed, cannot play");
-      return;
-    }
-
-    print("🔔 Playing ringtone");
-    try {
-      // Pehle purana band karo
-      if (_isRinging) {
-        print("⏹️ Stopping previous ringtone");
-        await _audioPlayer.stop();
-      }
-
-      _isRinging = true;
-
-      await _audioPlayer.setAudioContext(
-        const AudioContext(
-          android: AudioContextAndroid(
-            isSpeakerphoneOn: true,
-            stayAwake: true,
-            usageType: AndroidUsageType.alarm,
-            contentType: AndroidContentType.music,
-            audioFocus: AndroidAudioFocus.gain,
-          ),
-          iOS: AudioContextIOS(),
-        ),
-      );
-
-      await _audioPlayer.play(AssetSource("driver_ringtone.mp3"), volume: 1.0);
-      await _audioPlayer.setReleaseMode(ReleaseMode.loop);
-      print("✅ Ringtone started");
-    } catch (e) {
-      print("❌ Ringtone error: $e");
-      _isRinging = false;
-    }
-  }
-
-  Future<void> stopRingtone() async {
-    if (_isDisposed) return;
-    if (!_isRinging) return;
-
-    print("🛑 Stopping ringtone");
-    try {
-      await _audioPlayer.stop();
-      _isRinging = false;
-      print("🔕 Ringtone stopped");
-    } catch (e) {
-      print("⚠️ Stop error: $e");
-    }
-  }
-
-  bool get isRinging => _isRinging;
-
-  void dispose() {
-    _isDisposed = true;
-    try {
-      _audioPlayer.stop();
-      _audioPlayer.dispose();
-    } catch (_) {}
-  }
-}
 
 class TripStatus extends StatefulWidget {
   const TripStatus({super.key});
@@ -106,10 +34,10 @@ class _TripStatusState extends State<TripStatus> {
   double currentLat = 0.0;
   double currentLng = 0.0;
   Map<String, Timer> bookingTimers = {};
+  Timer? _deleteTimer;
 
   // 🔥 Use global ringtone manager
-  final RingtoneManager _ringtoneManager = RingtoneManager();
-
+  late RingtoneViewModel ringtoneVM;
   // 🔥 Track processed bookings
   Set<String> _seenBookingIds = {};
   StreamSubscription? _bookingSubscription;
@@ -123,8 +51,21 @@ class _TripStatusState extends State<TripStatus> {
   void initState() {
     super.initState();
     getCurrentLocation();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ringtoneVM = Provider.of<RingtoneViewModel>(context, listen: false);
+      final deleteOldOrderVm = Provider.of<DeleteOldOrderViewModel>(context, listen: false);
+
+      // 1st Immediate hit
+      deleteOldOrderVm.deleteOldOrderApi();
+
+      // periodic every 2 min
+      _deleteTimer = Timer.periodic(const Duration(minutes: 2), (timer) {
+        deleteOldOrderVm.deleteOldOrderApi();
+      });
+    });
     final ride = Provider.of<RideViewModel>(context, listen: false);
     ride.handleRideUpdate("", context);
+
   }
 
   @override
@@ -133,7 +74,8 @@ class _TripStatusState extends State<TripStatus> {
       _bookingSubscription?.cancel();
       bookingTimers.forEach((key, timer) => timer.cancel());
       // Stop ringtone on dispose
-      _ringtoneManager.stopRingtone();
+      ringtoneVM.stopRingtone();
+      _deleteTimer?.cancel();
     } catch (_) {}
     super.dispose();
   }
@@ -270,7 +212,7 @@ class _TripStatusState extends State<TripStatus> {
           leading: IconButton(
             icon: const Icon(Icons.arrow_back, color: Colors.black),
             onPressed: () {
-              _ringtoneManager.stopRingtone();
+              Provider.of<RingtoneViewModel>(context, listen: false).stopRingtone();
               Navigator.pop(context);
             },
           ),
@@ -309,49 +251,15 @@ class _TripStatusState extends State<TripStatus> {
           builder: (context, rideVM, child) {
             print("hgfhg ${rideVM.allRideData}");
             final bookingList = rideVM.allRideData ?? [];
+            final ringtone = Provider.of<RingtoneViewModel>(context, listen: false);
 
-            // if (_isAcceptingRide) {
-            //   print("⏸️ Accepting ride - ignoring stream updates");
-            //   return _buildLoadingScreen();
-            // }
-            //
-            // final currentBookingIds = bookingList
-            //     .map((b) => b['document_id'] as String)
-            //     .toSet();
-            //
-            // // 🔥 Detect NEW bookings only
-            // final newBookings = currentBookingIds.difference(_seenBookingIds);
-            //
-            // print(
-            //   "📊 Current: ${currentBookingIds.length}, Seen: ${_seenBookingIds.length}, New: ${newBookings.length}",
-            // );
-            //
-            // // Play ringtone for new bookings
-            // if (newBookings.isNotEmpty && !_ringtoneManager.isRinging) {
-            //   print("🆕 NEW BOOKING DETECTED: $newBookings");
-            //   _ringtoneManager.playRingtone();
-            // }
-            //
-            // // Stop ringtone when all bookings are gone
-            // if (bookingList.isEmpty && _ringtoneManager.isRinging) {
-            //   print("📭 No bookings - stopping ringtone");
-            //   _ringtoneManager.stopRingtone();
-            //   _seenBookingIds.clear();
-            // }
-            // else if (bookingList.isNotEmpty) {
-            //   // Update seen bookings
-            //   _seenBookingIds = currentBookingIds;
-            // }
-            //
-            // // CLEAR EXPIRED TIMERS
-            // bookingTimers.removeWhere((key, timer) {
-            //   bool exists = bookingList.any((b) => b['document_id'] == key);
-            //   if (!exists) {
-            //     timer.cancel();
-            //     return true;
-            //   }
-            //   return false;
-            // });
+            if (bookingList.isNotEmpty && !ringtone.isRinging) {
+              ringtone.playRingtone();
+            }
+
+            if (bookingList.isEmpty && ringtone.isRinging) {
+              ringtone.stopRingtone();
+            }
 
             return Stack(
               children: [
@@ -605,7 +513,7 @@ class _TripStatusState extends State<TripStatus> {
     print("🚗 ACCEPT pressed for bookingId: $bookingId");
 
     // Stop ringtone immediately
-    _ringtoneManager.stopRingtone();
+    Provider.of<RingtoneViewModel>(context, listen: false).stopRingtone();
 
     // Set accepting flag
     setState(() {
@@ -749,7 +657,7 @@ class BookingCard extends StatelessWidget {
                 GestureDetector(
                   onTap: () {
                     // Stop ringtone on ignore
-                    RingtoneManager().stopRingtone();
+                    Provider.of<RingtoneViewModel>(context, listen: false).stopRingtone();
 
                     ignoredRideVm.driverIgnoredRideApi(
                       context: context,

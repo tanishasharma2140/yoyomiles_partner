@@ -28,6 +28,7 @@ class ApiUrl{
   static const String withdrawUrl="${baseUrl}withdraws";
   static const String withdrawHistoryUrl="${baseUrl}withdraw-history";
   static const String driverIgnoreRideOrderUrl ="${baseUrl}driver-ignore-ride-order";
+  static const String deleteOldOrderUrl ="${baseUrl}delete-old-orders";
 
 
 

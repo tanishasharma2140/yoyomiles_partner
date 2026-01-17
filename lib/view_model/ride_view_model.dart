@@ -48,8 +48,10 @@ class RideViewModel extends ChangeNotifier {
         setAllRideData(null);
         final activeRide = bookings
             .where(
-              (e) => e['accepted_driver_id'].toString() == driverId.toString(),
-            )
+                (e) =>
+            e['accepted_driver_id'].toString() == driverId.toString() &&
+                (e['rideStatus'] > 0 && e['rideStatus'] < 6)
+        )
             .firstOrNull;
 
         print("jkbhj $activeRide");
@@ -132,6 +134,11 @@ class RideViewModel extends ChangeNotifier {
           'payMode': data['paymode'] ?? 1,
           'otp': data['otp'] ?? 1,
         };
+
+        if (rideStatus == 6 && data['accepted_driver_id'].toString() == driverIdStr) {
+          status78List.add(mapped);  // same as 7,8
+          continue;
+        }
 
         if (rideStatus == 7 || rideStatus == 8 && data['accepted_driver_id'].toString() == driverIdStr.toString() ) {
           status78List.add(mapped);
