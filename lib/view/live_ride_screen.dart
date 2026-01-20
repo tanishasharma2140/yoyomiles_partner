@@ -11,8 +11,10 @@ import 'package:yoyomiles_partner/res/launcher.dart';
 import 'package:yoyomiles_partner/res/sizing_const.dart';
 import 'package:yoyomiles_partner/res/slide_to_button.dart';
 import 'package:yoyomiles_partner/res/text_const.dart';
+import 'package:yoyomiles_partner/utils/routes/routes_name.dart';
 import 'package:yoyomiles_partner/utils/utils.dart';
 import 'package:yoyomiles_partner/view/auth/register.dart';
+import 'package:yoyomiles_partner/view_model/change_pay_mode_view_model.dart';
 import 'package:yoyomiles_partner/view_model/live_ride_view_model.dart';
 import 'package:yoyomiles_partner/view_model/profile_view_model.dart';
 import 'package:provider/provider.dart';
@@ -100,7 +102,7 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
 
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) => WaitingForPaymentScreen(orderId: orderId),
+        builder: (context) => CollectPaymentScreen(orderId: orderId),
       ),
     );
   }
@@ -198,10 +200,10 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                 ),
                 onPressed: () {
                   print("🏠 OK pressed from success - Navigating to Register");
-                  Navigator.pop(context);
-                  Navigator.of(context).pushAndRemoveUntil(
-                    MaterialPageRoute(builder: (context) => Register()),
-                    (route) => false,
+                  Navigator.pushNamedAndRemoveUntil(
+                    context,
+                    RoutesName.tripStatus,
+                        (route) => route.settings.name == RoutesName.register,
                   );
                 },
                 child: const Text(
@@ -268,10 +270,10 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                     liveRideVm.liveOrderModel!.data!.id.toString(),
                     "6",
                   );
-                  Navigator.of(context).pushAndRemoveUntil(
-                    MaterialPageRoute(builder: (context) => Register()),
-                    (route) => false,
-                  );
+                  // Navigator.of(context).pushAndRemoveUntil(
+                  //   MaterialPageRoute(builder: (context) => Register()),
+                  //   (route) => false,
+                  // );
                   ride.setActiveRideData(null);
                   ride.disable78();
                 },
@@ -685,9 +687,9 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                   ),
                 ),
                 DraggableScrollableSheet(
-                  initialChildSize: 0.35,
-                  minChildSize: 0.28,
-                  maxChildSize: 0.65,
+                  initialChildSize: 0.75,
+                  minChildSize: 0.45,
+                  maxChildSize: 0.77,
                   builder: (context, scrollController) {
                     return Container(
                       decoration: BoxDecoration(
@@ -1465,160 +1467,41 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
   }
 }
 
-class WaitingForPaymentScreen extends StatelessWidget {
-  final String orderId;
-  const WaitingForPaymentScreen({super.key, required this.orderId});
-
-  @override
-  Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async => false,
-      child: Scaffold(
-        backgroundColor: Colors.white,
-        body: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.access_time_filled, color: Colors.orange, size: 80),
-                const SizedBox(height: 24),
-                Text(
-                  "Waiting for Payment",
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.orange,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  "Please wait while the customer completes the payment.",
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(color: Colors.grey, fontSize: 16),
-                ),
-                const SizedBox(height: 40),
-                CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.orange),
-                  strokeWidth: 3,
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  "Waiting for payment...",
-                  style: TextStyle(color: Colors.orange, fontSize: 16),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class CollectPaymentScreen extends StatefulWidget {
+class CollectPaymentScreen extends StatelessWidget {
   final String orderId;
   const CollectPaymentScreen({super.key, required this.orderId});
 
-  @override
-  State<CollectPaymentScreen> createState() => _CollectPaymentScreenState();
-}
-
-class _CollectPaymentScreenState extends State<CollectPaymentScreen> {
-  StreamSubscription<DocumentSnapshot>? _paymodeSubscription;
-  int _currentPaymode = 1; // Default to cash
-
-  @override
-  void initState() {
-    super.initState();
-    print("🎬 CollectPaymentScreen initState called");
-    print("📝 Order ID: ${widget.orderId}");
-    _startPaymodeListener();
-  }
-
-  // 🔥 Listen for paymode changes in real-time
-  void _startPaymodeListener() {
-    print("🔔 Starting paymode listener for order: ${widget.orderId}");
-    print("⏰ Listener started at: ${DateTime.now()}");
-
-    try {
-      _paymodeSubscription = FirebaseFirestore.instance
-          .collection('order')
-          .doc(widget.orderId)
-          .snapshots()
-          .listen(
-            (DocumentSnapshot snapshot) {
-              print("🔄 Real-time update received at: ${DateTime.now()}");
-              print("📦 Snapshot exists: ${snapshot.exists}");
-              print("📦 Snapshot has data: ${snapshot.data() != null}");
-
-              if (snapshot.exists && snapshot.data() != null) {
-                final data = snapshot.data() as Map<String, dynamic>;
-                final payMode = data['paymode'] ?? 1;
-
-                print("📢 Paymode Listener - Current paymode: $payMode");
-                print("📢 Previous paymode in UI: $_currentPaymode");
-                print("📊 Full order data: $data");
-
-                // 🔥 UPDATE UI WHEN PAYMODE CHANGES
-                if (_currentPaymode != payMode) {
-                  print(
-                    "🔄 Paymode changed from $_currentPaymode to $payMode - Updating UI!",
-                  );
-                  setState(() {
-                    _currentPaymode = payMode;
-                  });
-
-                  if (payMode == 1) {
-                    print("💵 Switched to CASH payment mode");
-                  } else if (payMode == 2) {
-                    print("💳 Switched to ONLINE payment mode");
-                  }
-                } else {
-                  print("ℹ️ Paymode unchanged: $payMode");
-                }
-              } else {
-                print("⚠️ Snapshot doesn't exist or has no data");
-              }
-            },
-            onError: (error) {
-              print("🔥 Paymode listener error: $error");
-            },
-          );
-
-      print("✅ Listener setup complete");
-    } catch (e) {
-      print("❌ Error starting paymode listener: $e");
-      print("❌ Error stack trace: ${StackTrace.current}");
-    }
-  }
-
-  @override
-  void dispose() {
-    print("🗑️ Disposing CollectPaymentScreen - Cancelling paymode listener");
-    _paymodeSubscription?.cancel();
-    super.dispose();
-  }
-
   void _handlePaymentComplete(BuildContext context) async {
-    final liveRideViewModel = Provider.of<LiveRideViewModel>(
-      context,
-      listen: false,
-    );
+    final liveRideVm = Provider.of<LiveRideViewModel>(context, listen: false);
+    final rideStatus = Provider.of<RideViewModel>(context, listen: false);
+    final updateRideVM = Provider.of<UpdateRideStatusViewModel>(context, listen: false);
 
     try {
-      print("💵 Cash payment completed - updating to status 6");
-      await FirebaseFirestore.instance
-          .collection('order')
-          .doc(widget.orderId)
-          .update({'ride_status': 6});
+      print("💵 Payment completed → Updating ride to status 6");
 
-      // liveRideViewModel.liveOrderModel!.data!.rideStatus = 6;
+      // 🔹 Backend API update first
+      await updateRideVM.updateRideApi(
+        context,
+        liveRideVm.liveOrderModel!.data!.id.toString(),
+        "6",
+      );
+
+      // 🔹 Update Firestore too (if required)
+      // await FirebaseFirestore.instance
+      //     .collection('order')
+      //     .doc(orderId)
+      //     .update({'ride_status': 6});
+
+      // 🔹 Clear active ride state
+      rideStatus.setActiveRideData(null);
+      rideStatus.disable78();
+
       Utils.showSuccessMessage(context, "Ride completed successfully!");
 
-      // Navigate back and show completed dialog
+      // 🔹 Close current screen
       Navigator.of(context).pop();
 
+      // 🔹 Show Completed Dialog after short delay (safe build)
       Future.delayed(const Duration(milliseconds: 300), () {
         showDialog(
           context: context,
@@ -1629,6 +1512,102 @@ class _CollectPaymentScreenState extends State<CollectPaymentScreen> {
     } catch (e) {
       Utils.showErrorMessage(context, "Failed to complete ride: $e");
     }
+  }
+
+
+  Future<void> _changePaymode(BuildContext context, int newPaymode) async {
+    final changePayModeViewModel = Provider.of<ChangePayModeViewModel>(
+      context,
+      listen: false,
+    );
+
+    try {
+      // 🔥 API CALL using ChangePayModeViewModel
+      await changePayModeViewModel.changePayModeApi(
+        context: context,
+        orderId: orderId,
+        payMode: newPaymode,
+      );
+
+      // ✅ RideViewModel listener will automatically update UI
+      print("✅ Paymode changed successfully - RideViewModel listener will update UI");
+    } catch (e) {
+      Utils.showErrorMessage(context, "Failed to change payment mode: $e");
+    }
+  }
+
+  void _showPaymodeChangeDialog(BuildContext context, int currentPaymode) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Consumer<ChangePayModeViewModel>(
+          builder: (context, changePayModeVm, child) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              title: Text("Change Payment Mode"),
+              content: changePayModeVm.loading
+                  ? Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(height: 16),
+                  Text("Changing payment mode..."),
+                ],
+              )
+                  : Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ListTile(
+                    leading: Icon(
+                      Icons.money,
+                      color:
+                      currentPaymode == 1 ? Colors.green : Colors.grey,
+                    ),
+                    title: Text("Cash Payment"),
+                    trailing: currentPaymode == 1
+                        ? Icon(Icons.check_circle, color: Colors.green)
+                        : null,
+                    onTap: currentPaymode == 1
+                        ? null
+                        : () {
+                      _changePaymode(context, 1);
+                    },
+                  ),
+                  Divider(),
+                  ListTile(
+                    leading: Icon(
+                      Icons.credit_card,
+                      color: currentPaymode == 2
+                          ? Colors.orange
+                          : Colors.grey,
+                    ),
+                    title: Text("Online Payment"),
+                    trailing: currentPaymode == 2
+                        ? Icon(Icons.check_circle, color: Colors.orange)
+                        : null,
+                    onTap: currentPaymode == 2
+                        ? null
+                        : () {
+                      _changePaymode(context, 2);
+                    },
+                  ),
+                ],
+              ),
+              actions: changePayModeVm.loading
+                  ? []
+                  : [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text("Cancel"),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
   }
 
   Widget _buildRideCompletedDialog(BuildContext context) {
@@ -1674,20 +1653,20 @@ class _CollectPaymentScreenState extends State<CollectPaymentScreen> {
                     "🏠 OK pressed from ride completed - Navigating to Register",
                   );
                   Navigator.pop(context);
-                  Provider.of<UpdateRideStatusViewModel>(
-                    context,
-                    listen: false,
-                  ).updateRideApi(
-                    context,
-                    liveRideVm.liveOrderModel!.data!.id.toString(),
-                    "6",
-                  );
+                  // Provider.of<UpdateRideStatusViewModel>(
+                  //   context,
+                  //   listen: false,
+                  // ).updateRideApi(
+                  //   context,
+                  //   liveRideVm.liveOrderModel!.data!.id.toString(),
+                  //   "6",
+                  // );
                   Navigator.of(context).pushAndRemoveUntil(
                     MaterialPageRoute(builder: (context) => Register()),
-                    (route) => false,
+                        (route) => false,
                   );
-                  rideStatus.setActiveRideData(null);
-                  rideStatus.disable78();
+                  // rideStatus.setActiveRideData(null);
+                  // rideStatus.disable78();
                 },
                 child: const Text(
                   "OK",
@@ -1703,111 +1682,246 @@ class _CollectPaymentScreenState extends State<CollectPaymentScreen> {
 
   @override
   Widget build(BuildContext context) {
-    print("🎨 Building UI with paymode: $_currentPaymode");
+    return Consumer<RideViewModel>(
+      builder: (context, rideViewModel, child) {
+        final payMode = rideViewModel.activeRideData?['payMode'] ?? 1;
+        final rideStatus = rideViewModel.activeRideData?['rideStatus'] ?? 0;
 
-    return WillPopScope(
-      onWillPop: () async => false,
-      child: Scaffold(
-        backgroundColor: Colors.white,
-        body: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                // 🔥 DYNAMIC ICON BASED ON PAYMODE
-                Container(
-                  padding: EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: _currentPaymode == 1
-                        ? Colors.green.withOpacity(0.1)
-                        : Colors.orange.withOpacity(0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    _currentPaymode == 1
-                        ? Icons.location_on
-                        : Icons.access_time_filled,
-                    color: _currentPaymode == 1 ? Colors.green : Colors.orange,
-                    size: _currentPaymode == 1 ? 60 : 80,
-                  ),
-                ),
-                SizedBox(height: 24),
+        print("🎨 CollectPaymentScreen - PayMode: $payMode, RideStatus: $rideStatus");
 
-                // 🔥 DYNAMIC TITLE BASED ON PAYMODE
-                Text(
-                  _currentPaymode == 1
-                      ? "Reached Destination"
-                      : "Waiting for Payment",
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: _currentPaymode == 1 ? Colors.black : Colors.orange,
-                  ),
-                ),
-                SizedBox(height: _currentPaymode == 1 ? 40 : 16),
-
-                // 🔥 DYNAMIC CONTENT BASED ON PAYMODE
-                if (_currentPaymode == 1) ...[
-                  // CASH PAYMENT UI
-                  Container(
-                    padding: EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[50],
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.grey[200]!),
+        return WillPopScope(
+          onWillPop: () async => false,
+          child: Scaffold(
+            backgroundColor: Colors.white,
+            appBar: AppBar(
+              backgroundColor: Colors.white,
+              elevation: 0,
+              automaticallyImplyLeading: false,
+                actions: [
+                  if (!(payMode == 2 && rideStatus == 6))
+                    GestureDetector(
+                      onTap: () => _showPaymodeChangeDialog(context, payMode),
+                      child: Row(
+                        children: [
+                          TextConst(
+                            title:
+                            "Change Pay Mode",
+                            color: Colors.blue,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          SizedBox(width: 6),
+                          Container(
+                            padding: EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.blue, width: 1.5),
+                            ),
+                            child: Icon(
+                              Icons.swap_horiz,
+                              size: 18,
+                              color: Colors.blue,
+                            ),
+                          ),
+                          SizedBox(width: 10),
+                        ],
+                      ),
                     ),
-                    child: Row(
-                      children: [
-                        Icon(Icons.info_outline, color: Colors.blue, size: 24),
-                        SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            "Please collect payment from customer",
+                ]
+
+            ),
+            body: SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // 🔥 DYNAMIC ICON BASED ON STATE
+                    Container(
+                      padding: EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: (payMode == 2 && rideStatus == 6)
+                            ? Colors.green.withOpacity(0.1)
+                            : payMode == 1
+                            ? Colors.green.withOpacity(0.1)
+                            : Colors.orange.withOpacity(0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        (payMode == 2 && rideStatus == 6)
+                            ? Icons.check_circle
+                            : payMode == 1
+                            ? Icons.money
+                            : Icons.credit_card,
+                        color: (payMode == 2 && rideStatus == 6)
+                            ? Colors.green
+                            : payMode == 1
+                            ? Colors.green
+                            : Colors.orange,
+                        size: 60,
+                      ),
+                    ),
+                    SizedBox(height: 24),
+
+                    // 🔥 DYNAMIC TITLE BASED ON STATE
+                    Text(
+                      (payMode == 2 && rideStatus == 6)
+                          ? "Payment Successful!"
+                          : payMode == 1
+                          ? "Cash Payment"
+                          : "Online Payment",
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: (payMode == 2 && rideStatus == 6)
+                            ? Colors.green
+                            : payMode == 1
+                            ? Colors.green
+                            : Colors.orange,
+                      ),
+                    ),
+                    SizedBox(height: 16),
+
+                    // 🔥 DYNAMIC CONTENT BASED ON STATE
+                    if (payMode == 1) ...[
+                      // ✅ CASH PAYMENT UI
+                      Container(
+                        padding: EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[50],
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.grey[200]!),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(Icons.info_outline, color: Colors.blue, size: 24),
+                            SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                "Please collect cash payment from customer",
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(height: 40),
+                      // SWIPE BUTTON FOR CASH PAYMENT
+                      SlideToButton(
+                        onAccepted: () => _handlePaymentComplete(context),
+                        title: "Pay Done",
+                      ),
+                    ] else if (payMode == 2 && rideStatus == 6) ...[
+                      // ✅ PAYMENT SUCCESS UI (payMode=2 AND rideStatus=6)
+                      Container(
+                        padding: const EdgeInsets.all(24),
+                        decoration: BoxDecoration(
+                          color: Colors.green.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: Colors.green, width: 2),
+                        ),
+                        child: Column(
+                          children: [
+                            Icon(
+                              Icons.verified,
+                              color: Colors.green,
+                              size: 80,
+                            ),
+                            const SizedBox(height: 16),
+                            const Text(
+                              "Payment Completed! 🎉",
+                              style: TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.green,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              "Customer has successfully completed the online payment.",
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Colors.grey[700],
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 40),
+
+                      // OK BUTTON
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            final rideStatus = Provider.of<RideViewModel>(
+                              context,
+                              listen: false,
+                            );
+                            final liveRideVm = Provider.of<LiveRideViewModel>(
+                              context,
+                              listen: false,
+                            );
+
+                            print("🏠 OK pressed - Navigating to Register");
+
+                            Navigator.of(context).pushAndRemoveUntil(
+                              MaterialPageRoute(builder: (context) => Register()),
+                                  (route) => false,
+                            );
+                            rideStatus.setActiveRideData(null);
+                            rideStatus.disable78();
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.green,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            elevation: 0,
+                          ),
+                          child: const Text(
+                            "OK",
                             style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.black87,
+                              color: Colors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
                         ),
-                      ],
-                    ),
-                  ),
-                  SizedBox(height: 40),
-                  // SWIPE BUTTON FOR CASH PAYMENT
-                  SlideToButton(
-                    onAccepted: () => _handlePaymentComplete(context),
-                    title: "Pay Done",
-                  ),
-                ] else ...[
-                  // ONLINE PAYMENT UI
-                  Text(
-                    "Please wait while the customer completes the payment.",
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(color: Colors.grey, fontSize: 16),
-                  ),
-                  const SizedBox(height: 40),
-                  CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.orange),
-                    strokeWidth: 3,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    "Waiting for payment...",
-                    style: TextStyle(color: Colors.orange, fontSize: 16),
-                  ),
-                ],
-              ],
+                      ),
+                    ] else ...[
+                      // ✅ ONLINE PAYMENT WAITING UI
+                      Text(
+                        "Please wait while the customer completes the online payment.",
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(color: Colors.grey, fontSize: 16),
+                      ),
+                      const SizedBox(height: 40),
+                      CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.orange),
+                        strokeWidth: 3,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        "Waiting for payment...",
+                        style: TextStyle(color: Colors.orange, fontSize: 16),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
-}
-
-// 🔥 REMOVE THIS - No longer needed as separate screen
-// WaitingForPaymentScreen is now part of CollectPaymentScreen
+}// WaitingForPaymentScreen is now part of CollectPaymentScreen
 class LauncherI {
   static Future<void> launchURL(String url) async {
     if (await canLaunch(url)) {

@@ -18,6 +18,7 @@ import 'package:yoyomiles_partner/view_model/bank_detail_view_model.dart';
 import 'package:yoyomiles_partner/view_model/bank_view_model.dart';
 import 'package:yoyomiles_partner/view_model/body_type_view_model.dart';
 import 'package:yoyomiles_partner/view_model/call_back_view_model.dart';
+import 'package:yoyomiles_partner/view_model/change_pay_mode_view_model.dart';
 import 'package:yoyomiles_partner/view_model/cities_view_model.dart';
 import 'package:yoyomiles_partner/view_model/daily_weekly_view_model.dart';
 import 'package:yoyomiles_partner/view_model/delete_bank_detail_view_model.dart';
@@ -138,6 +139,7 @@ class _MyAppState extends State<MyApp> {
           ChangeNotifierProvider(create: (context)=> ConstMapController()),
           ChangeNotifierProvider(create: (context)=> RingtoneViewModel()),
           ChangeNotifierProvider(create: (context)=> DeleteOldOrderViewModel()),
+          ChangeNotifierProvider(create: (context)=> ChangePayModeViewModel()),
           Provider<NotificationService>(create: (_) => NotificationService(navigatorKey: navigatorKey),
           ),
         ],
