@@ -36,9 +36,7 @@ class _TripStatusState extends State<TripStatus> {
   Map<String, Timer> bookingTimers = {};
   Timer? _deleteTimer;
 
-  // 🔥 Use global ringtone manager
   late RingtoneViewModel ringtoneVM;
-  // 🔥 Track processed bookings
   Set<String> _seenBookingIds = {};
   StreamSubscription? _bookingSubscription;
 

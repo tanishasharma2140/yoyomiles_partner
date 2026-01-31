@@ -97,7 +97,7 @@ class _AddDriverDetailState extends State<AddDriverDetail> {
     });
 
     try {
-      var url = Uri.parse("https://admin.yoyomiles.com/api/driver_register");
+      var url = Uri.parse("https://yoyo.codescarts.com/api/driver_register");
       var request = http.MultipartRequest('POST', url);
 
       // Add text fields

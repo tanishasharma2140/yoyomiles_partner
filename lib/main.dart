@@ -8,6 +8,10 @@ import 'package:yoyomiles_partner/firebase_options.dart';
 import 'package:yoyomiles_partner/res/const_without_polyline_map.dart';
 import 'package:yoyomiles_partner/res/notification_service.dart';
 import 'package:yoyomiles_partner/res/sizing_const.dart';
+import 'package:yoyomiles_partner/service/background_service.dart';
+import 'package:yoyomiles_partner/service/ride_popup_helper.dart';
+import 'package:yoyomiles_partner/service/ringtone_helper.dart';
+import 'package:yoyomiles_partner/service/socket_service.dart';
 import 'package:yoyomiles_partner/utils/routes/routes.dart';
 import 'package:yoyomiles_partner/utils/routes/routes_name.dart';
 import 'package:yoyomiles_partner/view/controller/yoyomiles_partner_con.dart';
@@ -81,6 +85,42 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
+  void _startSocket() {
+    const int driverId = 1;
+
+    // 🔥 background service
+    initializeBackgroundService();
+
+    // 🔥 foreground socket
+    SocketService().connect(
+      baseUrl: "https://yoyo.codescarts.com",
+      driverId: driverId,
+      onSyncRides: (rides) {
+        if (rides.isNotEmpty) {
+          // 🔔 ringtone
+          RingtoneHelper().start();
+
+          // 🚖 popup (only foreground)
+          RidePopupHelper.show(
+            navigatorKey: navigatorKey,
+            ride: rides.first,
+            onAccept: () {
+              RingtoneHelper().stop();
+            },
+            onReject: () {
+              RingtoneHelper().stop();
+            },
+          );
+
+        } else {
+          RingtoneHelper().stop();
+          RidePopupHelper.hide();
+        }
+      },
+    );
+  }
+
+
   final notificationService = NotificationService(navigatorKey: navigatorKey);
 
   @override
@@ -89,6 +129,9 @@ class _MyAppState extends State<MyApp> {
     notificationService.requestedNotificationPermission();
     notificationService.firebaseInit(context);
     notificationService.setupInteractMassage(context);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _startSocket(); // ✅ ab provider ready hai
+    });
   }
 
   @override

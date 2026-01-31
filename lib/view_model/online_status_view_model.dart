@@ -38,7 +38,7 @@ class OnlineStatusViewModel with ChangeNotifier {
         if (value["dues_status"] == 1) {
           showDueDialog(context, value["dues_message"]);
           setLoading(false);
-          return;  // ⛔ STOP - online mode ON nahi hoga
+          return;
         }
         final profileViewModel = Provider.of<ProfileViewModel>(context, listen: false);
 
