@@ -179,11 +179,11 @@ class _BankDetailState extends State<BankDetail> {
                       // Account Number
                       _buildFormField(
                         title: "Account Number",
-                        hintText: "Enter 12-digit account number",
+                        hintText: "Enter account number",
                         controller: _accountController,
                         icon: Icons.credit_card,
                         keyboardType: TextInputType.number,
-                        maxLength: 12,
+                        maxLength: 18,
                       ),
 
                       SizedBox(height: Sizes.screenHeight * 0.025),
@@ -195,7 +195,7 @@ class _BankDetailState extends State<BankDetail> {
                         controller: _reAccountController,
                         icon: Icons.credit_card_outlined,
                         keyboardType: TextInputType.number,
-                        maxLength: 12,
+                        maxLength: 18,
                       ),
 
                       SizedBox(height: Sizes.screenHeight * 0.025),

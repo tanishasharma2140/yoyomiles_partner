@@ -9,7 +9,6 @@ import 'package:yoyomiles_partner/res/const_without_polyline_map.dart';
 import 'package:yoyomiles_partner/res/notification_service.dart';
 import 'package:yoyomiles_partner/res/sizing_const.dart';
 import 'package:yoyomiles_partner/service/background_service.dart';
-import 'package:yoyomiles_partner/service/ride_popup_helper.dart';
 import 'package:yoyomiles_partner/service/ringtone_helper.dart';
 import 'package:yoyomiles_partner/service/socket_service.dart';
 import 'package:yoyomiles_partner/utils/routes/routes.dart';
@@ -42,6 +41,7 @@ import 'package:yoyomiles_partner/view_model/ride_view_model.dart';
 import 'package:yoyomiles_partner/view_model/ringtone_view_model.dart';
 import 'package:yoyomiles_partner/view_model/transaction_view_model.dart';
 import 'package:yoyomiles_partner/view_model/update_ride_status_view_model.dart';
+import 'package:yoyomiles_partner/view_model/user_view_model.dart';
 import 'package:yoyomiles_partner/view_model/vehicle_body_detail_view_model.dart';
 import 'package:yoyomiles_partner/view_model/vehicle_name_view_model.dart';
 import 'package:yoyomiles_partner/view_model/vehicle_type_view_model.dart';
@@ -76,7 +76,6 @@ Future<void> main() async {
 double topPadding = 0.0;
 double bottomPadding = 0.0;
 
-
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
@@ -85,37 +84,50 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  void _startSocket() {
-    const int driverId = 1;
+  bool hasActiveRide = false;
 
-    // 🔥 background service
+
+  Future<void> _startSocket() async {
+    final userViewModel = UserViewModel();
+
+    int? driverId = await userViewModel.getUser();
+
+    if (driverId == null || driverId == 0) {
+      debugPrint("❌ Driver ID not found, socket not started");
+      return;
+    }
+
+    debugPrint("✅ Starting socket with driverId: $driverId");
+
+    // Background service start
     initializeBackgroundService();
 
-    // 🔥 foreground socket
     SocketService().connect(
       baseUrl: "https://yoyo.codescarts.com",
       driverId: driverId,
+
       onSyncRides: (rides) {
-        if (rides.isNotEmpty) {
-          // 🔔 ringtone
+        if (rides.isNotEmpty && !hasActiveRide) {
+          hasActiveRide = true;
           RingtoneHelper().start();
-
-          // 🚖 popup (only foreground)
-          RidePopupHelper.show(
-            navigatorKey: navigatorKey,
-            ride: rides.first,
-            onAccept: () {
-              RingtoneHelper().stop();
-            },
-            onReject: () {
-              RingtoneHelper().stop();
-            },
-          );
-
-        } else {
-          RingtoneHelper().stop();
-          RidePopupHelper.hide();
         }
+
+        if (rides.isEmpty && hasActiveRide) {
+          hasActiveRide = false;
+          RingtoneHelper().stop();
+        }
+      },
+
+      onNewRide: () {
+        if (!hasActiveRide) {
+          hasActiveRide = true;
+          RingtoneHelper().start();
+        }
+      },
+
+      onEmptyRide: () {
+        hasActiveRide = false;
+        RingtoneHelper().stop();
       },
     );
   }
@@ -130,7 +142,7 @@ class _MyAppState extends State<MyApp> {
     notificationService.firebaseInit(context);
     notificationService.setupInteractMassage(context);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _startSocket(); // ✅ ab provider ready hai
+      _startSocket();
     });
   }
 
@@ -149,50 +161,64 @@ class _MyAppState extends State<MyApp> {
       ),
       child: MultiProvider(
         providers: [
-          ChangeNotifierProvider(create: (context)=>YoyomilesPartnerCon()),
-          ChangeNotifierProvider(create: (context)=> AuthViewModel()),
-          ChangeNotifierProvider(create: (context)=> VehicleTypeViewModel()),
-          ChangeNotifierProvider(create: (context)=> VehicleNameViewModel()),
-          ChangeNotifierProvider(create: (context)=> ProfileViewModel()),
-          ChangeNotifierProvider(create: (context)=> OnlineStatusViewModel()),
-          ChangeNotifierProvider(create: (context)=> BankDetailViewModel()),
-          ChangeNotifierProvider(create: (context)=> UpdateRideStatusViewModel()),
-          ChangeNotifierProvider(create: (context)=> AssignRideViewModel()),
-          ChangeNotifierProvider(create: (context)=> LiveRideViewModel()),
-          ChangeNotifierProvider(create: (context)=> RideHistoryViewModel()),
-          ChangeNotifierProvider(create: (context)=> BankViewModel()),
-          ChangeNotifierProvider(create: (context)=> CitiesViewModel()),
-          ChangeNotifierProvider(create: (context)=> DriverVehicleViewModel()),
-          ChangeNotifierProvider(create: (context)=> VehicleBodyDetailViewModel()),
-          ChangeNotifierProvider(create: (context)=> BodyTypeViewModel()),
-          ChangeNotifierProvider(create: (context)=> FuelTypeViewModel()),
-          ChangeNotifierProvider(create: (context)=> PolicyViewModel()),
-          ChangeNotifierProvider(create: (context)=> DeleteBankDetailViewModel()),
-          ChangeNotifierProvider(create: (context)=> HelpTopicsViewModel()),
-          ChangeNotifierProvider(create: (context)=> ActiveRideViewModel()),
-          ChangeNotifierProvider(create: (context)=> TransactionViewModel()),
-          ChangeNotifierProvider(create: (context)=> PaymentViewModel()),
-          ChangeNotifierProvider(create: (context)=> CallBackViewModel()),
-          ChangeNotifierProvider(create: (context)=> DailyWeeklyViewModel()),
-          ChangeNotifierProvider(create: (context)=> WithdrawViewModel()),
-          ChangeNotifierProvider(create: (context)=> WithdrawHistoryViewModel()),
-          ChangeNotifierProvider(create: (context)=> OtpCountViewModel()),
-          ChangeNotifierProvider(create: (context)=> DriverIgnoredRideViewModel()),
-          ChangeNotifierProvider(create: (context)=> RideViewModel()),
-          ChangeNotifierProvider(create: (context)=> ConstMapController()),
-          ChangeNotifierProvider(create: (context)=> RingtoneViewModel()),
-          ChangeNotifierProvider(create: (context)=> DeleteOldOrderViewModel()),
-          ChangeNotifierProvider(create: (context)=> ChangePayModeViewModel()),
-          Provider<NotificationService>(create: (_) => NotificationService(navigatorKey: navigatorKey),
+          ChangeNotifierProvider(create: (context) => YoyomilesPartnerCon()),
+          ChangeNotifierProvider(create: (context) => AuthViewModel()),
+          ChangeNotifierProvider(create: (context) => VehicleTypeViewModel()),
+          ChangeNotifierProvider(create: (context) => VehicleNameViewModel()),
+          ChangeNotifierProvider(create: (context) => ProfileViewModel()),
+          ChangeNotifierProvider(create: (context) => OnlineStatusViewModel()),
+          ChangeNotifierProvider(create: (context) => BankDetailViewModel()),
+          ChangeNotifierProvider(
+            create: (context) => UpdateRideStatusViewModel(),
+          ),
+          ChangeNotifierProvider(create: (context) => AssignRideViewModel()),
+          ChangeNotifierProvider(create: (context) => LiveRideViewModel()),
+          ChangeNotifierProvider(create: (context) => RideHistoryViewModel()),
+          ChangeNotifierProvider(create: (context) => BankViewModel()),
+          ChangeNotifierProvider(create: (context) => CitiesViewModel()),
+          ChangeNotifierProvider(create: (context) => DriverVehicleViewModel()),
+          ChangeNotifierProvider(
+            create: (context) => VehicleBodyDetailViewModel(),
+          ),
+          ChangeNotifierProvider(create: (context) => BodyTypeViewModel()),
+          ChangeNotifierProvider(create: (context) => FuelTypeViewModel()),
+          ChangeNotifierProvider(create: (context) => PolicyViewModel()),
+          ChangeNotifierProvider(
+            create: (context) => DeleteBankDetailViewModel(),
+          ),
+          ChangeNotifierProvider(create: (context) => HelpTopicsViewModel()),
+          ChangeNotifierProvider(create: (context) => ActiveRideViewModel()),
+          ChangeNotifierProvider(create: (context) => TransactionViewModel()),
+          ChangeNotifierProvider(create: (context) => PaymentViewModel()),
+          ChangeNotifierProvider(create: (context) => CallBackViewModel()),
+          ChangeNotifierProvider(create: (context) => DailyWeeklyViewModel()),
+          ChangeNotifierProvider(create: (context) => WithdrawViewModel()),
+          ChangeNotifierProvider(
+            create: (context) => WithdrawHistoryViewModel(),
+          ),
+          ChangeNotifierProvider(create: (context) => OtpCountViewModel()),
+          ChangeNotifierProvider(
+            create: (context) => DriverIgnoredRideViewModel(),
+          ),
+          ChangeNotifierProvider(create: (context) => RideViewModel()),
+          ChangeNotifierProvider(create: (context) => ConstMapController()),
+          ChangeNotifierProvider(create: (context) => RingtoneViewModel()),
+          ChangeNotifierProvider(
+            create: (context) => DeleteOldOrderViewModel(),
+          ),
+          ChangeNotifierProvider(create: (context) => ChangePayModeViewModel()),
+          Provider<NotificationService>(
+            create: (_) => NotificationService(navigatorKey: navigatorKey),
           ),
         ],
         child: MaterialApp(
           navigatorKey: navigatorKey,
           debugShowCheckedModeBanner: false,
           initialRoute: RoutesName.splash,
-          onGenerateRoute: (settings){
-            if (settings.name !=null){
-              return CupertinoPageRoute(builder: Routers.generateRoute(settings.name!),
+          onGenerateRoute: (settings) {
+            if (settings.name != null) {
+              return CupertinoPageRoute(
+                builder: Routers.generateRoute(settings.name!),
                 settings: settings,
               );
             }

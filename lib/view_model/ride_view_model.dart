@@ -6,6 +6,9 @@ import 'package:yoyomiles_partner/view/auth/register.dart';
 import 'package:yoyomiles_partner/view_model/profile_view_model.dart';
 
 class RideViewModel extends ChangeNotifier {
+
+
+
   List<Map<String, dynamic>>? _allRideData = [];
   Map<String, dynamic>? _activeRideData = {};
   bool _isListen = false;
