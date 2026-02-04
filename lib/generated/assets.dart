@@ -14,6 +14,7 @@ class Assets {
   static const String assetsDashboard = 'assets/dashboard.png';
   static const String assetsDriver = 'assets/driver.png';
   static const String assetsDriverProfile = 'assets/driver_profile.png';
+  static const String assetsDriverRingtone = 'assets/driver_ringtone.mp3';
   static const String assetsDropLocation = 'assets/drop_location.png';
   static const String assetsEarning = 'assets/earning.png';
   static const String assetsEditprofile = 'assets/editprofile.png';
@@ -23,6 +24,7 @@ class Assets {
   static const String assetsKingFairy = 'assets/king_fairy.png';
   static const String assetsLocation = 'assets/location.png';
   static const String assetsLoginActivity = 'assets/login_activity.png';
+  static const String assetsLostnetwork = 'assets/lostnetwork.gif';
   static const String assetsMapData = 'assets/map_data.gif';
   static const String assetsNoData = 'assets/no_data.gif';
   static const String assetsOffline = 'assets/offline.png';
@@ -39,12 +41,14 @@ class Assets {
   static const String assetsRewardCoin = 'assets/reward_coin.png';
   static const String assetsRewardStarCoin = 'assets/reward_star_coin.png';
   static const String assetsRideHistoryDriver = 'assets/ride_history_driver.png';
+  static const String assetsRingtone030437513 = 'assets/ringtone-030-437513.mp3';
   static const String assetsSorry = 'assets/sorry.gif';
   static const String assetsSplashImage = 'assets/splash_image.png';
   static const String assetsTruck = 'assets/truck.png';
   static const String assetsWallet = 'assets/wallet.png';
   static const String assetsWalletHistory = 'assets/wallet_history.png';
   static const String assetsWalletSettlement = 'assets/wallet_settlement.png';
+  static const String assetsYellowPin = 'assets/yellow_pin.png';
   static const String assetsYoyoPartnerLogo = 'assets/yoyo_partner_logo.png';
   static const String yoyomilesPartnerAssetsNoData = 'assets/no_data.png';
   static const String yoyomilesPartnerAssetsPanCard = 'assets/pan_card.png';

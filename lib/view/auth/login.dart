@@ -273,6 +273,10 @@ class _LoginState extends State<Login> {
                 SizedBox(height: Sizes.screenHeight * 0.035),
                 GestureDetector(
                   onTap: () {
+                    facebookAppEvents.logEvent(
+                      name: 'driver_login',
+                    );
+
                     if (isTermsAgreed && isTDSAgreed) {
                       if (loginViewModel.phoneController.text.length == 10 &&
                           RegExp(r'^\d{10}$').hasMatch(loginViewModel.phoneController.text)) {

@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:yoyomiles_partner/generated/assets.dart';
+import 'package:yoyomiles_partner/main.dart';
 import 'package:yoyomiles_partner/res/app_fonts.dart';
 import 'package:yoyomiles_partner/res/const_map.dart';
 import 'package:yoyomiles_partner/res/constant_color.dart';
@@ -15,6 +16,7 @@ import 'package:yoyomiles_partner/utils/routes/routes_name.dart';
 import 'package:yoyomiles_partner/utils/utils.dart';
 import 'package:yoyomiles_partner/view/auth/register.dart';
 import 'package:yoyomiles_partner/view_model/change_pay_mode_view_model.dart';
+import 'package:yoyomiles_partner/view_model/contact_list_view_model.dart';
 import 'package:yoyomiles_partner/view_model/live_ride_view_model.dart';
 import 'package:yoyomiles_partner/view_model/profile_view_model.dart';
 import 'package:provider/provider.dart';
@@ -41,6 +43,10 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
   @override
   void initState() {
     super.initState();
+    facebookAppEvents.logEvent(
+      name: 'live_ride_screen',
+    );
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final liveRideViewModel = Provider.of<LiveRideViewModel>(
         context,
@@ -858,6 +864,10 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                                 rideStatus.activeRideData?['otp'];
                             print("otpdfdd$firestoreOtp");
                             print(enteredOtp);
+                            facebookAppEvents.logEvent(
+                              name: 'otp_verified',
+                            );
+
 
                             if (firestoreOtp.toString() ==
                                 enteredOtp.toString()) {
@@ -914,6 +924,104 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
       ),
     );
   }
+
+  Widget _buildEmergencySection() {
+    final contactListVm =
+    Provider.of<ContactListViewModel>(context, listen: false);
+
+    final String supportNumber =
+        contactListVm.contactListModel?.sosNumber ?? "6306513131";
+    final String sosMessage =
+        contactListVm.contactListModel?.sosMessage ?? "Hello";
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          /// LEFT INFO
+          Expanded(
+            child: Row(
+              children: const [
+                Icon(
+                  Icons.warning_amber_rounded,
+                  color: Colors.red,
+                  size: 22,
+                ),
+                SizedBox(width: 6),
+                TextConst(
+                  title: "Emergency",
+                  size: 15,
+                  fontWeight: FontWeight.w600,
+                ),
+              ],
+            ),
+          ),
+
+          /// 🔴 SOS BUTTON
+          InkWell(
+            borderRadius: BorderRadius.circular(20),
+            onTap: () {
+              _openWhatsApp(
+                phone: supportNumber,
+                message: sosMessage,
+              );
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.red,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: const TextConst(
+                title: "SOS",
+                color: Colors.white,
+                size: 13,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+
+          const SizedBox(width: 8),
+
+          /// 🟡 CHAT SUPPORT
+          InkWell(
+            borderRadius: BorderRadius.circular(20),
+            onTap: () {
+              _openWhatsApp(
+                phone: supportNumber,
+                message: "Hello Support, I need help with my ongoing ride.",
+              );
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              decoration: BoxDecoration(
+                color: PortColor.gold,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: const Icon(
+                Icons.chat_rounded,
+                color: Colors.white,
+                size: 18,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
 
   Widget _buildDetailRow({
     IconData? icon, // ← optional
@@ -1312,7 +1420,8 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                   SizedBox(height: Sizes.screenHeight * 0.015),
                   Divider(height: 1),
                   SizedBox(height: Sizes.screenHeight * 0.015),
-
+                  _buildEmergencySection(),
+                  SizedBox(height: Sizes.screenHeight * 0.015),
                   Container(
                     width: double.infinity,
                     padding: EdgeInsets.all(Sizes.screenWidth * 0.03),
@@ -1680,6 +1789,7 @@ class CollectPaymentScreen extends StatelessWidget {
     );
   }
 
+
   @override
   Widget build(BuildContext context) {
     return Consumer<RideViewModel>(
@@ -1929,5 +2039,30 @@ class LauncherI {
     } else {
       throw "Could not launch $url";
     }
+  }
+}
+
+void _openWhatsApp({
+  required String phone,
+  String message = "",
+}) async {
+  final cleanNumber = phone
+      .replaceAll("+", "")
+      .replaceAll(" ", "")
+      .replaceAll("-", "");
+
+  final encodedMessage = Uri.encodeComponent(message);
+
+  final Uri whatsappUrl = Uri.parse(
+    "https://wa.me/$cleanNumber?text=$encodedMessage",
+  );
+
+  if (await canLaunchUrl(whatsappUrl)) {
+    await launchUrl(
+      whatsappUrl,
+      mode: LaunchMode.externalApplication,
+    );
+  } else {
+    debugPrint("❌ WhatsApp not installed");
   }
 }

@@ -1,14 +1,17 @@
+import 'package:facebook_app_events/facebook_app_events.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:yoyomiles_partner/check_for_update.dart';
 import 'package:yoyomiles_partner/firebase_options.dart';
 import 'package:yoyomiles_partner/res/const_without_polyline_map.dart';
 import 'package:yoyomiles_partner/res/notification_service.dart';
 import 'package:yoyomiles_partner/res/sizing_const.dart';
 import 'package:yoyomiles_partner/service/background_service.dart';
+import 'package:yoyomiles_partner/service/internet_checker_service.dart';
 import 'package:yoyomiles_partner/service/ringtone_helper.dart';
 import 'package:yoyomiles_partner/service/socket_service.dart';
 import 'package:yoyomiles_partner/utils/routes/routes.dart';
@@ -23,6 +26,7 @@ import 'package:yoyomiles_partner/view_model/body_type_view_model.dart';
 import 'package:yoyomiles_partner/view_model/call_back_view_model.dart';
 import 'package:yoyomiles_partner/view_model/change_pay_mode_view_model.dart';
 import 'package:yoyomiles_partner/view_model/cities_view_model.dart';
+import 'package:yoyomiles_partner/view_model/contact_list_view_model.dart';
 import 'package:yoyomiles_partner/view_model/daily_weekly_view_model.dart';
 import 'package:yoyomiles_partner/view_model/delete_bank_detail_view_model.dart';
 import 'package:yoyomiles_partner/view_model/delete_old_order_view_model.dart';
@@ -49,6 +53,8 @@ import 'package:provider/provider.dart';
 import 'package:yoyomiles_partner/view_model/withdraw_history_view_model.dart';
 import 'package:yoyomiles_partner/view_model/withdraw_view_model.dart';
 
+
+final FacebookAppEvents facebookAppEvents = FacebookAppEvents();
 String? fcmToken;
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
@@ -84,6 +90,8 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
+  final InternetCheckerService _internetCheckerService =
+  InternetCheckerService();
   bool hasActiveRide = false;
 
 
@@ -142,6 +150,8 @@ class _MyAppState extends State<MyApp> {
     notificationService.firebaseInit(context);
     notificationService.setupInteractMassage(context);
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      _internetCheckerService.startMonitoring(navigatorKey.currentContext!);
+      checkForUpdate();
       _startSocket();
     });
   }
@@ -207,6 +217,7 @@ class _MyAppState extends State<MyApp> {
             create: (context) => DeleteOldOrderViewModel(),
           ),
           ChangeNotifierProvider(create: (context) => ChangePayModeViewModel()),
+          ChangeNotifierProvider(create: (context) => ContactListViewModel()),
           Provider<NotificationService>(
             create: (_) => NotificationService(navigatorKey: navigatorKey),
           ),
