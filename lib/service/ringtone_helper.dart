@@ -10,7 +10,10 @@ class RingtoneHelper {
   final AudioPlayer _player = AudioPlayer();
 
   bool _isPlaying = false;
-  bool _isStarting = false; // 🔥 NEW LOCK
+  bool _isStarting = false;
+
+  /// ✅ ADD THIS GETTER
+  bool get isPlaying => _isPlaying;
 
   Future<void> start() async {
     if (_isPlaying || _isStarting) return;
@@ -41,10 +44,15 @@ class RingtoneHelper {
   }
 
   Future<void> stop() async {
-    if (!_isPlaying) return;
+    try {
+      await _player.stop();
+      await _player.seek(Duration.zero);
+    } catch (_) {}
 
-    await _player.stop();
     _isPlaying = false;
+    _isStarting = false;
   }
+
 }
+
 

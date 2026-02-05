@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 class RideNotificationHelper {
@@ -64,16 +65,25 @@ class RideNotificationHelper {
 
     await _plugin.show(
       _notificationId,
-      '🚖 New Ride Request #${bookingData['id']}',
+      '🚖 New Ride Request',
       'Pickup: ${bookingData['pickup_address'] ?? "N/A"}',
       const NotificationDetails(android: androidDetails),
     );
   }
 
-  static Future<void> clear() async {
+  static Future<void> clear({bool fromBackground = false}) async {
     _currentBookingData = null;
+
+    if (!fromBackground) {
+      // ✅ ONLY UI isolate should invoke background
+      FlutterBackgroundService().invoke('STOP_RINGTONE');
+    }
+
     await _plugin.cancel(_notificationId);
   }
+
+
+
 
   static void _onAction(NotificationResponse response) {
     if (_currentBookingData == null) {

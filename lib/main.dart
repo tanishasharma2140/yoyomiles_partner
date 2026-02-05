@@ -5,15 +5,12 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:yoyomiles_partner/check_for_update.dart';
 import 'package:yoyomiles_partner/firebase_options.dart';
 import 'package:yoyomiles_partner/res/const_without_polyline_map.dart';
 import 'package:yoyomiles_partner/res/notification_service.dart';
 import 'package:yoyomiles_partner/res/sizing_const.dart';
 import 'package:yoyomiles_partner/service/background_service.dart';
 import 'package:yoyomiles_partner/service/internet_checker_service.dart';
-import 'package:yoyomiles_partner/service/ringtone_helper.dart';
-import 'package:yoyomiles_partner/service/socket_service.dart';
 import 'package:yoyomiles_partner/utils/routes/routes.dart';
 import 'package:yoyomiles_partner/utils/routes/routes_name.dart';
 import 'package:yoyomiles_partner/view/controller/yoyomiles_partner_con.dart';
@@ -110,34 +107,6 @@ class _MyAppState extends State<MyApp> {
     // Background service start
     initializeBackgroundService();
 
-    SocketService().connect(
-      baseUrl: "https://yoyo.codescarts.com",
-      driverId: driverId,
-
-      onSyncRides: (rides) {
-        if (rides.isNotEmpty && !hasActiveRide) {
-          hasActiveRide = true;
-          RingtoneHelper().start();
-        }
-
-        if (rides.isEmpty && hasActiveRide) {
-          hasActiveRide = false;
-          RingtoneHelper().stop();
-        }
-      },
-
-      onNewRide: () {
-        if (!hasActiveRide) {
-          hasActiveRide = true;
-          RingtoneHelper().start();
-        }
-      },
-
-      onEmptyRide: () {
-        hasActiveRide = false;
-        RingtoneHelper().stop();
-      },
-    );
   }
 
 
@@ -151,7 +120,6 @@ class _MyAppState extends State<MyApp> {
     notificationService.setupInteractMassage(context);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _internetCheckerService.startMonitoring(navigatorKey.currentContext!);
-      checkForUpdate();
       _startSocket();
     });
   }

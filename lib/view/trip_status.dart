@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:provider/provider.dart';
-import 'package:yoyomiles_partner/check_for_update.dart';
 import 'package:yoyomiles_partner/generated/assets.dart';
 import 'package:yoyomiles_partner/main.dart';
 import 'package:yoyomiles_partner/res/app_fonts.dart';
@@ -55,7 +54,6 @@ class _TripStatusState extends State<TripStatus> {
       name: 'driver_online_screen',
     );
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      checkForUpdate();
       ringtoneVM = Provider.of<RingtoneViewModel>(context, listen: false);
       final deleteOldOrderVm = Provider.of<DeleteOldOrderViewModel>(context, listen: false);
 

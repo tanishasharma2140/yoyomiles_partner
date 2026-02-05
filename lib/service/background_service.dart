@@ -1,4 +1,5 @@
 import 'package:flutter_background_service/flutter_background_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:yoyomiles_partner/service/ride_notification_helper.dart';
 import 'socket_service.dart';
 import 'ringtone_helper.dart';
@@ -6,37 +7,55 @@ import 'ringtone_helper.dart';
 /// 🔥 TOP-LEVEL FUNCTION (MANDATORY)
 @pragma('vm:entry-point')
 void backgroundServiceOnStart(ServiceInstance service) async {
-  // 🔥 VERY IMPORTANT
+  /// VERY IMPORTANT
   await RideNotificationHelper.init();
 
-  const int driverId = 1;
+  /// 🔥 Listen commands from main isolate
+  service.on('STOP_RINGTONE').listen((event) {
+    RingtoneHelper().stop();
+  });
 
+  service.on('START_RINGTONE').listen((event) {
+    if (!RingtoneHelper().isPlaying) {
+      RingtoneHelper().start();
+    }
+  });
+
+  /// 🔥 Fetch driverId dynamically
+  final prefs = await SharedPreferences.getInstance();
+  final int? driverId = prefs.getInt('token');
+
+  if (driverId == null) {
+    print('❌ Driver ID not found, stopping service');
+    return;
+  }
+
+  /// 🔥 Socket connection
   SocketService().connect(
-    baseUrl: "https://yoyo.codescarts.com",
+    baseUrl: "https://admin.yoyomiles.com",
     driverId: driverId,
 
     onSyncRides: (rides) {
       if (rides.isNotEmpty) {
         RingtoneHelper().start();
-
-        // 🔥 Pass first ride data to notification
         RideNotificationHelper.showIncomingRide(rides.first);
       } else {
         RingtoneHelper().stop();
-        RideNotificationHelper.clear();
+        RideNotificationHelper.clear(fromBackground: true);
       }
     },
 
     onNewRide: () {
-      // 🔥 Simple callback without parameter
-      RingtoneHelper().start();
-      // Notification already shown in onSyncRides
+      if (!RingtoneHelper().isPlaying) {
+        RingtoneHelper().start();
+      }
     },
 
     onEmptyRide: () {
       RingtoneHelper().stop();
-      RideNotificationHelper.clear();
+      RideNotificationHelper.clear(fromBackground: true);
     },
+
   );
 }
 
@@ -48,10 +67,8 @@ void initializeBackgroundService() {
     androidConfiguration: AndroidConfiguration(
       autoStart: true,
       isForegroundMode: true,
-
       onStart: backgroundServiceOnStart,
 
-      // 🔔 same channel as MainActivity.kt
       notificationChannelId: 'SERVICE_CHANNEL',
       initialNotificationTitle: 'Yoyomiles Driver Online',
       initialNotificationContent: 'Waiting for rides',
