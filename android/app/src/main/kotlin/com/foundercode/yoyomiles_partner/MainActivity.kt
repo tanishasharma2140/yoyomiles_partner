@@ -8,16 +8,33 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import io.flutter.embedding.android.FlutterActivity
+import io.flutter.embedding.engine.FlutterEngine
+import io.flutter.plugin.common.MethodChannel
 
 class MainActivity : FlutterActivity() {
+
+    private lateinit var methodChannel: MethodChannel
+
+    companion object {
+        const val CHANNEL_NAME = "yoyomiles_partner/native_callback"
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            createServiceChannel()   // 🔹 Background service
-            recreateBookingChannel() // 🔔 Incoming ride
+            createServiceChannel()
+            recreateBookingChannel()
         }
+    }
+
+    override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
+        super.configureFlutterEngine(flutterEngine)
+
+        methodChannel = MethodChannel(
+            flutterEngine.dartExecutor.binaryMessenger,
+            CHANNEL_NAME
+        )
     }
 
     // 🔹 FOREGROUND SERVICE CHANNEL (LOW importance)
@@ -32,11 +49,11 @@ class MainActivity : FlutterActivity() {
         manager.createNotificationChannel(channel)
     }
 
-    // 🔔 RIDE / CALL CHANNEL (HIGH importance, sticky)
+    // 🔔 BOOKING / RIDE CHANNEL (HIGH importance)
     private fun recreateBookingChannel() {
         val manager = getSystemService(NotificationManager::class.java)
 
-        // 🔥 IMPORTANT: delete old channel so rules refresh
+        // ⚠️ Delete old channel so sound rules refresh
         manager.deleteNotificationChannel("BOOKING_CHANNEL")
 
         val soundUri = Uri.parse(
@@ -61,5 +78,12 @@ class MainActivity : FlutterActivity() {
         }
 
         manager.createNotificationChannel(channel)
+    }
+
+    // 🔥 Native → Flutter trigger (same as Rainbow)
+    fun sendRideToFlutter(data: Map<String, Any>) {
+        if (::methodChannel.isInitialized) {
+            methodChannel.invokeMethod("onRideEvent", data)
+        }
     }
 }

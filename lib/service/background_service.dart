@@ -7,30 +7,29 @@ import 'ringtone_helper.dart';
 /// 🔥 TOP-LEVEL FUNCTION (MANDATORY)
 @pragma('vm:entry-point')
 void backgroundServiceOnStart(ServiceInstance service) async {
-  /// VERY IMPORTANT
+
+  // ❌ DO NOT CALL setForegroundNotificationInfo (Android 14 crash)
+
   await RideNotificationHelper.init();
 
-  /// 🔥 Listen commands from main isolate
-  service.on('STOP_RINGTONE').listen((event) {
+  service.on('STOP_RINGTONE').listen((_) {
     RingtoneHelper().stop();
   });
 
-  service.on('START_RINGTONE').listen((event) {
+  service.on('START_RINGTONE').listen((_) {
     if (!RingtoneHelper().isPlaying) {
       RingtoneHelper().start();
     }
   });
 
-  /// 🔥 Fetch driverId dynamically
   final prefs = await SharedPreferences.getInstance();
   final int? driverId = prefs.getInt('token');
 
   if (driverId == null) {
-    print('❌ Driver ID not found, stopping service');
+    print('❌ Driver ID not found');
     return;
   }
 
-  /// 🔥 Socket connection
   SocketService().connect(
     baseUrl: "https://admin.yoyomiles.com",
     driverId: driverId,
@@ -55,30 +54,38 @@ void backgroundServiceOnStart(ServiceInstance service) async {
       RingtoneHelper().stop();
       RideNotificationHelper.clear(fromBackground: true);
     },
-
   );
 }
 
+
+
+
+
+
 /// 🔥 Service initializer
-void initializeBackgroundService() {
+Future<void> initializeBackgroundService() async {
   final service = FlutterBackgroundService();
 
-  service.configure(
+  await service.configure(
     androidConfiguration: AndroidConfiguration(
-      autoStart: true,
+      autoStart: false,
       isForegroundMode: true,
       onStart: backgroundServiceOnStart,
 
       notificationChannelId: 'SERVICE_CHANNEL',
       initialNotificationTitle: 'Yoyomiles Driver Online',
-      initialNotificationContent: 'Waiting for rides',
+      initialNotificationContent: 'Waiting for rides...',
       foregroundServiceNotificationId: 888,
     ),
     iosConfiguration: IosConfiguration(
-      autoStart: true,
+      autoStart: false,
       onForeground: backgroundServiceOnStart,
     ),
   );
 
-  service.startService();
+  final isRunning = await service.isRunning();
+  if (!isRunning) {
+    await service.startService(); // ✅ only once
+  }
 }
+

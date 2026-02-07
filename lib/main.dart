@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:facebook_app_events/facebook_app_events.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -11,6 +13,7 @@ import 'package:yoyomiles_partner/res/notification_service.dart';
 import 'package:yoyomiles_partner/res/sizing_const.dart';
 import 'package:yoyomiles_partner/service/background_service.dart';
 import 'package:yoyomiles_partner/service/internet_checker_service.dart';
+import 'package:yoyomiles_partner/service/ride_notification_helper.dart';
 import 'package:yoyomiles_partner/utils/routes/routes.dart';
 import 'package:yoyomiles_partner/utils/routes/routes_name.dart';
 import 'package:yoyomiles_partner/view/controller/yoyomiles_partner_con.dart';
@@ -55,6 +58,29 @@ final FacebookAppEvents facebookAppEvents = FacebookAppEvents();
 String? fcmToken;
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
+const MethodChannel nativeChannel =
+MethodChannel('yoyomiles_partner/native_callback');
+
+
+@pragma('vm:entry-point')
+Future<void> handleNativeCallback(MethodCall call) async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  switch (call.method) {
+    case 'onRideEvent':
+      final Map<String, dynamic> data =
+      Map<String, dynamic>.from(call.arguments);
+
+      debugPrint("🚖 Ride Event from Native: $data");
+
+      await RideNotificationHelper.showIncomingRide(data);
+      break;
+
+    default:
+      debugPrint("⚠️ Unknown native callback");
+  }
+}
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
@@ -69,6 +95,8 @@ Future<void> main() async {
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
+
+  nativeChannel.setMethodCallHandler(handleNativeCallback);
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   //
@@ -111,10 +139,73 @@ class _MyAppState extends State<MyApp> {
 
 
   final notificationService = NotificationService(navigatorKey: navigatorKey);
+  late final StreamSubscription rideActionSub;
 
   @override
   void initState() {
     super.initState();
+    RideNotificationHelper.init();
+    rideActionSub = RideNotificationHelper.actionStream.listen((action) async {
+      if (action.type == ActionType.accept) {
+        print("🚕 ACCEPT tapped");
+        print("📦 Booking data: ${action.bookingData}");
+
+        final bookingData = action.bookingData;
+
+        final context = navigatorKey.currentContext;
+        if (context == null) {
+          print("❌ Context not available");
+          return;
+        }
+
+        final assignVm =
+        Provider.of<AssignRideViewModel>(context, listen: false);
+
+        // 🔥 SAFE extraction
+        final String orderId =
+            action.bookingData['order_id']?.toString() ?? "";
+
+
+        await assignVm.assignRideApi(
+          context,
+          1,              // ACCEPT
+          orderId,    // empty string for YoYoMiles
+          bookingData,
+        );
+      }
+
+
+
+      if (action.type == ActionType.reject) {
+        print("❌ REJECT tapped");
+        print("📦 Booking data: ${action.bookingData}");
+
+        final String orderId =
+            action.bookingData['order_id']?.toString() ?? "";
+
+        if (orderId.isEmpty) {
+          print("❌ Order ID missing");
+          return;
+        }
+
+        final context = navigatorKey.currentContext;
+        if (context == null) {
+          print("❌ Context not available");
+          return;
+        }
+
+        final ignoreVm =
+        Provider.of<DriverIgnoredRideViewModel>(context, listen: false);
+
+        await ignoreVm.driverIgnoredRideApi(
+          context: context,
+          orderId: orderId, // ✅ STRING
+        );
+
+        print("✅ IGNORE API CALLED FOR ORDER: $orderId");
+      }
+
+    });
     notificationService.requestedNotificationPermission();
     notificationService.firebaseInit(context);
     notificationService.setupInteractMassage(context);
@@ -180,7 +271,6 @@ class _MyAppState extends State<MyApp> {
           ),
           ChangeNotifierProvider(create: (context) => RideViewModel()),
           ChangeNotifierProvider(create: (context) => ConstMapController()),
-          ChangeNotifierProvider(create: (context) => RingtoneViewModel()),
           ChangeNotifierProvider(
             create: (context) => DeleteOldOrderViewModel(),
           ),

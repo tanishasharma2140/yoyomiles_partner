@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -50,7 +51,7 @@ class RideNotificationHelper {
         // 🔥 Simple actions without icons (NO contextual)
         AndroidNotificationAction(
           'REJECT_RIDE',
-          '❌ Reject',  // emoji adds visual distinction
+          '❌ Ignore',  // emoji adds visual distinction
           cancelNotification: false,
           showsUserInterface: true,
         ),
@@ -67,7 +68,10 @@ class RideNotificationHelper {
       _notificationId,
       '🚖 New Ride Request',
       'Pickup: ${bookingData['pickup_address'] ?? "N/A"}',
-      const NotificationDetails(android: androidDetails),
+      NotificationDetails(
+        android: androidDetails,
+      ),
+      payload: jsonEncode(bookingData), // 🔥 IMPORTANT
     );
   }
 
@@ -86,35 +90,39 @@ class RideNotificationHelper {
 
 
   static void _onAction(NotificationResponse response) {
-    if (_currentBookingData == null) {
-      print("⚠️ No booking data available");
+    if (response.payload == null) {
+      print("❌ Payload is NULL");
       return;
     }
 
+    final Map<String, dynamic> bookingData =
+    jsonDecode(response.payload!);
+
+    print("🔥 NOTIFICATION ACTION TAPPED");
+    print("👉 ACTION ID: ${response.actionId}");
+    print("📦 DATA: $bookingData");
+
     switch (response.actionId) {
       case 'ACCEPT_RIDE':
-        print("✅ Ride Accepted from notification");
+        print("✅ ACCEPT CLICK WORKING");
         _actionController.add(
           NotificationAction(
             type: ActionType.accept,
-            bookingData: _currentBookingData!,
+            bookingData: bookingData,
           ),
         );
-        clear();
+        // clear();
         break;
 
       case 'REJECT_RIDE':
-        print("❌ Ride Rejected from notification");
+        print("❌ REJECT CLICK WORKING");
         _actionController.add(
           NotificationAction(
             type: ActionType.reject,
-            bookingData: _currentBookingData!,
+            bookingData: bookingData,
           ),
         );
         clear();
-        break;
-
-      default:
         break;
     }
   }

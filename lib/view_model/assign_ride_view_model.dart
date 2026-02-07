@@ -33,7 +33,7 @@ class AssignRideViewModel with ChangeNotifier {
     Map data = {
       "driver_id": userId,
       "ride_status": rideStatus,
-      "ride_id": bookingData['id'],  // API wale ride ID
+      "ride_id": rideDocId,  // API wale ride ID
     };
 
     print("📤 Sending API Request: $data");

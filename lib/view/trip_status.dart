@@ -37,7 +37,7 @@ class _TripStatusState extends State<TripStatus> {
   Map<String, Timer> bookingTimers = {};
   Timer? _deleteTimer;
 
-  late RingtoneViewModel ringtoneVM;
+  // late RingtoneViewModel ringtoneVM;
   Set<String> _seenBookingIds = {};
   StreamSubscription? _bookingSubscription;
 
@@ -54,7 +54,7 @@ class _TripStatusState extends State<TripStatus> {
       name: 'driver_online_screen',
     );
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ringtoneVM = Provider.of<RingtoneViewModel>(context, listen: false);
+      // ringtoneVM = Provider.of<RingtoneViewModel>(context, listen: false);
       final deleteOldOrderVm = Provider.of<DeleteOldOrderViewModel>(context, listen: false);
 
       // 1st Immediate hit
@@ -76,7 +76,7 @@ class _TripStatusState extends State<TripStatus> {
       _bookingSubscription?.cancel();
       bookingTimers.forEach((key, timer) => timer.cancel());
       // Stop ringtone on dispose
-      ringtoneVM.stopRingtone();
+      // ringtoneVM.stopRingtone();
       _deleteTimer?.cancel();
     } catch (_) {}
     super.dispose();
@@ -214,7 +214,7 @@ class _TripStatusState extends State<TripStatus> {
           leading: IconButton(
             icon: const Icon(Icons.arrow_back, color: Colors.black),
             onPressed: () {
-              Provider.of<RingtoneViewModel>(context, listen: false).stopRingtone();
+              // Provider.of<RingtoneViewModel>(context, listen: false).stopRingtone();
               Navigator.pop(context);
             },
           ),
@@ -253,15 +253,15 @@ class _TripStatusState extends State<TripStatus> {
           builder: (context, rideVM, child) {
             print("hgfhg ${rideVM.allRideData}");
             final bookingList = rideVM.allRideData ?? [];
-            final ringtone = Provider.of<RingtoneViewModel>(context, listen: false);
+            // final ringtone = Provider.of<RingtoneViewModel>(context, listen: false);
 
-            if (bookingList.isNotEmpty && !ringtone.isRinging) {
-              ringtone.playRingtone();
-            }
-
-            if (bookingList.isEmpty && ringtone.isRinging) {
-              ringtone.stopRingtone();
-            }
+            // if (bookingList.isNotEmpty && !ringtone.isRinging) {
+            //   ringtone.playRingtone();
+            // }
+            //
+            // if (bookingList.isEmpty && ringtone.isRinging) {
+            //   ringtone.stopRingtone();
+            // }
 
             return Stack(
               children: [
@@ -515,7 +515,7 @@ class _TripStatusState extends State<TripStatus> {
     print("🚗 ACCEPT pressed for bookingId: $bookingId");
 
     // Stop ringtone immediately
-    Provider.of<RingtoneViewModel>(context, listen: false).stopRingtone();
+    // Provider.of<RingtoneViewModel>(context, listen: false).stopRingtone();
 
     // Set accepting flag
     setState(() {
@@ -659,7 +659,7 @@ class BookingCard extends StatelessWidget {
                 GestureDetector(
                   onTap: () {
                     // Stop ringtone on ignore
-                    Provider.of<RingtoneViewModel>(context, listen: false).stopRingtone();
+                    // Provider.of<RingtoneViewModel>(context, listen: false).stopRingtone();
 
                     ignoredRideVm.driverIgnoredRideApi(
                       context: context,
