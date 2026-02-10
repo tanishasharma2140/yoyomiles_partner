@@ -355,10 +355,12 @@ class _ConstMapState extends State<ConstMap> {
 
       if (routeToPickup.isNotEmpty) {
         WidgetsBinding.instance.addPostFrameCallback((_) async {
+          if (!mounted) return; // 🔥 MOST IMPORTANT
+
           setState(() {
             _polylines.add(
               Polyline(
-                polylineId: PolylineId("driver_to_pickup"),
+                polylineId: const PolylineId("driver_to_pickup"),
                 points: routeToPickup,
                 color: Colors.blue,
                 width: 3,
@@ -366,9 +368,11 @@ class _ConstMapState extends State<ConstMap> {
             );
           });
 
+          if (!mounted) return;
           await moveCameraOnPolyline(routeToPickup);
         });
       }
+
 
     }
 

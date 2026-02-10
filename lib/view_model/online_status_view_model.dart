@@ -12,82 +12,84 @@ import 'package:yoyomiles_partner/view_model/services/firebase_dao.dart';
 import 'package:yoyomiles_partner/view_model/user_view_model.dart';
 class OnlineStatusViewModel with ChangeNotifier {
   final _onlineStatusRepo = OnlineStatusRepo();
+
   bool _loading = false;
   bool get loading => _loading;
-  setLoading(bool value) {
+
+  void setLoading(bool value) {
     _loading = value;
     notifyListeners();
   }
 
-  Future<void> onlineStatusApi(
-    context,
-      int status,
-  ) async {
+  /// 🔥 SUCCESS true/false return karega
+  Future<bool> onlineStatusApi(BuildContext context, int status) async {
     setLoading(true);
-    UserViewModel userViewModel = UserViewModel();
-    int? userId = (await userViewModel.getUser());
 
-    Map data = {
-      "id": userId,
-      "online_status": status,
-    };
+    try {
+      final userViewModel = UserViewModel();
+      final int? userId = await userViewModel.getUser();
 
-    _onlineStatusRepo.onlineStatusApi(data).then((value) async {
+      final data = {
+        "id": userId,
+        "online_status": status,
+      };
+
+      final value = await _onlineStatusRepo.onlineStatusApi(data);
+
       setLoading(false);
+
       if (value['success'] == true) {
+
+        // ❌ dues case
         if (value["dues_status"] == 1) {
           showDueDialog(context, value["dues_message"]);
-          setLoading(false);
-          return;
+          return false;
         }
-        final profileViewModel = Provider.of<ProfileViewModel>(context, listen: false);
 
-        print("🟢 Calling profileApi()...");
-        await profileViewModel.profileApi(context); // make sure profileApi() is async
-        print("✅ profileApi() completed");
+        final profileViewModel =
+        Provider.of<ProfileViewModel>(context, listen: false);
 
-        // 🟢 Print the received data
-        print("📦 Profile Data Received:");
-        print(profileViewModel.profileModel!.data!.toJson());
+        await profileViewModel.profileApi(context);
 
-        if (status ==1){
-          print("✅ Status = 1 → Navigating to Map and saving driver data to Firebase...");
-
-          print("📦 Driver ID: $userId");
-          print("🧾 Driver Data (to be saved): ${profileViewModel.profileModel!.data!.toJson()}");
-
+        if (status == 1) {
           FirebaseServices().saveOrUpdateDocument(
             driverId: userId.toString(),
             data: profileViewModel.profileModel!.data!.toJson(),
           );
 
-          print("🔥 Firebase saveOrUpdateDocument() called successfully!");
           Navigator.pushNamed(context, RoutesName.tripStatus);
-        } else if (status == 0){
-          print("aman");
-          FirebaseServices().saveOrUpdateDocument(
-            driverId: userId.toString(),
-            data: profileViewModel.profileModel!.data!.toJson(),
-          );
-          Navigator.pushNamedAndRemoveUntil(
-            context,
-            RoutesName.register,
-                (Route<dynamic> route) => false, // removes all previous routes
-          );
-          // Navigator.of(context).pop();
-          // Navigator.pushReplacementNamed(context, RoutesName.register);
+          return true; // ✅ SUCCESS
         }
+
+        // offline case
+        FirebaseServices().saveOrUpdateDocument(
+          driverId: userId.toString(),
+          data: profileViewModel.profileModel!.data!.toJson(),
+        );
+
+        Navigator.pushNamedAndRemoveUntil(
+          context,
+          RoutesName.register,
+              (route) => false,
+        );
+
+        return false;
       } else {
         Utils.showSuccessMessage(context, value["message"]);
+        return false;
       }
-    }).onError((error, stackTrace) {
+    } catch (e) {
       setLoading(false);
       if (kDebugMode) {
-        print('error: $error');
+        print("❌ onlineStatusApi error: $e");
       }
-    });
+      return false;
+    }
   }
 }
+
+
+
 
 void showDueDialog(BuildContext context, String message) {
   showDialog(

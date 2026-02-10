@@ -10,8 +10,10 @@ import 'package:yoyomiles_partner/res/sizing_const.dart';
 import 'package:yoyomiles_partner/res/text_const.dart';
 import 'package:yoyomiles_partner/utils/routes/routes_name.dart';
 import 'package:yoyomiles_partner/utils/utils.dart';
+import 'package:yoyomiles_partner/view/video_player_screen.dart';
 import 'package:yoyomiles_partner/view_model/auth_view_model.dart';
 import 'package:provider/provider.dart';
+import 'package:yoyomiles_partner/view_model/video_view_model.dart';
 
 class Login extends StatefulWidget {
   const Login({super.key});
@@ -23,9 +25,20 @@ class Login extends StatefulWidget {
 class _LoginState extends State<Login> {
   bool isTermsAgreed = false;
   bool isTDSAgreed = false;
+
+  @override
+  void initState() {
+    super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<VideoViewModel>(context, listen: false).videoApi();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final loginViewModel = Provider.of<AuthViewModel>(context);
+    final videoVm = Provider.of<VideoViewModel>(context);
     return SafeArea(
       top: false,
       bottom: true,
@@ -317,6 +330,121 @@ class _LoginState extends State<Login> {
                         : CupertinoActivityIndicator(color: PortColor.white, radius: 12),
                   ),
                 ),
+                SizedBox(height: Sizes.screenHeight * 0.1),
+
+                GestureDetector(
+                  onTap: () {
+                    final videoUrl = videoVm.videoModel?.data?.videoUrl;
+
+                    if (videoUrl != null && videoUrl.isNotEmpty) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => VideoPlayerScreen(videoUrl: videoUrl),
+                        ),
+                      );
+                    } else {
+                      Utils.showErrorMessage(context, "Video not available");
+                    }
+                  },
+                  child: Container(
+                    height: Sizes.screenHeight * 0.13,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: PortColor.blue.withOpacity(0.2),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        // LEFT CONTENT
+                        Expanded(
+                          flex: 6,
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                TextConst(
+                                  title:
+                                  "Watch this video to learn how to register and accept rides\non the YoyoMiles Partner app.",
+                                  maxLines: 3,
+                                  overflow: TextOverflow.ellipsis,
+                                  size: Sizes.fontSizeFive,
+                                  color: Colors.black54,
+                                ),
+
+                                const SizedBox(height: 10),
+
+                                // CTA
+                                Row(
+                                  children: [
+                                    TextConst(
+                                      title:
+                                      "Watch Video",
+                                      size: Sizes.fontSizeSix,
+                                      color: PortColor.blue,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Icon(
+                                      Icons.arrow_forward,
+                                      color: PortColor.blue,
+                                      size: 18,
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+
+                        // RIGHT IMAGE
+                        Expanded(
+                          flex: 3,
+                          child: ClipRRect(
+                            borderRadius: const BorderRadius.only(
+                              topRight: Radius.circular(20),
+                              bottomRight: Radius.circular(20),
+                            ),
+                            child: videoVm.loading
+                                ? const Center(child: CupertinoActivityIndicator())
+                                : Stack(
+                              fit: StackFit.expand,
+                              children: [
+                                Image.network(
+                                  videoVm.videoModel?.data?.imageUrl ?? "",
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, __, ___) =>
+                                  const Icon(Icons.image_not_supported),
+                                ),
+
+                                // ▶️ Play Icon Overlay
+                                const Center(
+                                  child: CircleAvatar(
+                                    radius: 22,
+                                    backgroundColor: Colors.black54,
+                                    child: Icon(
+                                      Icons.play_arrow,
+                                      color: Colors.white,
+                                      size: 28,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+
+                      ],
+                    ),
+                  ),
+                ),
+
+
               ],
             ),
           ),

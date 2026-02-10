@@ -40,9 +40,14 @@ class _OtpPageState extends State<OtpPage> {
 
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_timerCountdown > 0) {
-        setState(() {
-          _timerCountdown--;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+
+          setState(() {
+            _timerCountdown--;
+          });
         });
+
       } else {
         timer.cancel();
       }

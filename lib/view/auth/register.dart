@@ -1,11 +1,13 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:permission_handler/permission_handler.dart' as AppSettings;
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:yoyomiles_partner/generated/assets.dart';
 import 'package:yoyomiles_partner/res/constant_color.dart';
 import 'package:yoyomiles_partner/res/sizing_const.dart';
 import 'package:yoyomiles_partner/res/text_const.dart';
+import 'package:yoyomiles_partner/service/background_service.dart';
 import 'package:yoyomiles_partner/utils/routes/routes_name.dart';
 import 'package:yoyomiles_partner/view/auth/login.dart';
 import 'package:yoyomiles_partner/view/auth/owner_detail.dart';
@@ -97,8 +99,10 @@ class _RegisterState extends State<Register> {
       final userViewModel = UserViewModel();
       final driverId = await userViewModel.getUser();
 
-      final profileViewModel =
-      Provider.of<ProfileViewModel>(context, listen: false);
+      final profileViewModel = Provider.of<ProfileViewModel>(
+        context,
+        listen: false,
+      );
 
       final profile = profileViewModel.profileModel?.data;
       if (profile != null && profile.status == 0) {
@@ -107,8 +111,10 @@ class _RegisterState extends State<Register> {
         });
       }
 
-      final activeRideVm =
-      Provider.of<ActiveRideViewModel>(context, listen: false);
+      final activeRideVm = Provider.of<ActiveRideViewModel>(
+        context,
+        listen: false,
+      );
 
       // 🔹 Load profile
       await profileViewModel.profileApi(context);
@@ -148,12 +154,10 @@ class _RegisterState extends State<Register> {
             profileModel.data!.onlineStatus == 1 &&
             profileModel.data!.verifyDocument != 1 &&
             profileModel.data!.verifyDocument != 3) {
-
           if (mounted) {
             Navigator.pushNamed(context, RoutesName.tripStatus);
           }
         }
-
       }
     });
   }
@@ -173,30 +177,25 @@ class _RegisterState extends State<Register> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(
-                  Icons.block,
-                  color: Colors.redAccent,
-                  size: 38,
-                ),
+                Icon(Icons.block, color: Colors.redAccent, size: 38),
 
                 const SizedBox(height: 16),
 
-                 TextConst(
-                   title:
-                  "Account Deactivated",
-                   size: 16,
-                   fontWeight: FontWeight.w700,
-                   color: Colors.black87,
+                TextConst(
+                  title: "Account Deactivated",
+                  size: 16,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.black87,
                 ),
 
                 const SizedBox(height: 8),
 
-                 TextConst(
-                   title:
-                  "Your account has been deactivated.\nPlease contact the admin for assistance.",
+                TextConst(
+                  title:
+                      "Your account has been deactivated.\nPlease contact the admin for assistance.",
                   textAlign: TextAlign.center,
-                   size: 14,
-                   color: Colors.black54,
+                  size: 14,
+                  color: Colors.black54,
                 ),
 
                 const SizedBox(height: 22),
@@ -209,14 +208,11 @@ class _RegisterState extends State<Register> {
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: TextButton(
-                    onPressed: () =>     Navigator.pushReplacement(
+                    onPressed: () => Navigator.pushReplacement(
                       context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            Login(),
-                      ),
+                      MaterialPageRoute(builder: (context) => Login()),
                     ),
-                    child:  Text(
+                    child: Text(
                       "OK",
                       style: TextStyle(
                         color: Colors.white,
@@ -233,8 +229,6 @@ class _RegisterState extends State<Register> {
       },
     );
   }
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -399,6 +393,117 @@ class _RegisterState extends State<Register> {
       ],
     );
   }
+
+  void showLocationPermissionDialog(
+      BuildContext context, {
+        required VoidCallback onAccept,
+      }) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      barrierColor: Colors.black.withOpacity(0.4),
+      builder: (context) {
+        return Center(
+          child: Material(
+            color: Colors.transparent,
+            child: Container(
+              width: MediaQuery.of(context).size.width * 0.85,
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const TextConst(
+                    title: 'Foreground Location Access Permissions Required',
+                    size: 18,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  const SizedBox(height: 12),
+                  const TextConst(
+                    title:
+                    'This app collects your location even when the app is closed or not in use to enable ride matching, show nearby ride requests, and keep you available while you are online as a driver.',
+                    size: 14,
+                    color: Colors.black87,
+                  ),
+                  const SizedBox(height: 20),
+
+                  /// Buttons
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        child: const Text(
+                          'CANCEL',
+                          style: TextStyle(
+                            color: Colors.pink,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      TextButton(
+                        onPressed: () async {
+                          Navigator.pop(context);
+
+                          // 🔥 YAHI WO "WHILE USING THE APP" WALA ALERT HAI
+                          final status = await AppSettings.Permission.locationWhenInUse.request();
+
+                          if (status.isGranted) {
+                            onAccept(); // aage jao
+                          } else if (status.isDenied) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Location permission is required'),
+                              ),
+                            );
+                          } else if (status.isPermanentlyDenied) {
+                            AppSettings.openAppSettings();
+                          }
+                        },
+                        child: const Text(
+                          'ACCEPT',
+                          style: TextStyle(
+                            color: Colors.pink,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _startSocket() async {
+    final userViewModel = UserViewModel();
+
+    int? driverId = await userViewModel.getUser();
+
+    if (driverId == null || driverId == 0) {
+      debugPrint("❌ Driver ID not found, socket not started");
+      return;
+    }
+
+    debugPrint("✅ Starting socket with driverId: $driverId");
+
+    // Background service start
+    initializeBackgroundService();
+
+  }
+
 
   Widget verifiedContainer() {
     final onlineStatusViewModel = Provider.of<OnlineStatusViewModel>(context);
@@ -575,7 +680,7 @@ class _RegisterState extends State<Register> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 TextConst(
-                                  title: 'Get your first trip',
+                                  title: 'Get your trip..!!',
                                   color: PortColor.blackLight,
                                   fontWeight: FontWeight.bold,
                                   size: Sizes.fontSizeSeven,
@@ -583,16 +688,23 @@ class _RegisterState extends State<Register> {
                                 const SizedBox(height: 8),
                                 TextConst(
                                   title:
-                                      'Voila! You are ready to do your first trip',
+                                      'Voila! You are ready to do your trip',
                                   color: PortColor.black,
                                   size: Sizes.fontSizeFour,
                                 ),
                                 const SizedBox(height: 16),
                                 InkWell(
                                   onTap: () {
-                                    onlineStatusViewModel.onlineStatusApi(
+                                    showLocationPermissionDialog(
                                       context,
-                                      1,
+                                      onAccept: () async {
+                                        final success =
+                                        await onlineStatusViewModel.onlineStatusApi(context, 1);
+
+                                        if (success) {
+                                          await _startSocket();
+                                        }
+                                      },
                                     );
                                   },
                                   child: Container(

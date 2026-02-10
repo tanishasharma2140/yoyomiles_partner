@@ -12,6 +12,7 @@ import 'package:yoyomiles_partner/res/constant_color.dart';
 import 'package:yoyomiles_partner/res/custom_appbar.dart';
 import 'package:yoyomiles_partner/res/sizing_const.dart';
 import 'package:yoyomiles_partner/res/text_const.dart';
+import 'package:yoyomiles_partner/service/background_service.dart';
 import 'package:yoyomiles_partner/view_model/assign_ride_view_model.dart';
 import 'package:yoyomiles_partner/view_model/delete_old_order_view_model.dart';
 import 'package:yoyomiles_partner/view_model/driver_ignored_ride_view_model.dart';
@@ -35,7 +36,6 @@ class _TripStatusState extends State<TripStatus> {
   double currentLat = 0.0;
   double currentLng = 0.0;
   Map<String, Timer> bookingTimers = {};
-  Timer? _deleteTimer;
 
   // late RingtoneViewModel ringtoneVM;
   Set<String> _seenBookingIds = {};
@@ -43,7 +43,6 @@ class _TripStatusState extends State<TripStatus> {
 
   int userIds = 0;
 
-  // 🔥 Track if ride is being accepted to prevent navigation issues
   bool _isAcceptingRide = false;
 
   @override
@@ -54,16 +53,9 @@ class _TripStatusState extends State<TripStatus> {
       name: 'driver_online_screen',
     );
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      // ringtoneVM = Provider.of<RingtoneViewModel>(context, listen: false);
       final deleteOldOrderVm = Provider.of<DeleteOldOrderViewModel>(context, listen: false);
-
-      // 1st Immediate hit
       deleteOldOrderVm.deleteOldOrderApi();
 
-      // periodic every 2 min
-      _deleteTimer = Timer.periodic(const Duration(minutes: 2), (timer) {
-        deleteOldOrderVm.deleteOldOrderApi();
-      });
     });
     final ride = Provider.of<RideViewModel>(context, listen: false);
     ride.handleRideUpdate("", context);
@@ -75,9 +67,6 @@ class _TripStatusState extends State<TripStatus> {
     try {
       _bookingSubscription?.cancel();
       bookingTimers.forEach((key, timer) => timer.cancel());
-      // Stop ringtone on dispose
-      // ringtoneVM.stopRingtone();
-      _deleteTimer?.cancel();
     } catch (_) {}
     super.dispose();
   }
@@ -104,6 +93,7 @@ class _TripStatusState extends State<TripStatus> {
       print("⚠️ getCurrentLocation error: $e");
     }
   }
+
 
   void _showSwitchDialog() {
     showDialog(
@@ -149,7 +139,12 @@ class _TripStatusState extends State<TripStatus> {
                   children: [
                     InkWell(
                       onTap: () async {
-                        await onlineStatusViewModel.onlineStatusApi(context, 0);
+                        final success = await onlineStatusViewModel.onlineStatusApi(context, 0);
+
+                        if (success == false) {
+                          await stopBackgroundService();
+                        }
+
                         if (mounted) {
                           setState(() {
                             isSwitched = false;

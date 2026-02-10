@@ -50,6 +50,7 @@ import 'package:yoyomiles_partner/view_model/vehicle_body_detail_view_model.dart
 import 'package:yoyomiles_partner/view_model/vehicle_name_view_model.dart';
 import 'package:yoyomiles_partner/view_model/vehicle_type_view_model.dart';
 import 'package:provider/provider.dart';
+import 'package:yoyomiles_partner/view_model/video_view_model.dart';
 import 'package:yoyomiles_partner/view_model/withdraw_history_view_model.dart';
 import 'package:yoyomiles_partner/view_model/withdraw_view_model.dart';
 
@@ -120,22 +121,7 @@ class _MyAppState extends State<MyApp> {
   bool hasActiveRide = false;
 
 
-  Future<void> _startSocket() async {
-    final userViewModel = UserViewModel();
 
-    int? driverId = await userViewModel.getUser();
-
-    if (driverId == null || driverId == 0) {
-      debugPrint("❌ Driver ID not found, socket not started");
-      return;
-    }
-
-    debugPrint("✅ Starting socket with driverId: $driverId");
-
-    // Background service start
-    initializeBackgroundService();
-
-  }
 
 
   final notificationService = NotificationService(navigatorKey: navigatorKey);
@@ -169,7 +155,7 @@ class _MyAppState extends State<MyApp> {
         await assignVm.assignRideApi(
           context,
           1,              // ACCEPT
-          orderId,    // empty string for YoYoMiles
+          orderId,
           bookingData,
         );
       }
@@ -211,7 +197,6 @@ class _MyAppState extends State<MyApp> {
     notificationService.setupInteractMassage(context);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _internetCheckerService.startMonitoring(navigatorKey.currentContext!);
-      _startSocket();
     });
   }
 
@@ -276,6 +261,7 @@ class _MyAppState extends State<MyApp> {
           ),
           ChangeNotifierProvider(create: (context) => ChangePayModeViewModel()),
           ChangeNotifierProvider(create: (context) => ContactListViewModel()),
+          ChangeNotifierProvider(create: (context) => VideoViewModel()),
           Provider<NotificationService>(
             create: (_) => NotificationService(navigatorKey: navigatorKey),
           ),

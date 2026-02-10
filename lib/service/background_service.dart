@@ -4,11 +4,9 @@ import 'package:yoyomiles_partner/service/ride_notification_helper.dart';
 import 'socket_service.dart';
 import 'ringtone_helper.dart';
 
-/// 🔥 TOP-LEVEL FUNCTION (MANDATORY)
 @pragma('vm:entry-point')
 void backgroundServiceOnStart(ServiceInstance service) async {
 
-  // ❌ DO NOT CALL setForegroundNotificationInfo (Android 14 crash)
 
   await RideNotificationHelper.init();
 
@@ -54,7 +52,31 @@ void backgroundServiceOnStart(ServiceInstance service) async {
       RingtoneHelper().stop();
       RideNotificationHelper.clear(fromBackground: true);
     },
+
+
   );
+}
+
+
+Future<void> stopBackgroundService() async {
+  final service = FlutterBackgroundService();
+
+  final isRunning = await service.isRunning();
+  if (isRunning) {
+    print("🛑 Stopping background service...");
+
+    // 🔕 Stop ringtone
+    RingtoneHelper().stop();
+
+    // 🧹 Clear notifications
+    RideNotificationHelper.clear(fromBackground: true);
+
+    // 🔌 Disconnect socket
+    SocketService().disconnect();
+
+    // 🛑 Stop service
+    service.invoke("stopService");
+  }
 }
 
 

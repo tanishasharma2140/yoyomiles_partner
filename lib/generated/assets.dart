@@ -50,6 +50,7 @@ class Assets {
   static const String assetsWalletSettlement = 'assets/wallet_settlement.png';
   static const String assetsYellowPin = 'assets/yellow_pin.png';
   static const String assetsYoyoPartnerLogo = 'assets/yoyo_partner_logo.png';
+  static const String assetsYoyomilesPartner = 'assets/yoyomiles_partner.png';
   static const String yoyomilesPartnerAssetsNoData = 'assets/no_data.png';
   static const String yoyomilesPartnerAssetsPanCard = 'assets/pan_card.png';
 
