@@ -5,7 +5,10 @@ import 'package:yoyomiles_partner/res/custom_text_field.dart';
 import 'package:yoyomiles_partner/res/image_preview_screen.dart';
 import 'package:yoyomiles_partner/res/sizing_const.dart';
 import 'package:yoyomiles_partner/res/text_const.dart';
+import 'package:yoyomiles_partner/service/background_service.dart';
+import 'package:yoyomiles_partner/service/socket_service.dart';
 import 'package:yoyomiles_partner/view/splash_screen.dart';
+import 'package:yoyomiles_partner/view_model/online_status_view_model.dart';
 import 'package:yoyomiles_partner/view_model/profile_view_model.dart';
 import 'package:yoyomiles_partner/view_model/user_view_model.dart';
 import 'package:provider/provider.dart';
@@ -514,12 +517,23 @@ class _ProfileState extends State<Profile> {
                     SizedBox(width: Sizes.screenWidth * 0.03),
                     Expanded(
                       child: ElevatedButton(
-                        onPressed: () {
-                          UserViewModel().remove();
+                        onPressed: () async {
+
+                          // Navigator.pop(context); // Close bottom sheet
+
+                          final onlineStatusVm =
+                          Provider.of<OnlineStatusViewModel>(context, listen: false);
+                          await onlineStatusVm.onlineStatusApi(context, 0);
+                          await stopBackgroundService();
+
+                          await UserViewModel().remove();
+
+                          // 🔥 Navigate to splash
                           Navigator.pushAndRemoveUntil(
                             context,
                             MaterialPageRoute(
-                                builder: (context) => const SplashScreen()),
+                              builder: (context) => const SplashScreen(),
+                            ),
                                 (route) => false,
                           );
                         },

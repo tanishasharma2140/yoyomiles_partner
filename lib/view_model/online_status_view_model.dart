@@ -10,6 +10,7 @@ import 'package:yoyomiles_partner/view_model/profile_view_model.dart';
 import 'package:provider/provider.dart';
 import 'package:yoyomiles_partner/view_model/services/firebase_dao.dart';
 import 'package:yoyomiles_partner/view_model/user_view_model.dart';
+
 class OnlineStatusViewModel with ChangeNotifier {
   final _onlineStatusRepo = OnlineStatusRepo();
 
@@ -29,28 +30,25 @@ class OnlineStatusViewModel with ChangeNotifier {
       final userViewModel = UserViewModel();
       final int? userId = await userViewModel.getUser();
 
-      final data = {
-        "id": userId,
-        "online_status": status,
-      };
+      final data = {"id": userId, "online_status": status};
 
       final value = await _onlineStatusRepo.onlineStatusApi(data);
 
       setLoading(false);
 
       if (value['success'] == true) {
-
         // ❌ dues case
         if (value["dues_status"] == 1) {
           showDueDialog(context, value["dues_message"]);
           return false;
         }
 
-        final profileViewModel =
-        Provider.of<ProfileViewModel>(context, listen: false);
+        final profileViewModel = Provider.of<ProfileViewModel>(
+          context,
+          listen: false,
+        );
 
         await profileViewModel.profileApi(context);
-
         if (status == 1) {
           FirebaseServices().saveOrUpdateDocument(
             driverId: userId.toString(),
@@ -59,21 +57,21 @@ class OnlineStatusViewModel with ChangeNotifier {
 
           Navigator.pushNamed(context, RoutesName.tripStatus);
           return true; // ✅ SUCCESS
+        } else {
+          // offline case
+          FirebaseServices().saveOrUpdateDocument(
+            driverId: userId.toString(),
+            data: profileViewModel.profileModel!.data!.toJson(),
+          );
+
+          Navigator.pushNamedAndRemoveUntil(
+            context,
+            RoutesName.register,
+            (route) => false,
+          );
+
+          return false;
         }
-
-        // offline case
-        FirebaseServices().saveOrUpdateDocument(
-          driverId: userId.toString(),
-          data: profileViewModel.profileModel!.data!.toJson(),
-        );
-
-        Navigator.pushNamedAndRemoveUntil(
-          context,
-          RoutesName.register,
-              (route) => false,
-        );
-
-        return false;
       } else {
         Utils.showSuccessMessage(context, value["message"]);
         return false;
@@ -88,9 +86,6 @@ class OnlineStatusViewModel with ChangeNotifier {
   }
 }
 
-
-
-
 void showDueDialog(BuildContext context, String message) {
   showDialog(
     context: context,
@@ -104,14 +99,16 @@ void showDueDialog(BuildContext context, String message) {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.warning_amber_rounded,
-                  color: Colors.redAccent, size: 50),
+              Icon(
+                Icons.warning_amber_rounded,
+                color: Colors.redAccent,
+                size: 50,
+              ),
 
               const SizedBox(height: 14),
 
               TextConst(
-                title:
-                "Pending Dues",
+                title: "Pending Dues",
                 size: 18,
                 fontWeight: FontWeight.bold,
                 color: Colors.black87,
@@ -119,8 +116,8 @@ void showDueDialog(BuildContext context, String message) {
 
               const SizedBox(height: 10),
 
-              TextConst(title:
-                message,
+              TextConst(
+                title: message,
                 textAlign: TextAlign.center,
                 size: 13,
                 color: Colors.black54,

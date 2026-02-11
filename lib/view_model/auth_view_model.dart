@@ -220,6 +220,7 @@
 //   //   });
 //   // }
 // }
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -264,7 +265,7 @@ class AuthViewModel with ChangeNotifier {
 
   Future<void> loginApi(BuildContext context) async {
     setLoading(true);
-
+    final fcmToken = await FirebaseMessaging.instance.getToken();
     try {
       final Map<String, dynamic> data = {
         "phone": phoneController.text.trim(),

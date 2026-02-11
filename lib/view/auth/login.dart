@@ -402,7 +402,6 @@ class _LoginState extends State<Login> {
                           ),
                         ),
 
-                        // RIGHT IMAGE
                         Expanded(
                           flex: 3,
                           child: ClipRRect(

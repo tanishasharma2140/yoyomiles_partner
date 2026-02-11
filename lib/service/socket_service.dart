@@ -72,7 +72,9 @@ class SocketService {
     // 🔹 NOW connect
     socket!.connect();
   }
+
   void disconnect() {
+    print("kjhjhhjhhjk");
     if (socket != null) {
       print("🛑 Disconnecting socket...");
       socket!.disconnect();
@@ -80,5 +82,4 @@ class SocketService {
       socket = null;
     }
   }
-
 }

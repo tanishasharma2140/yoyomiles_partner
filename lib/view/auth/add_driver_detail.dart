@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/services.dart';
 import 'package:image/image.dart' as img;
 import 'package:flutter/material.dart';
@@ -99,6 +100,7 @@ class _AddDriverDetailState extends State<AddDriverDetail> {
     try {
       var url = Uri.parse("https://admin.yoyomiles.com/api/driver_register");
       var request = http.MultipartRequest('POST', url);
+      final fcmToken = await FirebaseMessaging.instance.getToken();
 
       // Add text fields
       request.fields.addAll({

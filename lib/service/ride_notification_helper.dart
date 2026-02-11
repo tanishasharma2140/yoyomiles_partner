@@ -4,6 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
+@pragma('vm:entry-point')
+void notificationTapBackground(NotificationResponse response) {
+  RideNotificationHelper.handleBackgroundAction(response);
+}
+
 class RideNotificationHelper {
   static final _plugin = FlutterLocalNotificationsPlugin();
   static const int _notificationId = 999;
@@ -20,9 +25,15 @@ class RideNotificationHelper {
 
     await _plugin.initialize(
       const InitializationSettings(android: android),
+
+      // 🔥 Foreground tap
       onDidReceiveNotificationResponse: _onAction,
+
+      // 🔥 Background tap (VERY IMPORTANT)
+      onDidReceiveBackgroundNotificationResponse: notificationTapBackground,
     );
   }
+
 
   static Future<void> showIncomingRide(Map<String, dynamic> bookingData) async {
     // 🔥 Store booking data
@@ -85,6 +96,33 @@ class RideNotificationHelper {
 
     await _plugin.cancel(_notificationId);
   }
+  static void handleBackgroundAction(NotificationResponse response) {
+    if (response.payload == null) return;
+
+    final bookingData = jsonDecode(response.payload!);
+
+    switch (response.actionId) {
+      case 'ACCEPT_RIDE':
+        _actionController.add(
+          NotificationAction(
+            type: ActionType.accept,
+            bookingData: bookingData,
+          ),
+        );
+        break;
+
+      case 'REJECT_RIDE':
+        _actionController.add(
+          NotificationAction(
+            type: ActionType.reject,
+            bookingData: bookingData,
+          ),
+        );
+        clear(fromBackground: true);
+        break;
+    }
+  }
+
 
 
 
@@ -102,38 +140,57 @@ class RideNotificationHelper {
     print("👉 ACTION ID: ${response.actionId}");
     print("📦 DATA: $bookingData");
 
-    switch (response.actionId) {
-      case 'ACCEPT_RIDE':
-        print("✅ ACCEPT CLICK WORKING");
-        _actionController.add(
-          NotificationAction(
-            type: ActionType.accept,
-            bookingData: bookingData,
-          ),
-        );
-        // clear();
-        break;
+    // 🔥 CASE 1 — Notification body tap
+    if (response.actionId == null) {
+      print("📲 NOTIFICATION BODY TAPPED");
 
-      case 'REJECT_RIDE':
-        print("❌ REJECT CLICK WORKING");
-        _actionController.add(
-          NotificationAction(
-            type: ActionType.reject,
-            bookingData: bookingData,
-          ),
-        );
-        clear();
-        break;
+      // Send custom event
+      _actionController.add(
+        NotificationAction(
+          type: ActionType.openTripStatus,
+          bookingData: bookingData,
+        ),
+      );
+
+      return;
+    }
+
+    // 🔥 CASE 2 — Accept
+    if (response.actionId == 'ACCEPT_RIDE') {
+      print("✅ ACCEPT CLICK WORKING");
+      _actionController.add(
+        NotificationAction(
+          type: ActionType.accept,
+          bookingData: bookingData,
+        ),
+      );
+      return;
+    }
+
+    // 🔥 CASE 3 — Reject
+    if (response.actionId == 'REJECT_RIDE') {
+      print("❌ REJECT CLICK WORKING");
+      _actionController.add(
+        NotificationAction(
+          type: ActionType.reject,
+          bookingData: bookingData,
+        ),
+      );
+      clear();
+      return;
     }
   }
+
 
   static void dispose() {
     _actionController.close();
   }
 }
 
+
+
 // 🔥 Action types
-enum ActionType { accept, reject }
+enum ActionType { accept, reject, openTripStatus }
 
 // 🔥 Action model
 class NotificationAction {

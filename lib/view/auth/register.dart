@@ -8,6 +8,7 @@ import 'package:yoyomiles_partner/res/constant_color.dart';
 import 'package:yoyomiles_partner/res/sizing_const.dart';
 import 'package:yoyomiles_partner/res/text_const.dart';
 import 'package:yoyomiles_partner/service/background_service.dart';
+import 'package:yoyomiles_partner/service/socket_service.dart';
 import 'package:yoyomiles_partner/utils/routes/routes_name.dart';
 import 'package:yoyomiles_partner/view/auth/login.dart';
 import 'package:yoyomiles_partner/view/auth/owner_detail.dart';
@@ -68,7 +69,20 @@ class _RegisterState extends State<Register> {
                 ),
               ),
               TextButton(
-                onPressed: () => SystemNavigator.pop(), // Exit app
+                onPressed: () async {
+                  final onlineStatusVm = Provider.of<OnlineStatusViewModel>(
+                    context,
+                    listen: false,
+                  );
+
+                  await onlineStatusVm.onlineStatusApi(context, 0);
+
+                  // SocketService().disconnect();
+
+                  await stopBackgroundService();
+
+                  SystemNavigator.pop(); // Exit app
+                },
                 child: const Text(
                   "Exit",
                   style: TextStyle(color: Colors.red, fontSize: 14),
@@ -90,8 +104,6 @@ class _RegisterState extends State<Register> {
   }
 
   @override
-  @override
-  @override
   void initState() {
     super.initState();
 
@@ -104,38 +116,59 @@ class _RegisterState extends State<Register> {
         listen: false,
       );
 
-      final profile = profileViewModel.profileModel?.data;
-      if (profile != null && profile.status == 0) {
-        Future.delayed(Duration(milliseconds: 200), () {
-          showAccountDeactivatedDialog(context);
-        });
-      }
-
       final activeRideVm = Provider.of<ActiveRideViewModel>(
         context,
         listen: false,
       );
 
-      // 🔹 Load profile
+      // 🔥 1️⃣ LOAD PROFILE
       await profileViewModel.profileApi(context);
 
-      // 🔹 Load Active ride
+      final profileModel = profileViewModel.profileModel;
+
+      if (profileModel == null || profileModel.data == null) return;
+
+      final profile = profileModel.data!;
+
+      // 🔥 2️⃣ DUE STATUS CHECK (FIRST PRIORITY)
+      if (profileViewModel.profileModel!.duesStatus == 1) {
+        if (mounted) {
+          Future.delayed(const Duration(milliseconds: 200), () {
+            showDueDialog(
+              context,
+              profileViewModel.profileModel!.duesMessage ??
+                  "Pending dues found.",
+            );
+          });
+        }
+        return; // ⛔ STOP EVERYTHING
+      }
+
+      // 🔥 3️⃣ ACCOUNT DEACTIVATED CHECK
+      if (profile.status == 0) {
+        if (mounted) {
+          Future.delayed(const Duration(milliseconds: 200), () {
+            showAccountDeactivatedDialog(context);
+          });
+        }
+        return;
+      }
+
+      // 🔥 4️⃣ LOAD ACTIVE RIDE
       await activeRideVm.activeRideApi(driverId.toString());
 
-      // 🔹 Active ride check
       final activeModel = activeRideVm.activeRideModel;
 
-      bool hasRide = false;
-
-      if (activeModel != null &&
+      bool hasRide =
+          activeModel != null &&
           activeModel.data != null &&
-          activeModel.data!.toJson().isNotEmpty) {
-        hasRide = true;
-      }
+          activeModel.data!.toJson().isNotEmpty;
 
       if (hasRide) {
         final ride = Provider.of<RideViewModel>(context, listen: false);
+
         ride.handleRideUpdate("", context);
+
         if (mounted) {
           Navigator.push(
             context,
@@ -146,14 +179,10 @@ class _RegisterState extends State<Register> {
           );
         }
       } else {
-        // 🔹 No active ride → Go to TripStatus only if online
-        final profileModel = profileViewModel.profileModel;
-
-        if (profileModel != null &&
-            profileModel.data != null &&
-            profileModel.data!.onlineStatus == 1 &&
-            profileModel.data!.verifyDocument != 1 &&
-            profileModel.data!.verifyDocument != 3) {
+        if (profileViewModel.profileModel!.duesStatus != 1 &&
+            profile.onlineStatus == 1 &&
+            profile.verifyDocument != 1 &&
+            profile.verifyDocument != 3) {
           if (mounted) {
             Navigator.pushNamed(context, RoutesName.tripStatus);
           }
@@ -395,9 +424,9 @@ class _RegisterState extends State<Register> {
   }
 
   void showLocationPermissionDialog(
-      BuildContext context, {
-        required VoidCallback onAccept,
-      }) {
+    BuildContext context, {
+    required VoidCallback onAccept,
+  }) {
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -425,7 +454,7 @@ class _RegisterState extends State<Register> {
                   const SizedBox(height: 12),
                   const TextConst(
                     title:
-                    'This app collects your location even when the app is closed or not in use to enable ride matching, show nearby ride requests, and keep you available while you are online as a driver.',
+                        'This app collects your location even when the app is closed or not in use to enable ride matching, show nearby ride requests, and keep you available while you are online as a driver.',
                     size: 14,
                     color: Colors.black87,
                   ),
@@ -453,14 +482,19 @@ class _RegisterState extends State<Register> {
                           Navigator.pop(context);
 
                           // 🔥 YAHI WO "WHILE USING THE APP" WALA ALERT HAI
-                          final status = await AppSettings.Permission.locationWhenInUse.request();
+                          final status = await AppSettings
+                              .Permission
+                              .locationWhenInUse
+                              .request();
 
                           if (status.isGranted) {
                             onAccept(); // aage jao
                           } else if (status.isDenied) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
-                                content: Text('Location permission is required'),
+                                content: Text(
+                                  'Location permission is required',
+                                ),
                               ),
                             );
                           } else if (status.isPermanentlyDenied) {
@@ -475,7 +509,6 @@ class _RegisterState extends State<Register> {
                           ),
                         ),
                       ),
-
                     ],
                   ),
                 ],
@@ -501,9 +534,7 @@ class _RegisterState extends State<Register> {
 
     // Background service start
     initializeBackgroundService();
-
   }
-
 
   Widget verifiedContainer() {
     final onlineStatusViewModel = Provider.of<OnlineStatusViewModel>(context);
@@ -687,8 +718,7 @@ class _RegisterState extends State<Register> {
                                 ),
                                 const SizedBox(height: 8),
                                 TextConst(
-                                  title:
-                                      'Voila! You are ready to do your trip',
+                                  title: 'Voila! You are ready to do your trip',
                                   color: PortColor.black,
                                   size: Sizes.fontSizeFour,
                                 ),
@@ -699,7 +729,8 @@ class _RegisterState extends State<Register> {
                                       context,
                                       onAccept: () async {
                                         final success =
-                                        await onlineStatusViewModel.onlineStatusApi(context, 1);
+                                            await onlineStatusViewModel
+                                                .onlineStatusApi(context, 1);
 
                                         if (success) {
                                           await _startSocket();

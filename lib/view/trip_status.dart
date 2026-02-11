@@ -13,6 +13,7 @@ import 'package:yoyomiles_partner/res/custom_appbar.dart';
 import 'package:yoyomiles_partner/res/sizing_const.dart';
 import 'package:yoyomiles_partner/res/text_const.dart';
 import 'package:yoyomiles_partner/service/background_service.dart';
+import 'package:yoyomiles_partner/service/socket_service.dart';
 import 'package:yoyomiles_partner/view_model/assign_ride_view_model.dart';
 import 'package:yoyomiles_partner/view_model/delete_old_order_view_model.dart';
 import 'package:yoyomiles_partner/view_model/driver_ignored_ride_view_model.dart';
@@ -52,11 +53,6 @@ class _TripStatusState extends State<TripStatus> {
     facebookAppEvents.logEvent(
       name: 'driver_online_screen',
     );
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final deleteOldOrderVm = Provider.of<DeleteOldOrderViewModel>(context, listen: false);
-      deleteOldOrderVm.deleteOldOrderApi();
-
-    });
     final ride = Provider.of<RideViewModel>(context, listen: false);
     ride.handleRideUpdate("", context);
 
@@ -143,6 +139,7 @@ class _TripStatusState extends State<TripStatus> {
 
                         if (success == false) {
                           await stopBackgroundService();
+                          // SocketService().disconnect();
                         }
 
                         if (mounted) {

@@ -6,10 +6,8 @@ import 'ringtone_helper.dart';
 
 @pragma('vm:entry-point')
 void backgroundServiceOnStart(ServiceInstance service) async {
-
-
   await RideNotificationHelper.init();
-
+  print("jkhjjkhjkhjkhhjkjhjkh");
   service.on('STOP_RINGTONE').listen((_) {
     RingtoneHelper().stop();
   });
@@ -27,7 +25,7 @@ void backgroundServiceOnStart(ServiceInstance service) async {
     print('❌ Driver ID not found');
     return;
   }
-
+  print("start connecting....");
   SocketService().connect(
     baseUrl: "https://admin.yoyomiles.com",
     driverId: driverId,
@@ -52,11 +50,8 @@ void backgroundServiceOnStart(ServiceInstance service) async {
       RingtoneHelper().stop();
       RideNotificationHelper.clear(fromBackground: true);
     },
-
-
   );
 }
-
 
 Future<void> stopBackgroundService() async {
   final service = FlutterBackgroundService();
@@ -79,15 +74,10 @@ Future<void> stopBackgroundService() async {
   }
 }
 
-
-
-
-
-
 /// 🔥 Service initializer
 Future<void> initializeBackgroundService() async {
   final service = FlutterBackgroundService();
-
+  print('FlutterBackgroundService');
   await service.configure(
     androidConfiguration: AndroidConfiguration(
       autoStart: false,
@@ -110,4 +100,3 @@ Future<void> initializeBackgroundService() async {
     await service.startService(); // ✅ only once
   }
 }
-

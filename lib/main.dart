@@ -1,17 +1,14 @@
 import 'dart:async';
-
 import 'package:facebook_app_events/facebook_app_events.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:yoyomiles_partner/firebase_options.dart';
 import 'package:yoyomiles_partner/res/const_without_polyline_map.dart';
 import 'package:yoyomiles_partner/res/notification_service.dart';
 import 'package:yoyomiles_partner/res/sizing_const.dart';
-import 'package:yoyomiles_partner/service/background_service.dart';
 import 'package:yoyomiles_partner/service/internet_checker_service.dart';
 import 'package:yoyomiles_partner/service/ride_notification_helper.dart';
 import 'package:yoyomiles_partner/utils/routes/routes.dart';
@@ -29,7 +26,6 @@ import 'package:yoyomiles_partner/view_model/cities_view_model.dart';
 import 'package:yoyomiles_partner/view_model/contact_list_view_model.dart';
 import 'package:yoyomiles_partner/view_model/daily_weekly_view_model.dart';
 import 'package:yoyomiles_partner/view_model/delete_bank_detail_view_model.dart';
-import 'package:yoyomiles_partner/view_model/delete_old_order_view_model.dart';
 import 'package:yoyomiles_partner/view_model/driver_ignored_ride_view_model.dart';
 import 'package:yoyomiles_partner/view_model/driver_vehicle_view_model.dart';
 import 'package:yoyomiles_partner/view_model/fuel_type_view_model.dart';
@@ -42,10 +38,8 @@ import 'package:yoyomiles_partner/view_model/policy_view_model.dart';
 import 'package:yoyomiles_partner/view_model/profile_view_model.dart';
 import 'package:yoyomiles_partner/view_model/ride_history_view_model.dart';
 import 'package:yoyomiles_partner/view_model/ride_view_model.dart';
-import 'package:yoyomiles_partner/view_model/ringtone_view_model.dart';
 import 'package:yoyomiles_partner/view_model/transaction_view_model.dart';
 import 'package:yoyomiles_partner/view_model/update_ride_status_view_model.dart';
-import 'package:yoyomiles_partner/view_model/user_view_model.dart';
 import 'package:yoyomiles_partner/view_model/vehicle_body_detail_view_model.dart';
 import 'package:yoyomiles_partner/view_model/vehicle_name_view_model.dart';
 import 'package:yoyomiles_partner/view_model/vehicle_type_view_model.dart';
@@ -54,14 +48,13 @@ import 'package:yoyomiles_partner/view_model/video_view_model.dart';
 import 'package:yoyomiles_partner/view_model/withdraw_history_view_model.dart';
 import 'package:yoyomiles_partner/view_model/withdraw_view_model.dart';
 
-
 final FacebookAppEvents facebookAppEvents = FacebookAppEvents();
-String? fcmToken;
+// String? fcmToken;
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
-const MethodChannel nativeChannel =
-MethodChannel('yoyomiles_partner/native_callback');
-
+const MethodChannel nativeChannel = MethodChannel(
+  'yoyomiles_partner/native_callback',
+);
 
 @pragma('vm:entry-point')
 Future<void> handleNativeCallback(MethodCall call) async {
@@ -69,8 +62,9 @@ Future<void> handleNativeCallback(MethodCall call) async {
 
   switch (call.method) {
     case 'onRideEvent':
-      final Map<String, dynamic> data =
-      Map<String, dynamic>.from(call.arguments);
+      final Map<String, dynamic> data = Map<String, dynamic>.from(
+        call.arguments,
+      );
 
       debugPrint("🚖 Ride Event from Native: $data");
 
@@ -85,12 +79,14 @@ Future<void> handleNativeCallback(MethodCall call) async {
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
+
+  // await initializeBackgroundService();
   // SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
   // 🔹 Get FCM Token
-  fcmToken = await FirebaseMessaging.instance.getToken();
-  if (kDebugMode) {
-    print("✅ FCM Token: $fcmToken");
-  }
+  //final fcmToken = await FirebaseMessaging.instance.getToken();
+  // if (kDebugMode) {
+  //   print("✅ FCM Token: $fcmToken");
+  // }
 
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
@@ -117,12 +113,8 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   final InternetCheckerService _internetCheckerService =
-  InternetCheckerService();
+      InternetCheckerService();
   bool hasActiveRide = false;
-
-
-
-
 
   final notificationService = NotificationService(navigatorKey: navigatorKey);
   late final StreamSubscription rideActionSub;
@@ -130,8 +122,27 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
+    // WidgetsBinding.instance.addObserver(this);
     RideNotificationHelper.init();
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
+      print("📩 Foreground message received");
+
+      if (message.data.isNotEmpty) {
+        await RideNotificationHelper.showIncomingRide(message.data);
+      }
+    });
     rideActionSub = RideNotificationHelper.actionStream.listen((action) async {
+      if (action.type == ActionType.openTripStatus) {
+        final context = navigatorKey.currentContext;
+        if (context == null) return;
+
+        Navigator.pushNamed(
+          context,
+          RoutesName.tripStatus,
+          arguments: action.bookingData,
+        );
+      }
+
       if (action.type == ActionType.accept) {
         print("🚕 ACCEPT tapped");
         print("📦 Booking data: ${action.bookingData}");
@@ -144,30 +155,27 @@ class _MyAppState extends State<MyApp> {
           return;
         }
 
-        final assignVm =
-        Provider.of<AssignRideViewModel>(context, listen: false);
+        final assignVm = Provider.of<AssignRideViewModel>(
+          context,
+          listen: false,
+        );
 
         // 🔥 SAFE extraction
-        final String orderId =
-            action.bookingData['order_id']?.toString() ?? "";
-
+        final String orderId = action.bookingData['order_id']?.toString() ?? "";
 
         await assignVm.assignRideApi(
           context,
-          1,              // ACCEPT
+          1, // ACCEPT
           orderId,
           bookingData,
         );
       }
 
-
-
       if (action.type == ActionType.reject) {
         print("❌ REJECT tapped");
         print("📦 Booking data: ${action.bookingData}");
 
-        final String orderId =
-            action.bookingData['order_id']?.toString() ?? "";
+        final String orderId = action.bookingData['order_id']?.toString() ?? "";
 
         if (orderId.isEmpty) {
           print("❌ Order ID missing");
@@ -180,8 +188,10 @@ class _MyAppState extends State<MyApp> {
           return;
         }
 
-        final ignoreVm =
-        Provider.of<DriverIgnoredRideViewModel>(context, listen: false);
+        final ignoreVm = Provider.of<DriverIgnoredRideViewModel>(
+          context,
+          listen: false,
+        );
 
         await ignoreVm.driverIgnoredRideApi(
           context: context,
@@ -190,7 +200,6 @@ class _MyAppState extends State<MyApp> {
 
         print("✅ IGNORE API CALLED FOR ORDER: $orderId");
       }
-
     });
     notificationService.requestedNotificationPermission();
     notificationService.firebaseInit(context);
@@ -199,6 +208,31 @@ class _MyAppState extends State<MyApp> {
       _internetCheckerService.startMonitoring(navigatorKey.currentContext!);
     });
   }
+
+  // @override
+  // void didChangeAppLifecycleState(AppLifecycleState state) async {
+  //   print("lkoklokl");
+  //
+  //   if (state == AppLifecycleState.detached) {
+  //     final context = navigatorKey.currentContext;
+  //     // if (context == null) return;
+  //     print("lklklklk");
+  //     final onlineStatusVm = Provider.of<OnlineStatusViewModel>(
+  //       context!,
+  //       listen: false,
+  //     );
+  //
+  //     await onlineStatusVm.onlineStatusApi(context, 0);
+  //     SocketService().disconnect();
+  //     await stopBackgroundService();
+  //   }
+  // }
+  //
+  // @override
+  // void dispose() {
+  //   WidgetsBinding.instance.removeObserver(this);
+  //   super.dispose();
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -256,9 +290,6 @@ class _MyAppState extends State<MyApp> {
           ),
           ChangeNotifierProvider(create: (context) => RideViewModel()),
           ChangeNotifierProvider(create: (context) => ConstMapController()),
-          ChangeNotifierProvider(
-            create: (context) => DeleteOldOrderViewModel(),
-          ),
           ChangeNotifierProvider(create: (context) => ChangePayModeViewModel()),
           ChangeNotifierProvider(create: (context) => ContactListViewModel()),
           ChangeNotifierProvider(create: (context) => VideoViewModel()),

@@ -1,13 +1,23 @@
 class ProfileModel {
   Data? data;
+  int? duesStatus;
+  String? duesMessage;
   String? message;
   int? status;
   bool? success;
 
-  ProfileModel({this.data, this.message, this.status, this.success});
+  ProfileModel(
+      {this.data,
+        this.duesStatus,
+        this.duesMessage,
+        this.message,
+        this.status,
+        this.success});
 
   ProfileModel.fromJson(Map<String, dynamic> json) {
     data = json['data'] != null ? Data.fromJson(json['data']) : null;
+    duesStatus = json['dues_status'];
+    duesMessage = json['dues_message'];
     message = json['message'];
     status = json['status'];
     success = json['success'];
@@ -18,6 +28,8 @@ class ProfileModel {
     if (this.data != null) {
       data['data'] = this.data!.toJson();
     }
+    data['dues_status'] = duesStatus;
+    data['dues_message'] = duesMessage;
     data['message'] = message;
     data['status'] = status;
     data['success'] = success;
