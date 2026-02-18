@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:yoyomiles_partner/l10n/app_localizations.dart';
 import 'package:yoyomiles_partner/res/sizing_const.dart';
 import 'package:yoyomiles_partner/res/text_const.dart';
 import 'constant_color.dart';
@@ -9,6 +10,8 @@ class OwnerDetailsAppBar extends StatelessWidget
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
+
     return AppBar(
       automaticallyImplyLeading: false,
       backgroundColor: PortColor.white,
@@ -17,11 +20,10 @@ class OwnerDetailsAppBar extends StatelessWidget
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           TextConst(title:
-            "Owner Details",
+            loc.owner_details,
             size: Sizes.fontSizeSeven,
             fontWeight: FontWeight.bold,
           ),
-          const Icon(Icons.headset_mic_rounded, color: Colors.black),
         ],
       ),
       shape: Border(

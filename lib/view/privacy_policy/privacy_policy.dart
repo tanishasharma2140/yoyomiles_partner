@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
 import 'package:provider/provider.dart';
+import 'package:yoyomiles_partner/l10n/app_localizations.dart';
 import 'package:yoyomiles_partner/res/app_fonts.dart';
 import 'package:yoyomiles_partner/res/constant_color.dart';
 import 'package:yoyomiles_partner/res/sizing_const.dart';
@@ -30,6 +31,7 @@ class _PrivacyPolicyState extends State<PrivacyPolicy> {
   Widget build(BuildContext context) {
     final policyVm = Provider.of<PolicyViewModel>(context);
     final description = policyVm.policyModel?.data?.description ?? "";
+    final loc = AppLocalizations.of(context)!;
 
     return SafeArea(
       top: false,
@@ -56,7 +58,7 @@ class _PrivacyPolicyState extends State<PrivacyPolicy> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   TextConst(
-                    title: "Privacy and Policy",
+                    title: loc.privacy_policy,
                     color: PortColor.black,
                   ),
                   InkWell(
@@ -89,7 +91,7 @@ class _PrivacyPolicyState extends State<PrivacyPolicy> {
                     : description.isEmpty
                     ?  Center(
                   child: Text(
-                    "No data found",
+                    loc.no_data_found,
                     style: TextStyle(
                       fontSize: 16,
                       fontFamily: AppFonts.poppinsReg,

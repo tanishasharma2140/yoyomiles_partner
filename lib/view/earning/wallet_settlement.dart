@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:yoyomiles_partner/l10n/app_localizations.dart';
 import 'package:yoyomiles_partner/view/bank_detail_view.dart';
 import 'package:yoyomiles_partner/view_model/bank_view_model.dart';
 import 'package:yoyomiles_partner/view_model/withdraw_view_model.dart';
@@ -18,7 +19,8 @@ import 'package:yoyomiles_partner/view_model/profile_view_model.dart';
 import 'package:yoyomiles_partner/view_model/transaction_view_model.dart';
 
 class WalletSettlement extends StatefulWidget {
-  const WalletSettlement({super.key});
+  const
+  WalletSettlement({super.key});
 
   @override
   State<WalletSettlement> createState() => _WalletSettlementState();
@@ -44,6 +46,7 @@ class _WalletSettlementState extends State<WalletSettlement> {
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
     return SafeArea(
       bottom: true,
       top: false,
@@ -53,7 +56,7 @@ class _WalletSettlementState extends State<WalletSettlement> {
           backgroundColor: Colors.white,
           elevation: 0,
           title: TextConst(
-            title: 'Wallet & Settlements',
+            title: loc.wallet_and_settlement,
             color: Colors.black,
             size: 18,
             fontWeight: FontWeight.bold,
@@ -85,6 +88,7 @@ class _WalletSettlementState extends State<WalletSettlement> {
 
   Widget _buildBalanceCard() {
     final driverProfile = Provider.of<ProfileViewModel>(context);
+    final loc = AppLocalizations.of(context)!;
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: Sizes.screenWidth * 0.045),
       child: AnimatedGradientBorder(
@@ -136,7 +140,7 @@ class _WalletSettlementState extends State<WalletSettlement> {
               ),
               SizedBox(height: 4),
               TextConst(
-                title: 'Available Balance',
+                title: loc.available_balance,
                 size: 14,
                 color: PortColor.black,
               ),
@@ -148,7 +152,7 @@ class _WalletSettlementState extends State<WalletSettlement> {
                   // Main Wallet - Left side
                   Expanded(
                     child: _buildWalletItem(
-                      'Main Wallet',
+                      loc.main_wallet,
                       '₹${driverProfile.profileModel!.data!.wallet}',
                       Icons.account_balance_wallet,
                       Colors.green,
@@ -158,7 +162,7 @@ class _WalletSettlementState extends State<WalletSettlement> {
                   // Due Wallet - Right side
                   Expanded(
                     child: _buildWalletItem(
-                      'Due Wallet',
+                      loc.due_wallet,
                       '₹${driverProfile.profileModel!.data!.duesPayment}',
                       Icons.pending,
                       Colors.orange,
@@ -215,30 +219,11 @@ class _WalletSettlementState extends State<WalletSettlement> {
     );
   }
 
-  Widget _buildBalanceItem(String title, String value, IconData icon) {
-    return Column(
-      children: [
-        Icon(icon, color: PortColor.blackLight, size: 20),
-        SizedBox(height: 4),
-        TextConst(
-          title: title,
-          color: PortColor.blackLight,
-          size: 12,
-          fontFamily: AppFonts.kanitReg,
-        ),
-        SizedBox(height: 2),
-        TextConst(
-          title: value,
-          color: PortColor.blackLight,
-          fontFamily: AppFonts.kanitReg,
-        ),
-      ],
-    );
-  }
 
   Widget _buildQuickActions() {
     final bankVm = Provider.of<BankViewModel>(context);
     final bool hasBank = bankVm.bankDetailModel != null;
+    final loc = AppLocalizations.of(context)!;
 
     void addBankAccount() {
       Navigator.push(
@@ -301,18 +286,18 @@ class _WalletSettlementState extends State<WalletSettlement> {
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
           _buildActionButton(
-            'Withdraw',
+            loc.withdraw,
             Icons.currency_rupee,
             _showWithdrawalDialog,
           ),
-          _buildActionButton('History', Icons.history, _viewHistory),
+          _buildActionButton(loc.history, Icons.history, _viewHistory),
           _buildActionButton(
-            hasBank ? 'Bank History' : 'Add Bank',                 // text
+            hasBank ? loc.bank_history : loc.add_bank,                 // text
             hasBank ? Icons.history : Icons.account_balance,       // icon optional
             hasBank ? _goToBankHistory : addBankAccount,          // navigation
           ),
 
-          _buildActionButton('Due Wallet', Icons.wallet, _showDueWalletHelp),
+          _buildActionButton(loc.due_wallet, Icons.wallet, _showDueWalletHelp),
         ],
       ),
     );
@@ -346,58 +331,9 @@ class _WalletSettlementState extends State<WalletSettlement> {
     );
   }
 
-
-  Widget _buildWithdrawalMethod(Map<String, dynamic> method) {
-    return Container(
-      margin: EdgeInsets.only(bottom: 8),
-      padding: EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: method['selected']
-            ? PortColor.gold.withOpacity(0.1)
-            : Colors.grey[50],
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: method['selected'] ? PortColor.gold : Colors.transparent,
-          width: 1.5,
-        ),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: PortColor.gold.withOpacity(0.2),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(method['icon'], color: PortColor.gold, size: 20),
-          ),
-          SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  method['name'],
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black87,
-                  ),
-                ),
-                SizedBox(height: 2),
-                Text(
-                  method['number'],
-                  style: TextStyle(fontSize: 12, color: Colors.grey),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildTransactionHistory() {
     final transaction = Provider.of<TransactionViewModel>(context);
+    final loc = AppLocalizations.of(context)!;
 
     return Padding(
       padding: const EdgeInsets.all(16),
@@ -407,9 +343,9 @@ class _WalletSettlementState extends State<WalletSettlement> {
           // Header
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: const [
+            children:  [
               Text(
-                'Recent Transactions',
+                loc.recent_transactions,
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
@@ -426,11 +362,11 @@ class _WalletSettlementState extends State<WalletSettlement> {
           ] else if (transaction.transactionsModel == null ||
               transaction.transactionsModel!.data == null ||
               transaction.transactionsModel!.data!.isEmpty) ...[
-            const Center(
+             Center(
               child: Padding(
                 padding: EdgeInsets.symmetric(vertical: 50),
                 child: Text(
-                  "No Data Found",
+                  loc.no_data_found,
                   style: TextStyle(
                     color: Colors.grey,
                     fontSize: 14,
@@ -462,6 +398,7 @@ class _WalletSettlementState extends State<WalletSettlement> {
 
     String paymentStatus = _getPaymentStatus(paymentBy);
     String statusText = _getStatusText(paymentBy);
+    final loc = AppLocalizations.of(context)!;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -505,7 +442,7 @@ class _WalletSettlementState extends State<WalletSettlement> {
                 // =======================
                 if (paymentBy == 1) ...[
                   Text(
-                    'Total Amount: ₹${transaction.totalAmount ?? '0.00'}',
+                    '${loc.total_amount} ₹${transaction.totalAmount ?? '0.00'}',
                     style: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
@@ -514,7 +451,7 @@ class _WalletSettlementState extends State<WalletSettlement> {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    'Platform Fee: ${transaction.platformFee ?? 'N/A'}',
+                    '${loc.platform_fee} ${transaction.platformFee ?? 'N/A'}',
                     style: TextStyle(
                       fontSize: 12,
                       color: Colors.orange[700],
@@ -523,7 +460,7 @@ class _WalletSettlementState extends State<WalletSettlement> {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    'Final Amount: ₹${transaction.amount ?? '0.00'}',
+                    '${loc.final_amount} ₹${transaction.amount ?? '0.00'}',
                     style: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
@@ -546,7 +483,7 @@ class _WalletSettlementState extends State<WalletSettlement> {
                 // =======================
                 if (paymentBy == 2) ...[
                   Text(
-                    'Total Amount: ₹${transaction.totalAmount ?? '0.00'}',
+                    '${loc.total_amount} ₹${transaction.totalAmount ?? '0.00'}',
                     style: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
@@ -569,7 +506,7 @@ class _WalletSettlementState extends State<WalletSettlement> {
                 // =======================
                 if (paymentBy == 3) ...[
                   Text(
-                    'Total Amount: ₹${transaction.totalAmount ?? '0.00'}',
+                    '${loc.total_amount} ₹${transaction.totalAmount ?? '0.00'}',
                     style: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
@@ -578,7 +515,7 @@ class _WalletSettlementState extends State<WalletSettlement> {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    'Platform Fee: ${transaction.platformFee ?? 'N/A'}',
+                    '${loc.platform_fee} ${transaction.platformFee ?? 'N/A'}',
                     style: TextStyle(
                       fontSize: 12,
                       color: Colors.orange[700],
@@ -591,8 +528,8 @@ class _WalletSettlementState extends State<WalletSettlement> {
                 // 🔥 PAYMENT BY = 6 (WALLET)
                 // ==========================
                 if (paymentBy == 6) ...[
-                  const Text(
-                    'Paid from User Wallet',
+                   Text(
+                    loc.paid_from_user_wallet,
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
@@ -601,7 +538,7 @@ class _WalletSettlementState extends State<WalletSettlement> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Total Amount: ₹${transaction.totalAmount ?? '0.00'}',
+                    '${loc.total_amount} ₹${transaction.totalAmount ?? '0.00'}',
                     style: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
@@ -610,7 +547,7 @@ class _WalletSettlementState extends State<WalletSettlement> {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    'Platform Fee: ${transaction.platformFee ?? 'N/A'}',
+                    '${loc.platform_fee} ${transaction.platformFee ?? 'N/A'}',
                     style: TextStyle(
                       fontSize: 12,
                       color: Colors.orange[700],
@@ -619,7 +556,7 @@ class _WalletSettlementState extends State<WalletSettlement> {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    'Final Amount: ₹${transaction.amount ?? '0.00'}',
+                    '${loc.final_amount} ₹${transaction.amount ?? '0.00'}',
                     style: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
@@ -702,32 +639,35 @@ class _WalletSettlementState extends State<WalletSettlement> {
 
   // Helper function to get payment status text
   String _getPaymentStatus(int paymentBy) {
+    final loc = AppLocalizations.of(context)!;
     switch (paymentBy) {
+
       case 1:
-        return 'Online Payment';
+        return loc.online_payment;
       case 2:
-        return 'Due Payment';
+        return loc.due_payment;
       case 3:
-        return 'Offline Payment';
+        return loc.offline_payment;
       case 6:
-        return 'From User Wallet';
+        return loc.from_user_wallet;
       default:
-        return 'Unknown';
+        return loc.unknown;
     }
   }
 
   String _getStatusText(int paymentBy) {
+    final loc = AppLocalizations.of(context)!;
     switch (paymentBy) {
       case 1:
-        return 'Online';
+        return loc.online;
       case 2:
-        return 'Due';
+        return loc.due;
       case 3:
-        return 'Offline';
+        return loc.offline;
       case 6:
-        return 'Wallet';
+        return loc.wallet;
       default:
-        return 'Unknown';
+        return loc.unknown;
     }
   }
 
@@ -775,13 +715,14 @@ class _WalletSettlementState extends State<WalletSettlement> {
   }
 
   void _showWithdrawalDialog() {
+    final loc = AppLocalizations.of(context)!;
     final driverProfile = Provider.of<ProfileViewModel>(context, listen: false);
     final bankVm = Provider.of<BankViewModel>(context, listen: false);
     final withdrawVm = Provider.of<WithdrawViewModel>(context, listen: false);
     showGeneralDialog(
       context: context,
       barrierDismissible: true,
-      barrierLabel: 'Withdraw Funds',
+      barrierLabel: loc.withdraw_funds,
       transitionDuration: Duration(milliseconds: 400),
       pageBuilder: (context, animation, secondaryAnimation) {
         return ScaleTransition(
@@ -811,7 +752,7 @@ class _WalletSettlementState extends State<WalletSettlement> {
                   ),
                   SizedBox(height: 8),
                   TextConst(
-                    title: 'Withdraw Funds',
+                    title: loc.withdraw_funds,
                     size: 20,
                     fontWeight: FontWeight.w600,
                     color: Colors.black87,
@@ -845,7 +786,7 @@ class _WalletSettlementState extends State<WalletSettlement> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 TextConst(
-                                  title: 'Available Balance',
+                                  title: loc.available_balance,
                                   size: 12,
                                   color: Colors.grey,
                                 ),
@@ -869,7 +810,7 @@ class _WalletSettlementState extends State<WalletSettlement> {
                     TextFormField(
                       controller: amountController,
                       decoration: InputDecoration(
-                        labelText: 'Enter Amount',
+                        labelText: loc.enter_amount,
                         labelStyle: TextStyle(
                           color: Colors.grey,
                           fontFamily: AppFonts.kanitReg,
@@ -910,7 +851,7 @@ class _WalletSettlementState extends State<WalletSettlement> {
                             padding: const EdgeInsets.all(12),
                             child: TextConst(
                               title:
-                              "No bank account has been added,\nplease add a bank account first.",
+                              loc.no_bank_account_added,
                               size: 13,
                               color: PortColor.black,
                               fontWeight: FontWeight.w500,
@@ -990,7 +931,7 @@ class _WalletSettlementState extends State<WalletSettlement> {
                             ),
                             alignment: Alignment.center,
                             child: TextConst(
-                              title: 'Cancel',
+                              title: loc.cancel,
                               color: Colors.grey,
                               fontWeight: FontWeight.w500,
                             ),
@@ -1045,7 +986,7 @@ class _WalletSettlementState extends State<WalletSettlement> {
                                         radius: 12,
                                       )
                                     : TextConst(
-                                        title: 'Withdraw',
+                                        title: loc.withdraw,
                                         color: PortColor.white,
                                         fontWeight: FontWeight.bold,
                                         size: 14,
@@ -1063,122 +1004,6 @@ class _WalletSettlementState extends State<WalletSettlement> {
           ),
         );
       },
-    );
-  }
-
-  void _showSuccessDialog() {
-    showGeneralDialog(
-      context: context,
-      barrierDismissible: true,
-      barrierLabel: 'Success',
-      transitionDuration: Duration(milliseconds: 500),
-      pageBuilder: (context, animation, secondaryAnimation) {
-        return ScaleTransition(
-          scale: CurvedAnimation(parent: animation, curve: Curves.elasticOut),
-          child: FadeTransition(
-            opacity: animation,
-            child: Dialog(
-              backgroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-              ),
-              elevation: 10,
-              child: Container(
-                padding: EdgeInsets.all(24),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // Success Icon with Animation
-                    Container(
-                      padding: EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.green.withOpacity(0.1),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        Icons.check_circle,
-                        color: Colors.green,
-                        size: 48,
-                      ),
-                    ),
-
-                    SizedBox(height: 16),
-
-                    // Success Message
-                    Text(
-                      'Success!',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black87,
-                      ),
-                    ),
-
-                    SizedBox(height: 8),
-
-                    Text(
-                      'Withdrawal request submitted successfully!',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey.shade600,
-                      ),
-                    ),
-
-                    SizedBox(height: 20),
-
-                    // OK Button
-                    Container(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: () => Navigator.pop(context),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: PortColor.gold,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          padding: EdgeInsets.symmetric(vertical: 12),
-                        ),
-                        child: Text(
-                          'OK',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  void _addBankAccount() {
-    Navigator.push(
-      context,
-      PageRouteBuilder(
-        pageBuilder: (context, animation, secondaryAnimation) => BankDetail(),
-        transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          const begin = Offset(0.0, 1.0);
-          const end = Offset.zero;
-          const curve = Curves.easeInOut;
-
-          var tween = Tween(
-            begin: begin,
-            end: end,
-          ).chain(CurveTween(curve: curve));
-          var offsetAnimation = animation.drive(tween);
-
-          return SlideTransition(position: offsetAnimation, child: child);
-        },
-        transitionDuration: Duration(milliseconds: 300),
-      ),
     );
   }
 
@@ -1208,6 +1033,7 @@ class _WalletSettlementState extends State<WalletSettlement> {
 
   void _showDueWalletHelp() {
     final payment = Provider.of<PaymentViewModel>(context, listen: false);
+    final loc = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -1258,7 +1084,7 @@ class _WalletSettlementState extends State<WalletSettlement> {
                       ),
                       SizedBox(width: 12),
                       Text(
-                        'Due Wallet',
+                        loc.due_wallet,
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
@@ -1273,7 +1099,7 @@ class _WalletSettlementState extends State<WalletSettlement> {
 
                 CustomTextField(
                   controller: amountController,
-                  labelText: 'Enter Amount',
+                  labelText: loc.enter_amount,
                   keyboardType: TextInputType.number,
                 ),
 
@@ -1298,7 +1124,7 @@ class _WalletSettlementState extends State<WalletSettlement> {
                             backgroundColor: Colors.white,
                           ),
                           child: Text(
-                            'Cancel',
+                            loc.cancel,
                             style: TextStyle(
                               fontWeight: FontWeight.w600,
                               fontSize: 16,
@@ -1331,7 +1157,7 @@ class _WalletSettlementState extends State<WalletSettlement> {
                             elevation: 2,
                           ),
                           child: Text(
-                            'Submit',
+                            loc.submit,
                             style: TextStyle(
                               fontWeight: FontWeight.w600,
                               fontSize: 16,

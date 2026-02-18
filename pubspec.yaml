@@ -4,7 +4,7 @@ description: "A new Flutter project."
 publish_to: 'none'
 
 
-version: 1.0.12+13
+version: 1.0.15+16
 
 environment:
   sdk: ^3.8.1
@@ -47,10 +47,12 @@ dependencies:
   flutter_background_service: ^5.0.5
   just_audio: ^0.9.36
   audio_session: ^0.1.18
-  facebook_app_events: ^0.24.0
+#  facebook_app_events: ^0.24.0
   in_app_update: ^4.2.5
   connectivity_plus:
   video_player: ^2.8.2
+  flutter_localizations:
+    sdk: flutter
 
 
 dev_dependencies:
@@ -64,6 +66,7 @@ dev_dependencies:
 
 
 flutter:
+  generate: true
 
 
   uses-material-design: true

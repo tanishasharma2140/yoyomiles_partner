@@ -1,5 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:yoyomiles_partner/controller/language_controller.dart';
+import 'package:yoyomiles_partner/l10n/app_localizations.dart';
 import 'package:yoyomiles_partner/res/constant_color.dart';
 import 'package:yoyomiles_partner/res/custom_text_field.dart';
 import 'package:yoyomiles_partner/res/image_preview_screen.dart';
@@ -29,7 +31,7 @@ class _ProfileState extends State<Profile> {
   Widget build(BuildContext context) {
     final profileViewModel = Provider.of<ProfileViewModel>(context);
     final profileData = profileViewModel.profileModel!.data!;
-
+    final loc = AppLocalizations.of(context)!;
     return SafeArea(
       top: false,
       bottom: true,
@@ -88,14 +90,14 @@ class _ProfileState extends State<Profile> {
                         ),
                         SizedBox(height: Sizes.screenHeight * 0.01),
                         TextConst(
-                          title: profileData.driverName ?? "Driver Name",
+                          title: profileData.driverName ?? loc.driver_name,
                           size: Sizes.fontSizeEight,
                           fontWeight: FontWeight.bold,
                           color: PortColor.white,
                         ),
                         SizedBox(height: Sizes.screenHeight * 0.005),
                         TextConst(
-                          title: "Professional Driver",
+                          title: loc.professional_driver,
                           size: Sizes.fontSizeSix,
                           color: PortColor.white.withOpacity(0.8),
                         ),
@@ -141,27 +143,27 @@ class _ProfileState extends State<Profile> {
               delegate: SliverChildListDelegate([
                 // Personal Information Card
                 _buildInfoCard(
-                  title: "Personal Information:",
+                  title: loc.personal_information,
                   icon: Icons.person_outline,
                   children: [
                     _buildInfoRow(
                       icon: Icons.person,
-                      label: "Driver Name:",
+                      label: loc.driver_name,
                       value: profileData.driverName ?? "N/A",
                     ),
                     _buildInfoRow(
                       icon: Icons.phone,
-                      label: "Phone Number:",
+                      label: loc.phone_number,
                       value: profileData.phone?.toString() ?? "N/A",
                     ),
                     _buildInfoRow(
                       icon: Icons.person,
-                      label: "Owner Name:",
+                      label: loc.owner_name,
                       value: profileData.ownerName ?? "N/A",
                     ),
                     _buildInfoRow(
                       icon: Icons.directions_car,
-                      label: "Vehicle Number:",
+                      label: loc.vehicle_number,
                       value: profileData.vehicleNo ?? "N/A",
                     ),
                     // Vehicle Information Section
@@ -169,8 +171,10 @@ class _ProfileState extends State<Profile> {
                   ],
                 ),
 
+                _buildLanguageCard(),
+
                 _buildInfoCard(
-                  title: "Vehicle Information:",
+                  title: loc.vehicle_information,
                   icon: Icons.local_shipping_outlined,
                   children: [
 
@@ -209,12 +213,12 @@ class _ProfileState extends State<Profile> {
 
                     _buildInfoRow(
                       icon: Icons.directions_car,
-                      label: "Vehicle Body Type:",
+                      label: loc.vehicle_body_type,
                       value: profileData.vehicleBodyTypeName ?? "N/A",
                     ),
                     _buildInfoRow(
                       icon: Icons.directions_bus_filled,
-                      label: "Vehicle Name:",
+                      label: loc.vehicle_name,
                       value: profileData.vehicleTypeName ?? "N/A",
                     ),
                   ],
@@ -223,28 +227,28 @@ class _ProfileState extends State<Profile> {
 
                 // Document Section - Aadhaar Card
                 _buildDocumentSection(
-                  title: "Aadhaar Card:",
+                  title: loc.aadhaar_card,
                   frontImage: profileData.ownerAadhaarFront ?? "",
                   backImage: profileData.ownerAadhaarBack ?? "",
                 ),
 
                 // Document Section - PAN Card
                 _buildDocumentSection(
-                  title: "PAN Card:",
+                  title: loc.pan_card,
                   frontImage: profileData.ownerPanFornt ?? "",
                   backImage: profileData.ownerPanBack ?? "",
                 ),
 
                 // Document Section - Driving Licence
                 _buildDocumentSection(
-                  title: "Driving Licence",
+                  title: loc.driving_licence,
                   frontImage: profileData.drivingLicenceFront ?? "",
                   backImage: profileData.drivingLicenceBack ?? "",
                 ),
 
                 // Document Section - RC Document
                 _buildDocumentSection(
-                  title: "RC Document",
+                  title: loc.rc_document,
                   frontImage: profileData.rcFront ?? "",
                   backImage: profileData.rcBack ?? "",
                 ),
@@ -257,6 +261,101 @@ class _ProfileState extends State<Profile> {
       ),
     );
   }
+
+  Widget _buildLanguageCard() {
+    final loc = AppLocalizations.of(context)!;
+
+    return Container(
+      margin: EdgeInsets.symmetric(
+        horizontal: Sizes.screenWidth * 0.04,
+        vertical: Sizes.screenHeight * 0.01,
+      ),
+      padding: EdgeInsets.all(Sizes.screenWidth * 0.04),
+      decoration: BoxDecoration(
+        color: PortColor.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+
+          // 🌍 Title Row
+          Row(
+            children: [
+              const Icon(
+                Icons.language,
+                color: PortColor.blue,
+                size: 20,
+              ),
+              SizedBox(width: Sizes.screenWidth * 0.02),
+              TextConst(
+                title: loc.change_language,
+                size: Sizes.fontSizeSeven,
+                fontWeight: FontWeight.bold,
+                color: PortColor.blackLight,
+              ),
+            ],
+          ),
+
+          SizedBox(height: Sizes.screenHeight * 0.02),
+
+          // 🌐 Dropdown
+          Consumer<LanguageController>(
+            builder: (context, languageProvider, child) {
+              return Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                decoration: BoxDecoration(
+                  color: PortColor.scaffoldBgGrey,
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton<String>(
+                    value: languageProvider.currentLanguageCode,
+                    isExpanded: true,
+                    dropdownColor: Colors.white,
+                    icon: const Icon(
+                      Icons.keyboard_arrow_down_rounded,
+                      color: PortColor.blue,
+                    ),
+                    style: const TextStyle(
+                      color: Colors.black,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                    ),
+                    items: const [
+                      DropdownMenuItem(
+                        value: 'en',
+                        child: Text("English"),
+                      ),
+                      DropdownMenuItem(
+                        value: 'hi',
+                        child: Text("Hindi"),
+                      ),
+                    ],
+                    onChanged: (value) {
+                      if (value == 'en') {
+                        languageProvider.changeLanguage(const Locale('en'));
+                      } else if (value == 'hi') {
+                        languageProvider.changeLanguage(const Locale('hi'));
+                      }
+                    },
+                  ),
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
 
 
 
@@ -347,6 +446,7 @@ class _ProfileState extends State<Profile> {
     required String frontImage,
     required String backImage,
   }) {
+    final loc = AppLocalizations.of(context)!;
     return Container(
       margin: EdgeInsets.all(Sizes.screenWidth * 0.02),
       padding: EdgeInsets.all(Sizes.screenWidth * 0.04),
@@ -385,14 +485,14 @@ class _ProfileState extends State<Profile> {
             children: [
               Expanded(
                 child: _buildDocumentImage(
-                  label: "Front Side",
+                  label: loc.front_side,
                   imageUrl: frontImage,
                 ),
               ),
               SizedBox(width: Sizes.screenWidth * 0.03),
               Expanded(
                 child: _buildDocumentImage(
-                  label: "Back Side",
+                  label: loc.back_side,
                   imageUrl: backImage,
                 ),
               ),
@@ -463,6 +563,7 @@ class _ProfileState extends State<Profile> {
         ),
       ),
       builder: (BuildContext context) {
+        final loc = AppLocalizations.of(context)!;
         return SafeArea(
           bottom: true,
           child: Container(
@@ -483,13 +584,13 @@ class _ProfileState extends State<Profile> {
                 ),
                 SizedBox(height: Sizes.screenHeight * 0.02),
                  TextConst(
-                  title: "Are you sure you want to log out?",
+                  title: loc.are_you_sure_you_want,
                   fontWeight: FontWeight.bold,
                   size: Sizes.fontSizeSeven,
                 ),
                 SizedBox(height: Sizes.screenHeight * 0.02),
                 TextConst(
-                  title: "You'll need to log in again to access your account.",
+                  title: loc.logout_warning,
                   size: Sizes.fontSizeSix,
                   color: PortColor.gray,
                 ),
@@ -507,8 +608,8 @@ class _ProfileState extends State<Profile> {
                           ),
                           side: const BorderSide(color: PortColor.blue),
                         ),
-                        child: const TextConst(
-                          title: "Cancel",
+                        child:  TextConst(
+                          title: loc.cancel,
                           fontWeight: FontWeight.bold,
                           color: PortColor.blue,
                         ),
@@ -545,8 +646,8 @@ class _ProfileState extends State<Profile> {
                             borderRadius: BorderRadius.circular(15),
                           ),
                         ),
-                        child: const TextConst(
-                          title: "Log Out",
+                        child:  TextConst(
+                          title: loc.log_out,
                           fontWeight: FontWeight.bold,
                           color: PortColor.black,
                         ),

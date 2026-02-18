@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:image/image.dart' as img;
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:yoyomiles_partner/l10n/app_localizations.dart';
 import 'package:yoyomiles_partner/main.dart';
 import 'package:yoyomiles_partner/res/constant_color.dart';
 import 'package:yoyomiles_partner/res/custom_text_field.dart';
@@ -135,6 +136,8 @@ class _AddDriverDetailState extends State<AddDriverDetail> {
 
       var streamedResponse = await request.send().timeout(const Duration(seconds: 60));
       var response = await http.Response.fromStream(streamedResponse);
+      final loc = AppLocalizations.of(context)!;
+
 
       setState(() {
         _isLoading = false;
@@ -173,13 +176,13 @@ class _AddDriverDetailState extends State<AddDriverDetail> {
 
 
         } else {
-          _showErrorDialog(context, value["message"] ?? "Registration failed");
+          _showErrorDialog(context, value["message"] ?? loc.registration_failed);
         }
 
       } else if (response.statusCode == 413) {
-        _showErrorDialog(context, "File sizes too large. Try smaller images.");
+        _showErrorDialog(context, loc.file_size_to_large);
       } else {
-        _showErrorDialog(context, "Server error: ${response.statusCode}");
+        _showErrorDialog(context, "${loc.server_error} ${response.statusCode}");
       }
 
     } catch (error) {
@@ -187,9 +190,11 @@ class _AddDriverDetailState extends State<AddDriverDetail> {
 
 
       if (error is TimeoutException) {
-        _showErrorDialog(context, "Request timeout. Check internet and try again.");
+        final loc = AppLocalizations.of(context)!;
+        _showErrorDialog(context, loc.request_timeout);
       } else {
-        _showErrorDialog(context, "Registration failed: $error");
+        final loc = AppLocalizations.of(context)!;
+        _showErrorDialog(context, "${loc.registration_failed} $error");
       }
     } finally {
       // Clean up temporary compressed files
@@ -209,15 +214,16 @@ class _AddDriverDetailState extends State<AddDriverDetail> {
 
 
   void _showErrorDialog(BuildContext context, String message) {
+    final loc = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text("Error"),
+        title:  Text(loc.error),
         content: Text(message),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text("OK"),
+            child:  Text(loc.ok),
           ),
         ],
       ),
@@ -225,20 +231,21 @@ class _AddDriverDetailState extends State<AddDriverDetail> {
   }
 
   bool _validateForm() {
+    final loc = AppLocalizations.of(context)!;
     if (_isDrivingVehicle == null) {
-      _showErrorDialog(context, "Please select if you will be driving the vehicle");
+      _showErrorDialog(context, loc.please_select_driver_option);
       return false;
     }
     if (_driverNameController.text.isEmpty) {
-      _showErrorDialog(context, "Please enter driver name");
+      _showErrorDialog(context, loc.please_enter_driver_name);
       return false;
     }
     if (_frontLicense == null) {
-      _showErrorDialog(context, "Please upload front license");
+      _showErrorDialog(context, loc.please_upload_front_license);
       return false;
     }
     if (_backLicense == null) {
-      _showErrorDialog(context, "Please upload back license");
+      _showErrorDialog(context, loc.please_upload_back_license);
       return false;
     }
     return true;
@@ -247,6 +254,8 @@ class _AddDriverDetailState extends State<AddDriverDetail> {
   @override
   Widget build(BuildContext context) {
     final String driveOperator = _isDrivingVehicle == true ? "1" : "2";
+    final loc = AppLocalizations.of(context)!;
+
 
     // final args =
     //     ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>;
@@ -268,7 +277,7 @@ class _AddDriverDetailState extends State<AddDriverDetail> {
             children: [
               TextConst(
                 title:
-                "Add Driver Detail",
+                loc.add_driver_detail,
                 size: Sizes.fontSizeSeven,
                 fontWeight: FontWeight.bold,
               ),
@@ -338,8 +347,8 @@ class _AddDriverDetailState extends State<AddDriverDetail> {
                       valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                     ),
                   )
-                      : const Text(
-                    'Submit',
+                      :  Text(
+                    loc.submit,
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
@@ -357,14 +366,15 @@ class _AddDriverDetailState extends State<AddDriverDetail> {
 
 
   Widget _buildStepIndicator() {
+    final loc = AppLocalizations.of(context)!;
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        _buildStep(1, 'Owner', isCompleted: true),
+        _buildStep(1, loc.owner, isCompleted: true),
         _buildDashLine(isCompleted: true),
-        _buildStep(2, 'Vehicle', isCompleted: true),
+        _buildStep(2, loc.vehicle, isCompleted: true),
         _buildDashLine(isActive: true),
-        _buildStep(3, 'Driver', isActive: true),
+        _buildStep(3, loc.driver, isActive: true),
       ],
     );
   }
@@ -429,11 +439,13 @@ class _AddDriverDetailState extends State<AddDriverDetail> {
   }
 
   Widget _buildDrivingQuestionSection() {
+    final loc = AppLocalizations.of(context)!;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'I will be driving this vehicle *',
+         Text(
+          loc.i_will_be_driving_vehicle,
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
@@ -469,7 +481,7 @@ class _AddDriverDetailState extends State<AddDriverDetail> {
                         setState(() => _isDrivingVehicle = value);
                       },
                     ),
-                    const Text("Yes"),
+                     Text(loc.yes),
                   ],
                 ),
               ),
@@ -490,7 +502,7 @@ class _AddDriverDetailState extends State<AddDriverDetail> {
                         setState(() => _isDrivingVehicle = value);
                       },
                     ),
-                    const Text("No"),
+                     Text(loc.no),
                   ],
                 ),
               ),
@@ -502,12 +514,13 @@ class _AddDriverDetailState extends State<AddDriverDetail> {
   }
 
   Widget _buildDriverNameSection() {
+    final loc = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const TextConst(
+         TextConst(
           title:
-          'Driver Name *',
+          loc.driver_name,
           color: Colors.black54,
           fontWeight: FontWeight.w600,
           size: 15,
@@ -515,7 +528,7 @@ class _AddDriverDetailState extends State<AddDriverDetail> {
         const SizedBox(height: 8),
         CustomTextField(
           controller: _driverNameController,
-          hintText: "Enter Name",
+          hintText: loc.enter_name,
           hintStyle: TextStyle(color: PortColor.gray),
           inputFormatters: [
             FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]')),
@@ -526,12 +539,13 @@ class _AddDriverDetailState extends State<AddDriverDetail> {
   }
 
   Widget _buildLicenseUploadSection() {
+    final loc = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const TextConst(
+         TextConst(
           title:
-          'Upload Driver License *',
+          loc.upload_driver_license,
           color: Colors.black54,
           fontWeight: FontWeight.w600,
           size: 15,
@@ -568,7 +582,7 @@ class _AddDriverDetailState extends State<AddDriverDetail> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        _frontLicense != null ? 'Uploaded' : 'Front',
+                        _frontLicense != null ? loc.uploaded : loc.license_front,
                         style: TextStyle(
                           fontSize: 12,
                           color: _frontLicense != null ? Colors.green : Colors.grey,
@@ -612,7 +626,7 @@ class _AddDriverDetailState extends State<AddDriverDetail> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        _backLicense != null ? 'Uploaded' : 'Back',
+                        _backLicense != null ? loc.uploaded : loc.license_back,
                         style: TextStyle(
                           fontSize: 12,
                           color: _backLicense != null ? Colors.green : Colors.grey,

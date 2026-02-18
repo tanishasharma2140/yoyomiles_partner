@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:yoyomiles_partner/l10n/app_localizations.dart';
 import 'package:yoyomiles_partner/res/constant_color.dart';
 import 'package:yoyomiles_partner/res/launcher.dart';
 import 'package:yoyomiles_partner/res/sizing_const.dart';
@@ -32,6 +33,7 @@ class _RideHistoryState extends State<RideHistory> {
   @override
   Widget build(BuildContext context) {
     final rideHistoryViewModel = Provider.of<RideHistoryViewModel>(context);
+    final loc = AppLocalizations.of(context)!;
     return SafeArea(
       top: false,
       bottom: true,
@@ -84,7 +86,7 @@ class _RideHistoryState extends State<RideHistory> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         TextConst(
-                          title: "Ride History",
+                          title: loc.ride_history,
                           size: Sizes.fontSizeEight,
                           fontWeight: FontWeight.bold,
                           color: Colors.black87,
@@ -129,6 +131,7 @@ class _RideHistoryState extends State<RideHistory> {
   }
 
   Widget pendingContainer() {
+    final loc = AppLocalizations.of(context)!;
     return Container(
       height: Sizes.screenHeight * 0.76,
       child: Column(
@@ -143,14 +146,14 @@ class _RideHistoryState extends State<RideHistory> {
           ),
           SizedBox(height: 20),
           TextConst(
-            title: "No rides yet",
+            title: loc.no_rides_yet,
             size: Sizes.fontSizeSeven,
             fontWeight: FontWeight.w600,
             color: Colors.grey,
           ),
           SizedBox(height: 8),
           TextConst(
-            title: "Your ride history will appear here",
+            title: loc.ride_history_placeholder,
             size: Sizes.fontSizeSeven - 2,
             color: Colors.grey,
           ),
@@ -161,7 +164,7 @@ class _RideHistoryState extends State<RideHistory> {
 
   Widget dataContainer() {
     final rideHistoryViewModel = Provider.of<RideHistoryViewModel>(context);
-    final profile = Provider.of<ProfileViewModel>(context);
+    final loc = AppLocalizations.of(context)!;
     return ListView.builder(
       itemCount: rideHistoryViewModel.rideHistoryModel!.data!.length,
       padding: EdgeInsets.symmetric(
@@ -196,11 +199,11 @@ class _RideHistoryState extends State<RideHistory> {
                   // Sender Details Card
                   if (ride.orderType != 2)
                     _buildDetailCard(
-                      "Sender Details",
+                      loc.sender_details,
                       Icons.person_outline,
                       [
-                        _buildDetailRow("Name", ride.senderName ?? ""),
-                        _buildDetailRow("Phone", ride.senderPhone?.toString() ?? ""),
+                        _buildDetailRow(loc.name, ride.senderName ?? ""),
+                        _buildDetailRow(loc.phone, ride.senderPhone?.toString() ?? ""),
                       ],
                     ),
 
@@ -214,11 +217,11 @@ class _RideHistoryState extends State<RideHistory> {
                   // Receiver Details Card
                   if (ride.orderType != 2)
                     _buildDetailCard(
-                      "Receiver Details",
+                      loc.receiver_details,
                       Icons.person,
                       [
-                        _buildDetailRow("Name", ride.reciverName ?? ""),
-                        _buildDetailRow("Phone", ride.reciverPhone?.toString() ?? ""),
+                        _buildDetailRow(loc.name, ride.reciverName ?? ""),
+                        _buildDetailRow(loc.phone, ride.reciverPhone?.toString() ?? ""),
                       ],
                     ),
 
@@ -228,7 +231,7 @@ class _RideHistoryState extends State<RideHistory> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       TextConst(
-                        title: "Status",
+                        title: loc.status,
                       ),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -244,11 +247,11 @@ class _RideHistoryState extends State<RideHistory> {
                         ),
                         child: Text(
                           ride.rideStatus == 6
-                              ? "Ride Completed"
+                              ? loc.ride_completed
                               : ride.rideStatus == 7
-                              ? "Cancelled by User"
+                              ? loc.cancelled_by_user
                               : ride.rideStatus == 8
-                          ?"Cancelled by Driver"
+                          ?loc.cancelled_by_driver
                               :"None"
                           ,
                           style: TextStyle(
@@ -319,7 +322,7 @@ class _RideHistoryState extends State<RideHistory> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         TextConst(
-                          title: "Ride Rating",
+                          title: loc.ride_rating,
                           size: Sizes.fontSizeSeven,
                           fontWeight: FontWeight.w600,
                           color: Colors.grey,
@@ -388,7 +391,7 @@ class _RideHistoryState extends State<RideHistory> {
       padding: EdgeInsets.symmetric(vertical: 4),
       child: Row(
         children: [
-          Container(
+          SizedBox(
             width: 80,
             child: TextConst(
               title: "$label:",
@@ -410,6 +413,7 @@ class _RideHistoryState extends State<RideHistory> {
   }
 
   Widget _buildRouteCard(dynamic ride) {
+    final loc = AppLocalizations.of(context)!;
     return Container(
       padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -439,14 +443,14 @@ class _RideHistoryState extends State<RideHistory> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     TextConst(
-                      title: "Pickup",
+                      title: loc.pickup,
                       size: Sizes.fontSizeSeven - 2,
                       fontWeight: FontWeight.w600,
                       color: Colors.orange.shade700,
                     ),
                     SizedBox(height: 4),
                     TextConst(
-                      title: ride.pickupAddress ?? "Location not specified",
+                      title: ride.pickupAddress ?? loc.location_not_specified,
                       size: Sizes.fontSizeSeven - 2,
                       color: Colors.black87,
                     ),
@@ -476,14 +480,14 @@ class _RideHistoryState extends State<RideHistory> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     TextConst(
-                      title: "Dropoff",
+                      title: loc.dropoff,
                       size: Sizes.fontSizeSeven - 2,
                       fontWeight: FontWeight.w600,
                       color: Colors.red.shade700,
                     ),
                     SizedBox(height: 4),
                     TextConst(
-                      title: ride.dropAddress ?? "Location not specified",
+                      title: ride.dropAddress ?? loc.location_not_specified,
                       size: Sizes.fontSizeSeven - 2,
                       color: Colors.black87,
                     ),

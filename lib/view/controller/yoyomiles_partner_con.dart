@@ -1,25 +1,41 @@
 import 'package:flutter/cupertino.dart';
 import 'package:yoyomiles_partner/generated/assets.dart';
+import 'package:yoyomiles_partner/l10n/app_localizations.dart';
 import 'package:yoyomiles_partner/utils/routes/routes_name.dart';
 
 class YoyomilesPartnerCon with ChangeNotifier {
+
   List<DashBoardModel> dashBoardGridList = [
-    DashBoardModel(img: Assets.assetsDriverProfile,
-        title: ' Profile',
-        route: RoutesName.editProfile),
-    DashBoardModel(img: Assets.assetsRideHistoryDriver,
-        title: 'Ride History',
-        route: RoutesName.rideHistory),
-    DashBoardModel(img: Assets.assetsWalletSettlement,
-        title: 'Wallet & Settlement',
-        route: RoutesName.walletSettlement),
     DashBoardModel(
-        img: Assets.assetsEarning, title: 'Earning Report', route: RoutesName.earningReport),
+        img: Assets.assetsDriverProfile,
+        titleKey: 'profile',
+        route: RoutesName.editProfile),
+
+    DashBoardModel(
+        img: Assets.assetsRideHistoryDriver,
+        titleKey: 'ride_history',
+        route: RoutesName.rideHistory),
+
+    DashBoardModel(
+        img: Assets.assetsWalletSettlement,
+        titleKey: 'wallet_and_settlement',
+        route: RoutesName.walletSettlement),
+
+    DashBoardModel(
+        img: Assets.assetsEarning,
+        titleKey: 'earning_report',
+        route: RoutesName.earningReport),
   ];
 }
-class DashBoardModel{
+
+class DashBoardModel {
   final String img;
-  final String title;
+  final String titleKey;
   final String route;
-  DashBoardModel({required this.img, required this.title, required this.route});
+
+  DashBoardModel({
+    required this.img,
+    required this.titleKey,
+    required this.route,
+  });
 }

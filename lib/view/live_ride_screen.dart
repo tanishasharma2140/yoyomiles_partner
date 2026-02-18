@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:yoyomiles_partner/generated/assets.dart';
+import 'package:yoyomiles_partner/l10n/app_localizations.dart';
 import 'package:yoyomiles_partner/main.dart';
 import 'package:yoyomiles_partner/res/app_fonts.dart';
 import 'package:yoyomiles_partner/res/const_map.dart';
@@ -43,9 +44,6 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
   @override
   void initState() {
     super.initState();
-    facebookAppEvents.logEvent(
-      name: 'live_ride_screen',
-    );
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final liveRideViewModel = Provider.of<LiveRideViewModel>(
@@ -169,6 +167,7 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
   // 🔥 NEW: RIDE CANCELLED DIALOG
 
   Widget _buildPaymentSuccessDialog() {
+    final loc = AppLocalizations.of(context)!;
     return WillPopScope(
       onWillPop: () async => false,
       child: Dialog(
@@ -182,7 +181,7 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
               Icon(Icons.check_circle, color: Colors.green, size: 50),
               const SizedBox(height: 15),
               Text(
-                "Payment Successful!",
+                loc.payment_successful,
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -191,7 +190,7 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
               ),
               const SizedBox(height: 10),
               Text(
-                "Payment has been successfully received. Thank you!",
+                loc.payment_received_thank_you,
                 textAlign: TextAlign.center,
                 style: const TextStyle(color: Colors.grey),
               ),
@@ -212,8 +211,8 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                         (route) => route.settings.name == RoutesName.register,
                   );
                 },
-                child: const Text(
-                  "OK",
+                child:  Text(
+                  loc.ok,
                   style: TextStyle(color: Colors.white, fontSize: 16),
                 ),
               ),
@@ -226,6 +225,7 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
 
   // NEW: Ride Completed Dialog for Cash Payment
   Widget _buildRideCompletedDialog() {
+    final loc = AppLocalizations.of(context)!;
     final liveRideVm = Provider.of<LiveRideViewModel>(context);
     final ride = Provider.of<RideViewModel>(context);
     return WillPopScope(
@@ -241,7 +241,7 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
               Icon(Icons.check_circle, color: Colors.green, size: 50),
               const SizedBox(height: 15),
               Text(
-                "Ride Completed!🎉🎉",
+               loc.ride_completed_celebration,
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -250,7 +250,7 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
               ),
               const SizedBox(height: 10),
               Text(
-                "Your ride has been completed successfully. Thank you!",
+                loc.ride_completed_successfully_thank_you,
                 textAlign: TextAlign.center,
                 style: const TextStyle(color: Colors.grey),
               ),
@@ -283,8 +283,8 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                   ride.setActiveRideData(null);
                   ride.disable78();
                 },
-                child: const Text(
-                  "OK",
+                child:  Text(
+                  loc.ok,
                   style: TextStyle(color: Colors.white, fontSize: 16),
                 ),
               ),
@@ -297,6 +297,7 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
 
   // NEW: Ride Cancelled Dialog
   Widget _buildRideCancelledDialog(String userName) {
+    final loc = AppLocalizations.of(context)!;
     return WillPopScope(
       onWillPop: () async => false,
       child: Dialog(
@@ -310,7 +311,7 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
               Icon(Icons.cancel, color: Colors.red, size: 50),
               const SizedBox(height: 15),
               Text(
-                "Ride Cancelled!",
+                loc.ride_cancelled,
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -319,7 +320,7 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
               ),
               const SizedBox(height: 10),
               Text(
-                "Ride has been cancelled by $userName",
+                "${loc.ride_cancelled_by} $userName",
                 textAlign: TextAlign.center,
                 style: const TextStyle(color: Colors.grey),
               ),
@@ -342,8 +343,8 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                     (route) => false,
                   );
                 },
-                child: const Text(
-                  "OK",
+                child:  Text(
+                  loc.ok,
                   style: TextStyle(color: Colors.white, fontSize: 16),
                 ),
               ),
@@ -354,83 +355,13 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
     );
   }
 
-  // Listen for ride_status changes for payment flow
-  // void _startPaymentListener(String orderId) {
-  //   print("🔔 Starting payment listener for order: $orderId");
-  //
-  //   try {
-  //     _paymentSubscription = FirebaseFirestore.instance
-  //         .collection('order')
-  //         .doc(orderId)
-  //         .snapshots()
-  //         .listen((DocumentSnapshot snapshot) {
-  //       if (snapshot.exists && snapshot.data() != null) {
-  //         final data = snapshot.data() as Map<String, dynamic>;
-  //         final rideStatus = data['ride_status'] ?? 0;
-  //         print("📢 Payment Listener - ride_status: $rideStatus");
-  //
-  //         // 🔥 AGAR STATUS 6 HO GAYA (PAYMENT SUCCESS)
-  //         if (rideStatus == 6) {
-  //           print("💰 Payment successful detected! Navigating back and showing success");
-  //
-  //           WidgetsBinding.instance.addPostFrameCallback((_) {
-  //             // Pop waiting screen
-  //             Navigator.of(context).pop();
-  //
-  //             // Show success dialog
-  //             _showPaymentSuccessDialogMethod();
-  //           });
-  //         }
-  //       }
-  //     }, onError: (error) {
-  //       print("🔥 Payment listener error: $error");
-  //     });
-  //   } catch (e) {
-  //     print("❌ Error starting payment listener: $e");
-  //   }
-  // }
-
-  // ✅ FIXED: Listen for ride status changes (specifically for status 7 - cancelled)
-  // void _startRideStatusListener(String orderId) {
-  //   print("🔔 Starting ride status listener for order: $orderId");
-  //
-  //   try {
-  //     _rideStatusSubscription = FirebaseFirestore.instance
-  //         .collection('order')
-  //         .doc(orderId)
-  //         .snapshots()
-  //         .listen((DocumentSnapshot snapshot) {
-  //       if (snapshot.exists && snapshot.data() != null) {
-  //         final data = snapshot.data() as Map<String, dynamic>;
-  //         final rideStatus = data['ride_status'] ?? 0;
-  //         final userName = data['sender_name'] ?? 'User';
-  //
-  //         print("📢 Ride Status Listener - ride_status: $rideStatus, user: $userName");
-  //
-  //         // 🔥 AGAR RIDE STATUS 7 HO GAYA (CANCELLED)
-  //         if (rideStatus == 7 && !_showRideCancelledDialog) {
-  //           print("❌ Ride cancelled detected! Showing cancelled dialog");
-  //
-  //           WidgetsBinding.instance.addPostFrameCallback((_) {
-  //             // Cancel dialog show karo
-  //             _showRideCancelledDialogMethod(userName);
-  //           });
-  //         }
-  //       }
-  //     }, onError: (error) {
-  //       print("🔥 Ride status listener error: $error");
-  //     });
-  //   } catch (e) {
-  //     print("❌ Error starting ride status listener: $e");
-  //   }
-  // }
-
   void _handleReachedButtonClick() async {
     final rideStatus = Provider.of<RideViewModel>(context, listen: false);
     final liveRideViewModel = Provider.of<LiveRideViewModel>(
       context,
       listen: false,
     );
+    final loc = AppLocalizations.of(context)!;
 
     final orderId = liveRideViewModel.liveOrderModel!.data!.id.toString();
 
@@ -449,7 +380,7 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
 
         Utils.showSuccessMessage(
           context,
-          "Ride completed successfully (Wallet)",
+          loc.ride_completed_wallet,
         );
 
         Future.delayed(const Duration(milliseconds: 300), () {
@@ -470,7 +401,7 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
 
         // liveRideViewModel.liveOrderModel!.data!.rideStatus = 5;
 
-        Utils.showSuccessMessage(context, "Reached destination!");
+        Utils.showSuccessMessage(context, loc.reached_destination);
 
         Future.delayed(const Duration(milliseconds: 300), () {
           Navigator.of(context).push(
@@ -496,7 +427,7 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
 
         Utils.showSuccessMessage(
           context,
-          "Ride status updated: Reached destination",
+          loc.ride_status_reached_destination,
         );
 
         Future.delayed(const Duration(milliseconds: 300), () {
@@ -506,11 +437,12 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
         return;
       }
     } catch (e) {
-      Utils.showErrorMessage(context, "Failed to update ride status: $e");
+      Utils.showErrorMessage(context, "${loc.failed_update_ride_status} $e");
     }
   }
 
   void _showGoToMapDialog() {
+    final loc = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -524,8 +456,8 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
               Icon(Icons.check_circle, color: Colors.green, size: 40),
               const SizedBox(height: 12),
 
-              const TextConst(
-                title: "OTP Verified",
+               TextConst(
+                title: loc.otp_verified,
                 size: 16,
                 fontWeight: FontWeight.w700,
               ),
@@ -533,7 +465,7 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
               const SizedBox(height: 8),
 
               TextConst(
-                title: "You can now open Google Maps for navigation.",
+                title: loc.open_google_maps_navigation,
                 textAlign: TextAlign.center,
                 size: 13,
                 color: Colors.black54,
@@ -554,9 +486,9 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                     color: PortColor.gold,
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: const Center(
+                  child:  Center(
                     child: Text(
-                      "Go to Map",
+                      loc.go_to_map,
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 15,
@@ -582,6 +514,7 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
   }
 
   void _showGoToMapPopupFromCurrentLocation() {
+    final loc = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -596,15 +529,15 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
               Icon(Icons.map, color: PortColor.gold, size: 40),
               const SizedBox(height: 12),
 
-              const Text(
-                "Go to Pickup Location",
+               Text(
+                loc.go_to_pickup_location,
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
               ),
 
               const SizedBox(height: 8),
 
-              const Text(
-                "Open Google Maps to navigate to pickup location.",
+               Text(
+                loc.open_google_maps_pickup,
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 13, color: Colors.black54),
               ),
@@ -623,9 +556,9 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                     color: PortColor.gold,
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: const Center(
+                  child:  Center(
                     child: Text(
-                      "Go to Map",
+                      loc.go_to_map,
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 15,
@@ -643,6 +576,7 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
   }
 
   Future<void> _openGoogleMapsFromCurrentLocation() async {
+    final loc = AppLocalizations.of(context)!;
     final pickupLatLng = "$pickupLat,$pickupLng";
 
     final url =
@@ -655,7 +589,7 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
     if (await canLaunch(url)) {
       await launch(url);
     } else {
-      Utils.showErrorMessage(context, "Could not open Google Maps");
+      Utils.showErrorMessage(context, loc.could_not_open_google_maps);
     }
   }
 
@@ -745,19 +679,20 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
   }
 
   String _getButtonText(int? status) {
+    final loc = AppLocalizations.of(context)!;
     switch (status) {
       case 1:
-        return "Start for Pickup";
+        return loc.start_for_pickup;
       case 2:
-        return "Arrived at Pickup Point";
+        return loc.arrived_at_pickup_point;
       case 3:
-        return "Start Ride";
+        return loc.start_ride;
       case 4:
-        return "Reached";
+        return loc.reached;
       case 5:
-        return "Ride Completed";
+        return loc.ride_completed;
       default:
-        return "Start for Pickup";
+        return loc.start_for_pickup;
     }
   }
 
@@ -767,6 +702,8 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
       context,
       listen: false,
     );
+    final loc = AppLocalizations.of(context)!;
+
     final rideStatus = Provider.of<RideViewModel>(context, listen: false);
     showDialog(
       context: context,
@@ -790,7 +727,7 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                 ),
                 const SizedBox(height: 10),
                 Text(
-                  "Trip OTP Verification",
+                  loc.trip_otp_verification,
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -805,7 +742,7 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                   keyboardType: TextInputType.number,
                   textAlign: TextAlign.center,
                   decoration: InputDecoration(
-                    hintText: "Enter OTP",
+                    hintText: loc.enter_otp,
                     hintStyle: TextStyle(color: Colors.grey),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
@@ -838,8 +775,8 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                           ),
                         ),
                         onPressed: () => Navigator.of(context).pop(),
-                        child: const Text(
-                          "Cancel",
+                        child:  Text(
+                          loc.cancel,
                           style: TextStyle(color: Colors.black),
                         ),
                       ),
@@ -856,7 +793,7 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                         onPressed: () async {
                           final enteredOtp = _otpController.text.trim();
                           if (enteredOtp.isEmpty) {
-                            Utils.showErrorMessage(context, "Please enter OTP");
+                            Utils.showErrorMessage(context, loc.please_enter_otp);
                             return;
                           }
                           try {
@@ -864,9 +801,6 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                                 rideStatus.activeRideData?['otp'];
                             print("otpdfdd$firestoreOtp");
                             print(enteredOtp);
-                            facebookAppEvents.logEvent(
-                              name: 'otp_verified',
-                            );
 
 
                             if (firestoreOtp.toString() ==
@@ -876,7 +810,7 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                               Navigator.of(context).pop();
                               Utils.showSuccessMessage(
                                 context,
-                                "OTP verified! Ride started.",
+                                loc.otp_verified_ride_started,
                               );
                               setState(() {
                                 isOtpVerified = true;
@@ -885,7 +819,7 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                             } else {
                               Utils.showErrorMessage(
                                 context,
-                                "Invalid OTP. Try again.",
+                                loc.invalid_otp_try_again,
                               );
                             }
                           } catch (e) {
@@ -897,8 +831,8 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                             );
                           }
                         },
-                        child: const Text(
-                          "Verify",
+                        child:  Text(
+                          loc.verify,
                           style: TextStyle(color: Colors.white),
                         ),
                       ),
@@ -933,6 +867,8 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
         contactListVm.contactListModel?.sosNumber ?? "6306513131";
     final String sosMessage =
         contactListVm.contactListModel?.sosMessage ?? "Hello";
+    final loc = AppLocalizations.of(context)!;
+
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -953,7 +889,7 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
           /// LEFT INFO
           Expanded(
             child: Row(
-              children: const [
+              children:  [
                 Icon(
                   Icons.warning_amber_rounded,
                   color: Colors.red,
@@ -961,7 +897,7 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                 ),
                 SizedBox(width: 6),
                 TextConst(
-                  title: "Emergency",
+                  title: loc.emergency,
                   size: 15,
                   fontWeight: FontWeight.w600,
                 ),
@@ -984,8 +920,8 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                 color: Colors.red,
                 borderRadius: BorderRadius.circular(20),
               ),
-              child: const TextConst(
-                title: "SOS",
+              child:  TextConst(
+                title: loc.sos,
                 color: Colors.white,
                 size: 13,
                 fontWeight: FontWeight.bold,
@@ -1001,7 +937,7 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
             onTap: () {
               _openWhatsApp(
                 phone: supportNumber,
-                message: "Hello Support, I need help with my ongoing ride.",
+                message: loc.support_help_message,
               );
             },
             child: Container(
@@ -1072,25 +1008,26 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
   }
 
   String _getStatusText(int? rideStatus) {
+    final loc = AppLocalizations.of(context)!;
     print("kjkjkjk");
     print(rideStatus);
     switch (rideStatus) {
       case 1:
-        return "Accepted by Driver";
+        return loc.accepted_by_driver;
       case 2:
-        return "Out for PickUp";
+        return loc.out_for_pickup;
       case 3:
-        return "At Pickup Point";
+        return loc.at_pickup_point;
       case 4:
-        return "Ride Started";
+        return loc.ride_started;
       case 5:
-        return "Reached Destination";
+        return loc.reached_destination;
       case 6:
-        return "Payment Completed";
+        return loc.payment_completed;
       case 7:
-        return "Ride Cancelled";
+        return loc.ride_cancelled_status;
       default:
-        return "Unknown Status";
+        return loc.unknown_status;
     }
   }
 
@@ -1100,6 +1037,8 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
   ) {
     final liveRideViewModel = Provider.of<LiveRideViewModel>(context);
     final updateRideStatus = Provider.of<UpdateRideStatusViewModel>(context);
+    final loc = AppLocalizations.of(context)!;
+
 
     if (liveRideViewModel.liveOrderModel == null || liveRideViewModel.loading) {
       return Center(child: CircularProgressIndicator(color: PortColor.gold));
@@ -1128,14 +1067,14 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                   ),
                   SizedBox(height: Sizes.screenHeight * 0.02),
                   TextConst(
-                    title: "No Active Ride",
+                    title: loc.no_active_ride,
                     color: PortColor.gold,
                     fontWeight: FontWeight.bold,
                     size: Sizes.fontSizeSix,
                   ),
                   SizedBox(height: Sizes.screenHeight * 0.01),
                   TextConst(
-                    title: "You don't have any active ride at the moment",
+                    title: loc.no_active_ride_message,
                     color: PortColor.gray,
                     size: Sizes.fontSizeFour,
                   ),
@@ -1176,14 +1115,14 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _buildDetailRow(
-                          title: "Booking ID",
+                          title: loc.booking_id,
                           content: liveRideViewModel.liveOrderModel!.data!.id
                               .toString(),
                           isHeader: true,
                         ),
                         SizedBox(height: Sizes.screenHeight * 0.008),
                         _buildDetailRow(
-                          title: "Vehicle Type",
+                          title: loc.vehicle_type,
                           content:
                               liveRideViewModel
                                   .liveOrderModel!
@@ -1285,7 +1224,7 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                           Icon(Icons.call, color: Colors.black, size: 16),
                           SizedBox(width: Sizes.screenWidth * 0.01),
                           TextConst(
-                            title: 'Call',
+                            title: loc.call,
                             color: Colors.black,
                             size: Sizes.fontSizeFour,
                           ),
@@ -1325,7 +1264,7 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   SizedBox(height: Sizes.screenHeight * 0.015),
-                  _buildSectionHeader("Sender Details"),
+                  _buildSectionHeader(loc.sender_details),
                   SizedBox(height: Sizes.screenHeight * 0.01),
 
                   if (liveRideViewModel.liveOrderModel!.data!.orderType
@@ -1333,7 +1272,7 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                       "2") ...[
                     _buildDetailRow(
                       icon: Icons.location_on,
-                      title: "Address",
+                      title: loc.address,
                       content:
                           liveRideViewModel
                               .liveOrderModel!
@@ -1346,14 +1285,14 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                   ] else ...[
                     _buildDetailRow(
                       icon: Icons.person_outline,
-                      title: "Name",
+                      title: loc.name,
                       content:
                           liveRideViewModel.liveOrderModel!.data!.senderName ??
                           "N/A",
                     ),
                     _buildDetailRow(
                       icon: Icons.phone,
-                      title: "Phone",
+                      title: loc.phone,
                       content:
                           liveRideViewModel.liveOrderModel!.data!.senderPhone
                               ?.toString() ??
@@ -1361,7 +1300,7 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                     ),
                     _buildDetailRow(
                       icon: Icons.location_on,
-                      title: "Address",
+                      title: loc.address,
                       content:
                           liveRideViewModel
                               .liveOrderModel!
@@ -1376,7 +1315,7 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                   Divider(height: 1),
 
                   SizedBox(height: Sizes.screenHeight * 0.015),
-                  _buildSectionHeader("Receiver Details"),
+                  _buildSectionHeader(loc.receiver_details),
                   SizedBox(height: Sizes.screenHeight * 0.01),
 
                   if (liveRideViewModel.liveOrderModel!.data!.orderType
@@ -1384,7 +1323,7 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                       "2") ...[
                     _buildDetailRow(
                       icon: Icons.location_on,
-                      title: "Address",
+                      title: loc.address,
                       content:
                           liveRideViewModel.liveOrderModel!.data!.dropAddress ??
                           "N/A",
@@ -1394,14 +1333,14 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                   ] else ...[
                     _buildDetailRow(
                       icon: Icons.person_outline,
-                      title: "Name",
+                      title: loc.name,
                       content:
                           liveRideViewModel.liveOrderModel!.data!.reciverName ??
                           "N/A",
                     ),
                     _buildDetailRow(
                       icon: Icons.phone,
-                      title: "Phone",
+                      title: loc.phone,
                       content:
                           liveRideViewModel.liveOrderModel!.data!.reciverPhone
                               ?.toString() ??
@@ -1409,7 +1348,7 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                     ),
                     _buildDetailRow(
                       icon: Icons.location_on,
-                      title: "Address",
+                      title: loc.address,
                       content:
                           liveRideViewModel.liveOrderModel!.data!.dropAddress ??
                           "N/A",
@@ -1436,7 +1375,7 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                         Expanded(
                           child: TextConst(
                             title:
-                                "Current Status: ${_getStatusText(activeRideData?['rideStatus'])}",
+                                "${loc.current_status} ${_getStatusText(activeRideData?['rideStatus'])}",
                             size: Sizes.fontSizeFive,
                             fontWeight: FontWeight.w600,
                             color: PortColor.gold,
@@ -1470,13 +1409,13 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                                 _showGoToMapPopupFromCurrentLocation();
                                 Utils.showSuccessMessage(
                                   context,
-                                  "Ride status updated: Start for Pickup Location",
+                                  loc.ride_status_start_pickup,
                                 );
                               } else if (currentStatus == 2) {
                                 rideStatus.updateRideStatus(3);
                                 Utils.showSuccessMessage(
                                   context,
-                                  "Ride status updated: Arrived at Pickup Point",
+                                  loc.ride_status_arrived_pickup,
                                 );
                               } else if (currentStatus == 3) {
                                 _showOtpDialog(orderId.toString());
@@ -1489,7 +1428,7 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                             } catch (e) {
                               Utils.showErrorMessage(
                                 context,
-                                "Failed to update ride status: $e",
+                                "${loc.failed_update_ride_status} $e",
                               );
                             }
                           },
@@ -1551,7 +1490,7 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                                     ),
                                     SizedBox(width: Sizes.screenWidth * 0.02),
                                     TextConst(
-                                      title: 'Reject',
+                                      title: loc.reject,
                                       color: PortColor.red,
                                       fontWeight: FontWeight.w600,
                                     ),
@@ -1584,6 +1523,8 @@ class CollectPaymentScreen extends StatelessWidget {
     final liveRideVm = Provider.of<LiveRideViewModel>(context, listen: false);
     final rideStatus = Provider.of<RideViewModel>(context, listen: false);
     final updateRideVM = Provider.of<UpdateRideStatusViewModel>(context, listen: false);
+    final loc = AppLocalizations.of(context)!;
+
 
     try {
       print("💵 Payment completed → Updating ride to status 6");
@@ -1605,7 +1546,7 @@ class CollectPaymentScreen extends StatelessWidget {
       rideStatus.setActiveRideData(null);
       rideStatus.disable78();
 
-      Utils.showSuccessMessage(context, "Ride completed successfully!");
+      Utils.showSuccessMessage(context, loc.ride_completed_successfully);
 
       // 🔹 Close current screen
       Navigator.of(context).pop();
@@ -1619,7 +1560,7 @@ class CollectPaymentScreen extends StatelessWidget {
         );
       });
     } catch (e) {
-      Utils.showErrorMessage(context, "Failed to complete ride: $e");
+      Utils.showErrorMessage(context, "${loc.failed_complete_ride} $e");
     }
   }
 
@@ -1629,7 +1570,7 @@ class CollectPaymentScreen extends StatelessWidget {
       context,
       listen: false,
     );
-
+    final loc = AppLocalizations.of(context)!;
     try {
       // 🔥 API CALL using ChangePayModeViewModel
       await changePayModeViewModel.changePayModeApi(
@@ -1641,11 +1582,12 @@ class CollectPaymentScreen extends StatelessWidget {
       // ✅ RideViewModel listener will automatically update UI
       print("✅ Paymode changed successfully - RideViewModel listener will update UI");
     } catch (e) {
-      Utils.showErrorMessage(context, "Failed to change payment mode: $e");
+      Utils.showErrorMessage(context, "${loc.failed_change_payment_mode} $e");
     }
   }
 
   void _showPaymodeChangeDialog(BuildContext context, int currentPaymode) {
+    final loc = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (context) {
@@ -1655,14 +1597,14 @@ class CollectPaymentScreen extends StatelessWidget {
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
               ),
-              title: Text("Change Payment Mode"),
+              title: Text(loc.change_payment_mode),
               content: changePayModeVm.loading
                   ? Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   CircularProgressIndicator(),
                   SizedBox(height: 16),
-                  Text("Changing payment mode..."),
+                  Text(loc.changing_payment_mode),
                 ],
               )
                   : Column(
@@ -1674,7 +1616,7 @@ class CollectPaymentScreen extends StatelessWidget {
                       color:
                       currentPaymode == 1 ? Colors.green : Colors.grey,
                     ),
-                    title: Text("Cash Payment"),
+                    title: Text(loc.cash_payment),
                     trailing: currentPaymode == 1
                         ? Icon(Icons.check_circle, color: Colors.green)
                         : null,
@@ -1692,7 +1634,7 @@ class CollectPaymentScreen extends StatelessWidget {
                           ? Colors.orange
                           : Colors.grey,
                     ),
-                    title: Text("Online Payment"),
+                    title: Text(loc.online_payment),
                     trailing: currentPaymode == 2
                         ? Icon(Icons.check_circle, color: Colors.orange)
                         : null,
@@ -1709,7 +1651,7 @@ class CollectPaymentScreen extends StatelessWidget {
                   : [
                 TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: Text("Cancel"),
+                  child: Text(loc.cancel),
                 ),
               ],
             );
@@ -1720,8 +1662,7 @@ class CollectPaymentScreen extends StatelessWidget {
   }
 
   Widget _buildRideCompletedDialog(BuildContext context) {
-    final rideStatus = Provider.of<RideViewModel>(context);
-    final liveRideVm = Provider.of<LiveRideViewModel>(context);
+    final loc = AppLocalizations.of(context)!;
     return WillPopScope(
       onWillPop: () async => false,
       child: Dialog(
@@ -1735,7 +1676,7 @@ class CollectPaymentScreen extends StatelessWidget {
               Icon(Icons.check_circle, color: Colors.green, size: 50),
               const SizedBox(height: 15),
               Text(
-                "Ride Completed!🎉🎉",
+                loc.ride_completed_celebration,
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -1744,7 +1685,7 @@ class CollectPaymentScreen extends StatelessWidget {
               ),
               const SizedBox(height: 10),
               Text(
-                "Your ride has been completed successfully. Thank you!",
+                loc.ride_completed_successfully_thank_you,
                 textAlign: TextAlign.center,
                 style: const TextStyle(color: Colors.grey),
               ),
@@ -1777,8 +1718,8 @@ class CollectPaymentScreen extends StatelessWidget {
                   // rideStatus.setActiveRideData(null);
                   // rideStatus.disable78();
                 },
-                child: const Text(
-                  "OK",
+                child:  Text(
+                  loc.ok,
                   style: TextStyle(color: Colors.white, fontSize: 16),
                 ),
               ),
@@ -1796,7 +1737,7 @@ class CollectPaymentScreen extends StatelessWidget {
       builder: (context, rideViewModel, child) {
         final payMode = rideViewModel.activeRideData?['payMode'] ?? 1;
         final rideStatus = rideViewModel.activeRideData?['rideStatus'] ?? 0;
-
+        final loc = AppLocalizations.of(context)!;
         print("🎨 CollectPaymentScreen - PayMode: $payMode, RideStatus: $rideStatus");
 
         return WillPopScope(
@@ -1815,7 +1756,7 @@ class CollectPaymentScreen extends StatelessWidget {
                         children: [
                           TextConst(
                             title:
-                            "Change Pay Mode",
+                            loc.change_pay_mode,
                             color: Colors.blue,
                             fontWeight: FontWeight.w600,
                           ),
@@ -1875,10 +1816,10 @@ class CollectPaymentScreen extends StatelessWidget {
                     // 🔥 DYNAMIC TITLE BASED ON STATE
                     Text(
                       (payMode == 2 && rideStatus == 6)
-                          ? "Payment Successful!"
+                          ? loc.payment_successful
                           : payMode == 1
-                          ? "Cash Payment"
-                          : "Online Payment",
+                          ? loc.cash_payment
+                          : loc.online_payment,
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
@@ -1907,7 +1848,7 @@ class CollectPaymentScreen extends StatelessWidget {
                             SizedBox(width: 12),
                             Expanded(
                               child: Text(
-                                "Please collect cash payment from customer",
+                                loc.collect_cash_from_customer,
                                 style: TextStyle(
                                   fontSize: 16,
                                   color: Colors.black87,
@@ -1921,7 +1862,7 @@ class CollectPaymentScreen extends StatelessWidget {
                       // SWIPE BUTTON FOR CASH PAYMENT
                       SlideToButton(
                         onAccepted: () => _handlePaymentComplete(context),
-                        title: "Pay Done",
+                        title: loc.pay_done,
                       ),
                     ] else if (payMode == 2 && rideStatus == 6) ...[
                       // ✅ PAYMENT SUCCESS UI (payMode=2 AND rideStatus=6)
@@ -1940,8 +1881,8 @@ class CollectPaymentScreen extends StatelessWidget {
                               size: 80,
                             ),
                             const SizedBox(height: 16),
-                            const Text(
-                              "Payment Completed! 🎉",
+                             Text(
+                              loc.payment_completed_celebration,
                               style: TextStyle(
                                 fontSize: 22,
                                 fontWeight: FontWeight.bold,
@@ -1951,7 +1892,7 @@ class CollectPaymentScreen extends StatelessWidget {
                             ),
                             const SizedBox(height: 12),
                             Text(
-                              "Customer has successfully completed the online payment.",
+                              loc.customer_completed_online_payment,
                               style: TextStyle(
                                 fontSize: 16,
                                 color: Colors.grey[700],
@@ -2007,7 +1948,7 @@ class CollectPaymentScreen extends StatelessWidget {
                     ] else ...[
                       // ✅ ONLINE PAYMENT WAITING UI
                       Text(
-                        "Please wait while the customer completes the online payment.",
+                        loc.wait_for_customer_payment,
                         textAlign: TextAlign.center,
                         style: const TextStyle(color: Colors.grey, fontSize: 16),
                       ),
@@ -2018,7 +1959,7 @@ class CollectPaymentScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        "Waiting for payment...",
+                        loc.waiting_for_payment,
                         style: TextStyle(color: Colors.orange, fontSize: 16),
                       ),
                     ],

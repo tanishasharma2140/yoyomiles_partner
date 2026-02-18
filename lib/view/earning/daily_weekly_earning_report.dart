@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:yoyomiles_partner/l10n/app_localizations.dart';
 import 'package:yoyomiles_partner/model/daily_weekly_model.dart';
 import 'package:yoyomiles_partner/res/animated_gradient_border.dart';
 import 'package:yoyomiles_partner/res/constant_color.dart';
@@ -31,7 +32,7 @@ class _DailyWeeklyEarningReportState extends State<DailyWeeklyEarningReport> {
   @override
   Widget build(BuildContext context) {
     final viewModel = Provider.of<DailyWeeklyViewModel>(context);
-
+    final loc = AppLocalizations.of(context)!;
     return SafeArea(
       top: false,
       bottom: true,
@@ -41,7 +42,7 @@ class _DailyWeeklyEarningReportState extends State<DailyWeeklyEarningReport> {
           backgroundColor: Colors.white,
           elevation: 0,
           title: TextConst(
-            title: "Earnings Report",
+            title: loc.earning_report,
             size: 18,
             fontWeight: FontWeight.w700,
           ),
@@ -105,6 +106,7 @@ class _DailyWeeklyEarningReportState extends State<DailyWeeklyEarningReport> {
   }
 
   Widget _buildTabSelector(DailyWeeklyViewModel viewModel) {
+    final loc = AppLocalizations.of(context)!;
     return Container(
       margin: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -118,7 +120,7 @@ class _DailyWeeklyEarningReportState extends State<DailyWeeklyEarningReport> {
         children: [
           Expanded(
             child: _buildTabButton(
-              text: "Today (${_formattedDate()})",
+              text: "${loc.today} (${_formattedDate()})",
               isSelected: _selectedTab == 0,
               onTap: () {
                 setState(() => _selectedTab = 0);
@@ -128,7 +130,7 @@ class _DailyWeeklyEarningReportState extends State<DailyWeeklyEarningReport> {
           ),
           Expanded(
             child: _buildTabButton(
-              text: "Weekly",
+              text: loc.weekly,
               isSelected: _selectedTab == 1,
               onTap: () {
                 setState(() => _selectedTab = 1);
@@ -176,6 +178,7 @@ class _DailyWeeklyEarningReportState extends State<DailyWeeklyEarningReport> {
   }
 
   Widget _buildEarningsCard(DailyWeeklyModel? data) {
+    final loc = AppLocalizations.of(context)!;
     return AnimatedGradientBorder(
       borderSize: 2,
       glowSize: 0,
@@ -195,7 +198,7 @@ class _DailyWeeklyEarningReportState extends State<DailyWeeklyEarningReport> {
         ),
         child: Column(
           children: [
-            const TextConst(title: "Total Earnings", color: Colors.black, size: 16),
+             TextConst(title: loc.total_earnings, color: Colors.black, size: 16),
             const SizedBox(height: 8),
             Text(
               data?.offlinePlusOnline ?? "₹0",
@@ -209,7 +212,7 @@ class _DailyWeeklyEarningReportState extends State<DailyWeeklyEarningReport> {
                 borderRadius: BorderRadius.circular(20),
               ),
               child: TextConst(
-                title: _selectedTab == 0 ? "Today" : "This Week",
+                title: _selectedTab == 0 ? loc.today :  loc.this_week,
                 color: Colors.black38,
                 fontWeight: FontWeight.w600,
               ),
@@ -221,6 +224,7 @@ class _DailyWeeklyEarningReportState extends State<DailyWeeklyEarningReport> {
   }
 
   Widget _buildStatsGrid(DailyWeeklyModel? data) {
+    final loc = AppLocalizations.of(context)!;
     return GridView.count(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -231,13 +235,13 @@ class _DailyWeeklyEarningReportState extends State<DailyWeeklyEarningReport> {
       children: [
         _buildStatCard(
           icon: Icons.directions_car,
-          title: "Trips Completed",
+          title: loc.trips_completed,
           value: "${data?.tripCompleted ?? 0}",
           color: Colors.blue,
         ),
         _buildStatCard(
           icon: Icons.timer,
-          title: "Online Hours",
+          title: loc.online_hours,
           value: data?.totalTime ?? "0h",
           color: Colors.green,
         ),
@@ -291,15 +295,16 @@ class _DailyWeeklyEarningReportState extends State<DailyWeeklyEarningReport> {
   }
 
   Widget _buildTripDetails(DailyWeeklyModel? data) {
+    final loc = AppLocalizations.of(context)!;
     final trips = data?.tripDetails ?? [];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const TextConst(title: "Trip Details", size: 16, fontWeight: FontWeight.w600),
+         TextConst(title: loc.trip_details, size: 16, fontWeight: FontWeight.w600),
         const SizedBox(height: 12),
         if (trips.isEmpty)
-          const Center(child: TextConst(title: "No trips available"))
+           Center(child: TextConst(title: loc.no_trips_available))
         else
           ...trips.map((trip) => _buildTripItem(trip)).toList(),
       ],
@@ -307,6 +312,7 @@ class _DailyWeeklyEarningReportState extends State<DailyWeeklyEarningReport> {
   }
 
   Widget _buildTripItem(TripDetails trip) {
+    final loc = AppLocalizations.of(context)!;
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),
@@ -325,7 +331,7 @@ class _DailyWeeklyEarningReportState extends State<DailyWeeklyEarningReport> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                TextConst(title: "Trip #${trip.id ?? '-'}", fontWeight: FontWeight.w600),
+                TextConst(title: "${loc.trip} #${trip.id ?? '-'}", fontWeight: FontWeight.w600),
                 const SizedBox(height: 4),
                 TextConst(title: "${trip.createdAt ?? ''} • ${trip.distance ?? 0} km"),
               ],

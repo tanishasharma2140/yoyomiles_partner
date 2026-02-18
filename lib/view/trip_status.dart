@@ -4,6 +4,7 @@ import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:provider/provider.dart';
 import 'package:yoyomiles_partner/generated/assets.dart';
+import 'package:yoyomiles_partner/l10n/app_localizations.dart';
 import 'package:yoyomiles_partner/main.dart';
 import 'package:yoyomiles_partner/res/app_fonts.dart';
 import 'package:yoyomiles_partner/res/circular_wave_animation.dart';
@@ -50,9 +51,6 @@ class _TripStatusState extends State<TripStatus> {
   void initState() {
     super.initState();
     getCurrentLocation();
-    facebookAppEvents.logEvent(
-      name: 'driver_online_screen',
-    );
     final ride = Provider.of<RideViewModel>(context, listen: false);
     ride.handleRideUpdate("", context);
 
@@ -92,6 +90,7 @@ class _TripStatusState extends State<TripStatus> {
 
 
   void _showSwitchDialog() {
+    final loc = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -118,14 +117,14 @@ class _TripStatusState extends State<TripStatus> {
                 Image.asset(Assets.assetsOffline),
                 SizedBox(height: Sizes.screenHeight * 0.02),
                 TextConst(
-                  title: 'Are you sure you want to go offline?',
+                  title: loc.are_yor_sure_go_offline,
                   size: Sizes.fontSizeFive,
                   fontWeight: FontWeight.bold,
                   color: PortColor.gold,
                 ),
                 SizedBox(height: Sizes.screenHeight * 0.02),
                 TextConst(
-                  title: 'You can always switch back online later.',
+                  title: loc.switch_online_later,
                   size: Sizes.fontSizeFour,
                   color: PortColor.gray,
                 ),
@@ -156,8 +155,8 @@ class _TripStatusState extends State<TripStatus> {
                           color: PortColor.gold,
                           borderRadius: BorderRadius.circular(10),
                         ),
-                        child: const TextConst(
-                          title: "Yes",
+                        child:  TextConst(
+                          title: loc.yes,
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
                         ),
@@ -175,8 +174,8 @@ class _TripStatusState extends State<TripStatus> {
                           color: Colors.grey.shade300,
                           borderRadius: BorderRadius.circular(10),
                         ),
-                        child: const TextConst(
-                          title: "No",
+                        child:  TextConst(
+                          title: loc.no,
                           fontWeight: FontWeight.bold,
                           color: Colors.black,
                         ),
@@ -197,6 +196,7 @@ class _TripStatusState extends State<TripStatus> {
   Widget build(BuildContext context) {
     final profileViewModel = Provider.of<ProfileViewModel>(context);
     final mapCtrl = Provider.of<ConstMapController>(context);
+    final loc = AppLocalizations.of(context)!;
     return SafeArea(
       top: false,
       bottom: true,
@@ -336,7 +336,7 @@ class _TripStatusState extends State<TripStatus> {
                           ),
                           const SizedBox(height: 22),
                           TextConst(
-                            title: "Waiting for a new ride request…",
+                            title: loc.waiting_new_ride_request,
                             size: 18,
                             fontWeight: FontWeight.w700,
                             color: Colors.grey.shade900,
@@ -344,7 +344,7 @@ class _TripStatusState extends State<TripStatus> {
                           const SizedBox(height: 6),
                           TextConst(
                             title:
-                                "Stay online and you'll receive a booking as soon as a customer requests a ride.",
+                                loc.stay_online_receive_booking,
                             textAlign: TextAlign.center,
                             size: 14,
                             fontFamily: AppFonts.poppinsReg,
@@ -402,7 +402,7 @@ class _TripStatusState extends State<TripStatus> {
                                   ),
                                   const SizedBox(width: 8),
                                   TextConst(
-                                    title: "Available Bookings",
+                                    title: loc.available_bookings,
                                     size: Sizes.fontSizeSix,
                                     fontWeight: FontWeight.bold,
                                     color: PortColor.black,
@@ -536,23 +536,6 @@ class _TripStatusState extends State<TripStatus> {
       }
     }
   }
-
-  Widget _buildLoadingScreen() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          CircularProgressIndicator(color: PortColor.gold),
-          SizedBox(height: Sizes.screenHeight * 0.02),
-          TextConst(
-            title: 'Accepting ride...',
-            size: Sizes.fontSizeFive,
-            color: PortColor.black,
-          ),
-        ],
-      ),
-    );
-  }
 }
 
 class BookingCard extends StatelessWidget {
@@ -569,6 +552,7 @@ class BookingCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final assignRideViewModel = Provider.of<AssignRideViewModel>(context);
     final ignoredRideVm = Provider.of<DriverIgnoredRideViewModel>(context);
+    final loc = AppLocalizations.of(context)!;
 
     return Container(
       margin: EdgeInsets.symmetric(
@@ -608,7 +592,7 @@ class BookingCard extends StatelessWidget {
                       ),
                       SizedBox(width: Sizes.screenWidth * 0.01),
                       TextConst(
-                        title: 'Booking ID',
+                        title: loc.booking_id,
                         size: Sizes.fontSizeFour,
                         fontWeight: FontWeight.bold,
                         color: PortColor.gold,
@@ -639,7 +623,7 @@ class BookingCard extends StatelessWidget {
                         Icon(Icons.call, color: PortColor.blackLight, size: 16),
                         SizedBox(width: Sizes.screenWidth * 0.01),
                         TextConst(
-                          title: 'Call',
+                          title: loc.call,
                           color: PortColor.blackLight,
                           size: Sizes.fontSizeFour,
                         ),
@@ -673,7 +657,7 @@ class BookingCard extends StatelessWidget {
                         Icon(Icons.close, color: Colors.red, size: 16),
                         SizedBox(width: Sizes.screenWidth * 0.01),
                         TextConst(
-                          title: 'Ignore',
+                          title: loc.ignore,
                           color: Colors.red,
                           size: Sizes.fontSizeFour,
                         ),
@@ -741,18 +725,18 @@ class BookingCard extends StatelessWidget {
             if (bookingData['order_type'] != 2) ...[
               _buildDetailRow(
                 icon: Icons.person_outline,
-                title: "Sender",
+                title: loc.sender,
                 content: bookingData['sender_name'] ?? "N/A",
               ),
               _buildDetailRow(
                 icon: Icons.phone,
-                title: "Phone",
+                title: loc.phone,
                 content: bookingData['sender_phone'] ?? "N/A",
               ),
             ],
             _buildDetailRow(
               icon: Icons.location_on,
-              title: "Pickup",
+              title: loc.pickup,
               content: bookingData['pickup_address'] ?? "N/A",
               isAddress: true,
             ),
@@ -762,18 +746,18 @@ class BookingCard extends StatelessWidget {
             if (bookingData['order_type'] != 2) ...[
               _buildDetailRow(
                 icon: Icons.person_outline,
-                title: "Receiver",
+                title: loc.receiver,
                 content: bookingData['reciver_name'] ?? "N/A",
               ),
               _buildDetailRow(
                 icon: Icons.phone,
-                title: "Phone",
+                title: loc.phone,
                 content: bookingData['reciver_phone'] ?? "N/A",
               ),
             ],
             _buildDetailRow(
               icon: Icons.location_on,
-              title: "Drop",
+              title: loc.drop,
               content: bookingData['drop_address'] ?? "N/A",
               isAddress: true,
             ),
@@ -801,7 +785,7 @@ class BookingCard extends StatelessWidget {
                       child: Center(
                         child: !assignRideViewModel.loading
                             ? TextConst(
-                                title: 'Accept',
+                                title: loc.accept,
                                 color: PortColor.white,
                                 fontWeight: FontWeight.w500,
                               )

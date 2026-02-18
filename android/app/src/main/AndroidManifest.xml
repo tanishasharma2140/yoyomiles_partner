@@ -14,10 +14,6 @@
         android:label="Yoyomiles Partner"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
-        <provider
-            android:name="com.facebook.FacebookContentProvider"
-            android:authorities="com.facebook.app.FacebookContentProvider1439191907563590"
-            android:exported="true" />
         <service
             android:name="id.flutter.flutter_background_service.BackgroundService"
             android:enabled="true"
@@ -27,16 +23,6 @@
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyB0mG3CGok9-9RZau5J_VThUP4OTbQ_SFM"/>
-        <meta-data
-            android:name="com.facebook.sdk.ApplicationId"
-            android:value="@string/facebook_app_id" />
-
-        <meta-data
-            android:name="com.facebook.sdk.ClientToken"
-            android:value="@string/facebook_client_token" />
-        <meta-data
-            android:name="com.facebook.sdk.AutoLogAppEventsEnabled"
-            android:value="false" />
         <activity
             android:name=".MainActivity"
             android:exported="true"

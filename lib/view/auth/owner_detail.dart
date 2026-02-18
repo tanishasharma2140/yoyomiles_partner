@@ -6,6 +6,8 @@ import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:image/image.dart' as img;
 import 'package:image_picker/image_picker.dart';
+import 'package:yoyomiles_partner/l10n/app_localizations.dart';
+import 'package:yoyomiles_partner/res/app_fonts.dart';
 import 'package:yoyomiles_partner/res/constant_color.dart';
 import 'package:yoyomiles_partner/res/custom_text_field.dart';
 import 'package:yoyomiles_partner/res/owner_details_appbar.dart';
@@ -140,14 +142,15 @@ class _OwnerDetailState extends State<OwnerDetail> {
   }
 
   Widget _buildStepIndicator() {
+    final loc = AppLocalizations.of(context)!;
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        _buildStep(1, 'Owner', isActive: true),
+        _buildStep(1, loc.owner, isActive: true),
         _buildDashLine(),
-        _buildStep(2, 'Vehicle', isActive: false),
+        _buildStep(2, loc.vehicle, isActive: false),
         _buildDashLine(),
-        _buildStep(3, 'Driver', isActive: false),
+        _buildStep(3,loc.driver, isActive: false),
       ],
     );
   }
@@ -201,12 +204,14 @@ class _OwnerDetailState extends State<OwnerDetail> {
   }
 
   Widget _buildNameField() {
+    final loc = AppLocalizations.of(context)!;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const TextConst(
+         TextConst(
           title:
-          'Name *',
+          loc.name,
           color: Colors.black54,
           fontWeight: FontWeight.w600,
           size: 15,
@@ -217,7 +222,7 @@ class _OwnerDetailState extends State<OwnerDetail> {
             FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]')),
           ],
           controller: _nameController,
-          hintText: "Enter Name",
+          hintText: loc.enter_name,
           hintStyle: const TextStyle(color: PortColor.gray),
         ),
       ],
@@ -225,12 +230,13 @@ class _OwnerDetailState extends State<OwnerDetail> {
   }
 
   Widget _buildUploadSection() {
+    final loc = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const TextConst(
+         TextConst(
           title:
-          'Upload the following *',
+          loc.upload_the_following,
           color: Colors.black54,
           fontWeight: FontWeight.w600,
           size: 15,
@@ -239,7 +245,7 @@ class _OwnerDetailState extends State<OwnerDetail> {
 
         // Aadhaar Card
         _buildDocumentItem(
-          title: 'Owner Aadhaar Card',
+          title: loc.owner_aadhaar,
           document: aadhaarCard,
           documentType: 'aadhaar',
         ),
@@ -247,7 +253,7 @@ class _OwnerDetailState extends State<OwnerDetail> {
 
         // PAN Card
         _buildDocumentItem(
-          title: 'Owner PAN Card',
+          title: loc.owner_pan,
           document: panCard,
           documentType: 'pan',
         ),
@@ -255,7 +261,7 @@ class _OwnerDetailState extends State<OwnerDetail> {
 
         // Selfie
         _buildDocumentItem(
-          title: 'Owner Selfie',
+          title: loc.owner_selfie,
           document: selfie,
           documentType: 'selfie',
         ),
@@ -268,6 +274,7 @@ class _OwnerDetailState extends State<OwnerDetail> {
     required Map<String, dynamic> document,
     required String documentType,
   }) {
+    final loc = AppLocalizations.of(context)!;
     return Container(
       decoration: BoxDecoration(
         border: Border.all(color: Colors.grey.shade300),
@@ -293,7 +300,7 @@ class _OwnerDetailState extends State<OwnerDetail> {
                 if (documentType != 'selfie') ...[
                   Expanded(
                     child: _buildUploadButton(
-                      text: 'Front Side',
+                      text: loc.front_side,
                       documentType: documentType,
                       side: 'front',
                     ),
@@ -301,7 +308,7 @@ class _OwnerDetailState extends State<OwnerDetail> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: _buildUploadButton(
-                      text: 'Back Side',
+                      text: loc.back_side,
                       documentType: documentType,
                       side: 'back',
                     ),
@@ -309,7 +316,7 @@ class _OwnerDetailState extends State<OwnerDetail> {
                 ] else ...[
                   Expanded(
                     child: _buildUploadButton(
-                      text: 'Take Selfie',
+                      text: loc.take_selfie,
                       documentType: documentType,
                       side: 'front',
                     ),
@@ -367,7 +374,7 @@ class _OwnerDetailState extends State<OwnerDetail> {
               style: TextStyle(
                 fontSize: 12,
                 color: isUploaded ? Colors.green : Colors.grey.shade700,
-                fontFamily: 'Poppins',
+                fontFamily: AppFonts.kanitReg
               ),
             ),
           ],
@@ -384,15 +391,17 @@ class _OwnerDetailState extends State<OwnerDetail> {
     final bool isComplete = documentType == 'selfie'
         ? document['front'] != null
         : document['front'] != null && document['back'] != null;
+    final loc = AppLocalizations.of(context)!;
 
-    final String text = isComplete ? "Uploaded" : "Upload";
+
+    final String text = isComplete ? loc.uploaded : "Upload";
     final Color color = isComplete ? Colors.green : Colors.blue;
 
     return Text(
       text,
       style: TextStyle(
         fontSize: 12,
-        fontFamily: 'Poppins',
+        fontFamily: AppFonts.kanitReg,
         fontWeight: FontWeight.w500,
         color: color,
       ),
@@ -400,6 +409,8 @@ class _OwnerDetailState extends State<OwnerDetail> {
   }
 
   Widget _buildSubmitButton() {
+    final loc = AppLocalizations.of(context)!;
+
     return GestureDetector(
       onTap: _isSubmitting ? null : _submitOwnerDetails,
       child: Container(
@@ -419,9 +430,9 @@ class _OwnerDetailState extends State<OwnerDetail> {
                   valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                 ),
               )
-            : const TextConst(
+            :  TextConst(
           title:
-          'Submit',
+          loc.submit,
                 fontWeight: FontWeight.w500,
                 color: PortColor.black,
                 size: 16,
@@ -475,28 +486,29 @@ class _OwnerDetailState extends State<OwnerDetail> {
 
 
   bool _validateForm() {
+    final loc = AppLocalizations.of(context)!;
     if (!_formKey.currentState!.validate()) {
       return false;
     }
 
     if(_nameController.text.isEmpty){
-      Utils.showErrorMessage(context, "Please Enter Name");
+      Utils.showErrorMessage(context, loc.please_enter_name);
       return false;
     }
 
     if (aadhaarCard['front'] == null || aadhaarCard['back'] == null) {
       Utils.showErrorMessage(
-          context, 'Please upload both sides of Aadhaar card');
+          context, loc.please_upload_both_aadhaar);
       return false;
     }
 
     if (panCard['front'] == null || panCard['back'] == null) {
-      Utils.showErrorMessage(context, 'Please upload both sides of PAN card');
+      Utils.showErrorMessage(context, loc.please_upload_both_pan);
       return false;
     }
 
     if (selfie['front'] == null) {
-      Utils.showErrorMessage(context, 'Please upload selfie');
+      Utils.showErrorMessage(context, loc.please_upload_selfie);
       return false;
     }
 
@@ -504,6 +516,8 @@ class _OwnerDetailState extends State<OwnerDetail> {
   }
 
   Future<void> _submitOwnerDetails() async {
+    final loc = AppLocalizations.of(context)!;
+
     if (!_validateForm()) return;
 
     if (_isSubmitting) return;
@@ -564,7 +578,7 @@ class _OwnerDetailState extends State<OwnerDetail> {
           final userVm = UserViewModel();
           await userVm.saveUser(int.parse(userId));
 
-          Utils.showSuccessMessage(context, "Owner details submitted successfully!");
+          Utils.showSuccessMessage(context, loc.owner_detail_submitted );
 
           final profileVm = Provider.of<ProfileViewModel>(context, listen: false);
 
@@ -573,7 +587,7 @@ class _OwnerDetailState extends State<OwnerDetail> {
           final profile = profileVm.profileModel?.data;
 
           if (profile == null) {
-            Utils.showErrorMessage(context, "Profile not loaded. Try again.");
+            Utils.showErrorMessage(context, loc.profile_not_loaded);
             return;
           }
 
@@ -594,19 +608,19 @@ class _OwnerDetailState extends State<OwnerDetail> {
           _resetForm();
         } else {
           Utils.showErrorMessage(
-              context, value["message"] ?? "Submission failed");
+              context, value["message"] ?? loc.submission_failed);
         }
 
 
       } else if (response.statusCode == 413) {
         Utils.showErrorMessage(
-            context, "File sizes too large. Please try with smaller images.");
+            context, loc.file_size_to_large);
       } else {
-        Utils.showErrorMessage(context, "Server error: ${response.statusCode}");
+        Utils.showErrorMessage(context, "${loc.server_error} ${response.statusCode}");
       }
     } catch (e) {
       if (!mounted) return;
-      Utils.showErrorMessage(context, "Submission failed: ${e.toString()}");
+      Utils.showErrorMessage(context, "${loc.submission_failed} ${e.toString()}");
     } finally {
       if (mounted) {
         setState(() {

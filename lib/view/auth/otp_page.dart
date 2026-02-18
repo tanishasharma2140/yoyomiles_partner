@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:yoyomiles_partner/generated/assets.dart';
+import 'package:yoyomiles_partner/l10n/app_localizations.dart';
 import 'package:yoyomiles_partner/main.dart';
 import 'package:yoyomiles_partner/res/app_fonts.dart';
 import 'package:yoyomiles_partner/res/constant_color.dart';
@@ -57,6 +58,7 @@ class _OtpPageState extends State<OtpPage> {
   @override
   Widget build(BuildContext context) {
     final loginViewModel = Provider.of<AuthViewModel>(context);
+    final loc = AppLocalizations.of(context)!;
 
     return SafeArea(
       top: false,
@@ -95,9 +97,9 @@ class _OtpPageState extends State<OtpPage> {
                         ),
                       );
                     },
-                    child: const TextConst(
+                    child:  TextConst(
                       title:
-                      "Change",
+                      loc.change,
                       color: PortColor.blue,
                       fontWeight: FontWeight.bold,
                     ),
@@ -108,14 +110,14 @@ class _OtpPageState extends State<OtpPage> {
               Center(
                 child: TextConst(
                   title:
-                  "One Time Password (OTP) is sent to this number",
+                  loc.otp,
                   color: PortColor.black.withOpacity(0.5),
                 ),
               ),
               SizedBox(height: Sizes.screenHeight * 0.07),
               TextConst(
                 title:
-                "Enter OTP",
+                loc.enter_otp,
                 color: PortColor.black.withOpacity(0.5),
               ),
                TextField(
@@ -163,7 +165,7 @@ class _OtpPageState extends State<OtpPage> {
                   alignment: Alignment.center,
                   child: !loginViewModel.verifyingOtp ?TextConst(
                     title:
-                    "VERIFY",
+                    loc.verify,
                     fontFamily: AppFonts.kanitReg,
                     color: (_otpController.text.trim().length == 4 &&
                         int.tryParse(_otpController.text.trim()) != null)
@@ -194,8 +196,8 @@ class _OtpPageState extends State<OtpPage> {
                       : null,
                   child: TextConst(
                     title: _timerCountdown > 0
-                        ? "RESEND OTP ($_timerCountdown s)"
-                        : "RESEND OTP",
+                        ? "${loc.resend_otp} ($_timerCountdown s)"
+                        : loc.resend_otp,
                     color: _timerCountdown > 0
                         ? PortColor.blue.withOpacity(0.5)
                         : PortColor.blue,

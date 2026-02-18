@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:yoyomiles_partner/l10n/app_localizations.dart';
 import 'package:yoyomiles_partner/res/app_fonts.dart';
 import 'package:yoyomiles_partner/res/constant_color.dart';
 import 'package:yoyomiles_partner/res/custom_text_field.dart';
@@ -91,6 +92,7 @@ class _VehicleDetailState extends State<VehicleDetail> {
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
     return SafeArea(
       top: false,
       bottom: true,
@@ -104,11 +106,11 @@ class _VehicleDetailState extends State<VehicleDetail> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               TextConst(
-                title: "Vehicle Detail",
+                title: loc.vehicle_detail,
                 size: Sizes.fontSizeSeven,
                 fontWeight: FontWeight.bold,
               ),
-              const Icon(Icons.headset_mic_rounded, color: Colors.black),
+              // const Icon(Icons.headset_mic_rounded, color: Colors.black),
             ],
           ),
           shape: Border(
@@ -168,11 +170,12 @@ class _VehicleDetailState extends State<VehicleDetail> {
 
   // New method for delivery type radio buttons
   Widget _buildDeliveryTypeSection() {
+    final loc = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const TextConst(
-          title: 'Select Delivery Type',
+         TextConst(
+          title: loc.select_delivery_type,
           fontWeight: FontWeight.w600,
         ),
         const SizedBox(height: 12),
@@ -181,7 +184,7 @@ class _VehicleDetailState extends State<VehicleDetail> {
             // Parcel Delivery Radio
             Expanded(
               child: _buildDeliveryTypeRadio(
-                title: "Parcel Delivery",
+                title: loc.parcel_delivery,
                 value: 0,
                 icon: Icons.local_shipping,
               ),
@@ -190,7 +193,7 @@ class _VehicleDetailState extends State<VehicleDetail> {
             // Passenger Delivery Radio
             Expanded(
               child: _buildDeliveryTypeRadio(
-                title: "Passenger Delivery",
+                title: loc.passenger_delivery,
                 value: 1,
                 icon: Icons.people,
               ),
@@ -268,6 +271,7 @@ class _VehicleDetailState extends State<VehicleDetail> {
   }
 
   Widget _buildVehicleTypeSection() {
+    final loc = AppLocalizations.of(context)!;
     final driverVehicleVm = Provider.of<DriverVehicleViewModel>(context);
     final vehicleList = driverVehicleVm.driverVehicleModel?.data;
 
@@ -275,7 +279,7 @@ class _VehicleDetailState extends State<VehicleDetail> {
       return const Center(child: CircularProgressIndicator());
     }
     if (vehicleList.isEmpty) {
-      return const Center(child: Text("No vehicles available"));
+      return  Center(child: Text(loc.no_vehicle_available));
     }
 
     // Filter vehicles based on delivery type
@@ -302,13 +306,13 @@ class _VehicleDetailState extends State<VehicleDetail> {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const TextConst(
-            title: 'Select Vehicle Type',
+           TextConst(
+            title: loc.select_vehicle_type,
             fontWeight: FontWeight.w600,
           ),
           const SizedBox(height: 10),
           Container(
-            padding: const EdgeInsets.all(16),
+            padding:  EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: Colors.grey.shade100,
               borderRadius: BorderRadius.circular(8),
@@ -316,8 +320,8 @@ class _VehicleDetailState extends State<VehicleDetail> {
             child: Center(
               child: Text(
                 _selectedDeliveryType == 0
-                    ? "No parcel delivery vehicles available"
-                    : "No passenger delivery vehicles available",
+                    ? loc.no_parcel_delivery_vehicle
+                    : loc.no_passenger_delivery_vehicle,
                 style: const TextStyle(
                   fontFamily: 'Poppins',
                   fontSize: 14,
@@ -333,8 +337,8 @@ class _VehicleDetailState extends State<VehicleDetail> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const TextConst(
-          title: 'Select Vehicle Type',
+         TextConst(
+          title: loc.select_vehicle_type,
           fontWeight: FontWeight.w600,
         ),
         const SizedBox(height: 10),
@@ -408,11 +412,12 @@ class _VehicleDetailState extends State<VehicleDetail> {
   }
 
   Widget _buildVehicleBodyDetailSection() {
+    final loc = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const TextConst(
-          title: 'Select Vehicle Body Detail',
+         TextConst(
+          title: loc.select_vehicle_body_detail,
           fontWeight: FontWeight.w600,
         ),
         const SizedBox(height: 10),
@@ -438,7 +443,7 @@ class _VehicleDetailState extends State<VehicleDetail> {
                 else
                   Text(
                     _selectedVehicleBodyDetailName ??
-                        "Select Vehicle Body Detail",
+                        loc.select_vehicle_body_detail,
                     style: TextStyle(
                       fontFamily: 'Poppins',
                       fontSize: 14,
@@ -459,6 +464,8 @@ class _VehicleDetailState extends State<VehicleDetail> {
   Widget _buildBodyTypeSection() {
     final bodyTypeVm = Provider.of<BodyTypeViewModel>(context);
     final bodyTypeList = bodyTypeVm.bodyTypeModel?.data;
+    final loc = AppLocalizations.of(context)!;
+
 
     if (_isLoadingBodyTypes) {
       return const Center(child: CircularProgressIndicator());
@@ -471,8 +478,8 @@ class _VehicleDetailState extends State<VehicleDetail> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const TextConst(
-          title: 'Select Vehicle Body Type',
+         TextConst(
+          title: loc.select_vehicle_body_type,
           fontWeight: FontWeight.w600,
         ),
         const SizedBox(height: 10),
@@ -584,20 +591,22 @@ class _VehicleDetailState extends State<VehicleDetail> {
   Widget _buildFuelTypeSection() {
     final fuelTypeVm = Provider.of<FuelTypeViewModel>(context, listen: false);
     final fuelTypeList = fuelTypeVm.fuelTypeModel?.data;
+    final loc = AppLocalizations.of(context)!;
+
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const TextConst(
-          title: 'Select Vehicle Fuel Type',
+        TextConst(
+          title: loc.select_vehicle_fuel_type,
           fontWeight: FontWeight.w600,
         ),
         const SizedBox(height: 10),
         if (_isLoadingFuelTypes)
           const Center(child: CircularProgressIndicator())
         else if (fuelTypeList == null || fuelTypeList.isEmpty)
-          const Text(
-            "No fuel types available for this vehicle",
+           Text(
+            loc.no_fuel_type_avail,
             style: TextStyle(
               fontFamily: 'Poppins',
               fontSize: 14,
@@ -617,7 +626,7 @@ class _VehicleDetailState extends State<VehicleDetail> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    _selectedFuelTypeName ?? "Select Vehicle Fuel Type",
+                    _selectedFuelTypeName ?? loc.select_vehicle_fuel_type,
                     style: TextStyle(
                       fontFamily: 'Poppins',
                       fontSize: 14,
@@ -746,8 +755,9 @@ class _VehicleDetailState extends State<VehicleDetail> {
   }
 
   void _showVehicleBodyDetailBottomSheet() async {
+    final loc = AppLocalizations.of(context)!;
     if (_selectedVehicleId == null || _selectedVehicleId!.isEmpty) {
-      Utils.showErrorMessage(context, "Please select a vehicle type first.");
+      Utils.showErrorMessage(context, loc.please_select_a_vehicle_type_first);
       return;
     }
 
@@ -770,11 +780,10 @@ class _VehicleDetailState extends State<VehicleDetail> {
           vehicleBodyDetailVm.vehicleBodyDetailModel!.data!.isEmpty) {
         Utils.showErrorMessage(
           context,
-          "No body details available for this vehicle.",
+          loc.no_body_detail_available_for_this,
         );
         return;
       }
-
       showModalBottomSheet(
         context: context,
         isScrollControlled: true,
@@ -790,13 +799,13 @@ class _VehicleDetailState extends State<VehicleDetail> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Padding(
+                     Padding(
                       padding: EdgeInsets.symmetric(
                         horizontal: 16,
                         vertical: 12,
                       ),
                       child: Text(
-                        "Select Vehicle Body Detail",
+                        loc.select_vehicle_body_detail,
                         style: TextStyle(
                           fontFamily: 'Poppins',
                           fontSize: 16,
@@ -856,6 +865,7 @@ class _VehicleDetailState extends State<VehicleDetail> {
   }
 
   void _showFuelTypeBottomSheet() {
+    final loc = AppLocalizations.of(context)!;
     if (_selectedVehicleId == null) return;
 
     final fuelTypeVm = Provider.of<FuelTypeViewModel>(context, listen: false);
@@ -864,7 +874,7 @@ class _VehicleDetailState extends State<VehicleDetail> {
     if (fuelTypeList == null || fuelTypeList.isEmpty) {
       Utils.showErrorMessage(
         context,
-        "No fuel types available for this vehicle.",
+        loc.no_fuel_type_avail,
       );
       return;
     }
@@ -882,10 +892,10 @@ class _VehicleDetailState extends State<VehicleDetail> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Padding(
+               Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 child: Text(
-                  "Select Vehicle Fuel Type",
+                  loc.select_vehicle_fuel_type,
                   style: TextStyle(
                     fontFamily: 'Poppins',
                     fontSize: 16,
@@ -929,18 +939,18 @@ class _VehicleDetailState extends State<VehicleDetail> {
   }
 
   Widget _buildVehicleNumberSection() {
+    final loc = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const TextConst(
-          title: 'Vehicle Number *',
+         TextConst(
+          title: loc.vehicle_number,
           color: Colors.black54,
           fontWeight: FontWeight.w600,
           size: 15,
         ),
         const SizedBox(height: 8),
 
-        // Vehicle Number Input Field
         Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12),
@@ -954,7 +964,7 @@ class _VehicleDetailState extends State<VehicleDetail> {
           ),
           child: CustomTextField(
             controller: _vehicleNumberController,
-            hintText: "Enter Vehicle Number",
+            hintText: loc.enter_vehicle_number,
             hintStyle: TextStyle(
               color: Colors.grey[600],
               fontSize: 16,
@@ -962,24 +972,25 @@ class _VehicleDetailState extends State<VehicleDetail> {
             inputFormatters: [
               FilteringTextInputFormatter.allow(RegExp(r'[A-Za-z0-9]')),
               UpperCaseTextFormatter(),
-              LengthLimitingTextInputFormatter(10),
+              LengthLimitingTextInputFormatter(12),
             ],
             keyboardType: TextInputType.text,
             textCapitalization: TextCapitalization.characters,
-            prefixIcon: const Icon(
+            prefixIcon:  Icon(
               Icons.directions_car,
               color: Colors.grey,
               size: 24,
             ),
             onChanged: (value) {
-              final text = value.trim();
-              final pattern = RegExp(r'^[A-Z]{2}\d{2}[A-Z]{2}\d{4}$');
+              final text =
+              value.trim().toUpperCase().replaceAll(" ", "");
 
               setState(() {
                 if (text.isEmpty) {
-                  _vehicleErrorText = 'Please enter vehicle number';
-                } else if (!pattern.hasMatch(text)) {
-                  _vehicleErrorText = 'Invalid format (e.g., DL01AB1234)';
+                  _vehicleErrorText = loc.vehicle_number_required;
+                } else if (!isValidIndianVehicle(text)) {
+                  _vehicleErrorText =
+                 loc.enter_valid_vehicle_number;
                 } else {
                   _vehicleErrorText = null;
                 }
@@ -988,7 +999,6 @@ class _VehicleDetailState extends State<VehicleDetail> {
           ),
         ),
 
-        // Error message below field
         if (_vehicleErrorText != null)
           Padding(
             padding: const EdgeInsets.only(top: 6, left: 8),
@@ -1005,27 +1015,44 @@ class _VehicleDetailState extends State<VehicleDetail> {
     );
   }
 
-  String? validateVehicleNumber(String value) {
-    final RegExp vehicleRegExp = RegExp(
-      r'^[A-Z]{2}[0-9]{2}[A-Z]{1,2}[0-9]{4}$',
+
+  bool isValidIndianVehicle(String input) {
+    final reg = RegExp(
+        r'(^[A-Z]{2}[0-9]{1,2}[A-Z]{1,3}[0-9]{4}$)' // Normal
+        r'|(^[0-9]{2}BH[0-9]{4}[A-Z]{1,2}$)'        // BH Series
+        r'|(^TR[0-9]{2}[A-Z]{2}[0-9]{4}$)'          // Trade
+        r'|(^[A-Z]{2}TC[0-9]{4}[A-Z]{1,2}$)'        // Temporary
+        r'|((CD|CC)[0-9]{4}$)'                      // Diplomatic
+        r'|(^[A-Z]{2}VA[0-9]{4}$)'                  // Vintage
     );
 
-    if (value.isEmpty) {
+    return reg.hasMatch(
+      input.toUpperCase().replaceAll(" ", ""),
+    );
+  }
+
+  String? validateVehicleNumber(String value) {
+    final cleaned =
+    value.trim().toUpperCase().replaceAll(" ", "");
+
+    if (cleaned.isEmpty) {
       return 'Vehicle number is required';
-    } else if (!vehicleRegExp.hasMatch(value)) {
-      return 'Enter a valid vehicle number (e.g., MH12AB1234)';
+    } else if (!isValidIndianVehicle(cleaned)) {
+      return 'Enter valid vehicle number';
     }
     return null;
   }
 
+
   Widget _buildVehicleRCSection() {
+    final loc = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildRCUploadSection(),
         const SizedBox(height: 16),
-        const Text(
-          'Select the city of operation',
+         Text(
+          loc.select_city_of_operation,
           style: TextStyle(
             fontFamily: 'Kannit',
             fontSize: 14,
@@ -1055,8 +1082,8 @@ class _VehicleDetailState extends State<VehicleDetail> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
-                            "Select the city of operation",
+                           Text(
+                            loc.select_city_of_operation,
                             style: TextStyle(
                               fontFamily: 'Poppins',
                               fontSize: 16,
@@ -1065,7 +1092,7 @@ class _VehicleDetailState extends State<VehicleDetail> {
                           ),
                           const SizedBox(height: 10),
                           CustomTextField(
-                            hintText: "Search City",
+                            hintText: loc.search_city,
                             height: 40,
                             prefixIcon: Icon(Icons.search),
                             onChanged: (value) {
@@ -1083,7 +1110,7 @@ class _VehicleDetailState extends State<VehicleDetail> {
                           const Divider(height: 1, thickness: 1),
                           Expanded(
                             child: filteredCities.isEmpty
-                                ? const Center(
+                                ?  Center(
                               child: Text('No cities found'),
                             )
                                 : ListView.builder(
@@ -1149,7 +1176,7 @@ class _VehicleDetailState extends State<VehicleDetail> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  _selectedCityName ?? "Select the city of operation",
+                  _selectedCityName ?? loc.select_city_of_operation,
                   style: TextStyle(
                     fontFamily: 'Poppins',
                     fontSize: 14,
@@ -1168,11 +1195,12 @@ class _VehicleDetailState extends State<VehicleDetail> {
   }
 
   Widget _buildRCUploadSection() {
+    final loc = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const TextConst(
-          title: 'Upload RC Document *',
+         TextConst(
+          title: loc.upload_rc_document,
           color: Colors.black54,
           fontWeight: FontWeight.w600,
           size: 15,
@@ -1182,7 +1210,7 @@ class _VehicleDetailState extends State<VehicleDetail> {
           children: [
             Expanded(
               child: _buildUploadButton(
-                text: _rcFrontFile != null ? 'Front Uploaded' : 'Front Side',
+                text: _rcFrontFile != null ? loc.rc_front_uploaded : loc.rc_front_side,
                 onPressed: () => _uploadRCDocument('front'),
                 isUploaded: _rcFrontFile != null,
               ),
@@ -1190,7 +1218,7 @@ class _VehicleDetailState extends State<VehicleDetail> {
             const SizedBox(width: 12),
             Expanded(
               child: _buildUploadButton(
-                text: _rcBackFile != null ? 'Back Uploaded' : 'Back Side',
+                text: _rcBackFile != null ? loc.rc_back_uploaded : loc.rc_back_side,
                 onPressed: () => _uploadRCDocument('back'),
                 isUploaded: _rcBackFile != null,
               ),
@@ -1249,16 +1277,17 @@ class _VehicleDetailState extends State<VehicleDetail> {
   }
 
   Widget _buildRCStatusIndicator() {
+    final loc = AppLocalizations.of(context)!;
     if (_rcFrontFile != null && _rcBackFile != null) {
-      return const TextConst(
-        title: 'Uploaded',
+      return  TextConst(
+        title: loc.uploaded,
         color: Colors.green,
         fontWeight: FontWeight.w600,
         size: 14,
       );
     } else {
-      return const TextConst(
-        title: 'Pending',
+      return  TextConst(
+        title: loc.pending,
         color: Colors.red,
         fontWeight: FontWeight.w500,
         size: 14,
@@ -1267,6 +1296,7 @@ class _VehicleDetailState extends State<VehicleDetail> {
   }
 
   Widget _buildContinueButton(String userId) {
+    final loc = AppLocalizations.of(context)!;
     return GestureDetector(
       onTap: _isSubmitting ? null : () => _submitVehicleDetails(userId),
       child: Container(
@@ -1286,8 +1316,8 @@ class _VehicleDetailState extends State<VehicleDetail> {
             radius: 12,
           ),
         )
-            : const TextConst(
-          title: 'Continue',
+            :  TextConst(
+          title: loc.continue_btn,
           size: 15,
           fontWeight: FontWeight.w600,
           color: Colors.white,
@@ -1314,42 +1344,43 @@ class _VehicleDetailState extends State<VehicleDetail> {
 
   // API Call to submit vehicle details
   Future<void> _submitVehicleDetails(String userId) async {
+    final loc = AppLocalizations.of(context)!;
     UserViewModel userViewModel = UserViewModel();
     int? userId = (await userViewModel.getUser());
 
     // Validation
     if (_vehicleNumberController.text.isEmpty) {
-      Utils.showErrorMessage(context, "Please enter vehicle number");
+      Utils.showErrorMessage(context, loc.please_enter_vehicle_number);
       return;
     }
 
     if (_rcFrontFile == null || _rcBackFile == null) {
-      Utils.showErrorMessage(context, "Please upload both RC front and back");
+      Utils.showErrorMessage(context, loc.please_upload_both_rc);
       return;
     }
 
     if (_selectedCityId == null) {
-      Utils.showErrorMessage(context, "Please select city");
+      Utils.showErrorMessage(context, loc.please_select_city);
       return;
     }
 
     if (_selectedVehicleId == null) {
-      Utils.showErrorMessage(context, "Please select vehicle type");
+      Utils.showErrorMessage(context, loc.please_select_vehicle_type);
       return;
     }
 
     if (_selectedVehicleBodyDetailId == null && _selectedVehicleId != "3") {
-      Utils.showErrorMessage(context, "Please select vehicle body detail");
+      Utils.showErrorMessage(context, loc.please_select_vehicle_body_detail);
       return;
     }
 
     if (_selectedBodyTypeId == null) {
-      Utils.showErrorMessage(context, "Please select body type");
+      Utils.showErrorMessage(context, loc.please_select_body_type);
       return;
     }
 
     if (_selectedFuelTypeId == null) {
-      Utils.showErrorMessage(context, "Please select fuel type");
+      Utils.showErrorMessage(context, loc.please_select_fuel_type);
       return;
     }
 
@@ -1438,7 +1469,7 @@ class _VehicleDetailState extends State<VehicleDetail> {
         final profile = profileVm.profileModel?.data;
 
         if (profile == null) {
-          Utils.showErrorMessage(context, "Profile not loaded. Try again.");
+          Utils.showErrorMessage(context, loc.profile_not_loaded);
           return;
         }
 

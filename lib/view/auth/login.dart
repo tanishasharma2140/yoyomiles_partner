@@ -2,7 +2,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:yoyomiles_partner/controller/language_controller.dart';
 import 'package:yoyomiles_partner/generated/assets.dart';
+import 'package:yoyomiles_partner/l10n/app_localizations.dart';
 import 'package:yoyomiles_partner/main.dart';
 import 'package:yoyomiles_partner/res/app_fonts.dart';
 import 'package:yoyomiles_partner/res/constant_color.dart';
@@ -39,6 +41,7 @@ class _LoginState extends State<Login> {
   Widget build(BuildContext context) {
     final loginViewModel = Provider.of<AuthViewModel>(context);
     final videoVm = Provider.of<VideoViewModel>(context);
+    final loc = AppLocalizations.of(context)!;
     return SafeArea(
       top: false,
       bottom: true,
@@ -51,13 +54,68 @@ class _LoginState extends State<Login> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 SizedBox(height: topPadding),
+                // 🔽 LANGUAGE DROPDOWN (TOP RIGHT)
+                Align(
+                  alignment: Alignment.topRight,
+                  child: Consumer<LanguageController>(
+                    builder: (context, languageProvider, child) {
+                      return Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 8,
+                            )
+                          ],
+                        ),
+                        child: DropdownButtonHideUnderline(
+                          child: DropdownButton<String>(
+                            value: languageProvider.currentLanguageCode,
+                            dropdownColor: Colors.white,
+                            icon: const Icon(
+                              Icons.keyboard_arrow_down_rounded,
+                              color: PortColor.blue,
+                            ),
+                            style: const TextStyle(
+                              color: PortColor.blue,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 14,
+                            ),
+                            items: const [
+                              DropdownMenuItem(
+                                value: 'en',
+                                child: Text("English"),
+                              ),
+                              DropdownMenuItem(
+                                value: 'hi',
+                                child: Text("Hindi"),
+                              ),
+                            ],
+                            onChanged: (value) {
+                              if (value == 'en') {
+                                languageProvider.changeLanguage(const Locale('en'));
+                              } else if (value == 'hi') {
+                                languageProvider.changeLanguage(const Locale('hi'));
+                              }
+                            },
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+
+                SizedBox(height: Sizes.screenHeight * 0.01),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Image.asset(
                       Assets.assetsYoyoPartnerLogo,
                       height: Sizes.screenHeight * 0.07,
-                      width: Sizes.screenWidth * 0.55,
+                      width: Sizes.screenWidth * 0.65,
                       fit: BoxFit.contain,
                     ),
                   ],
@@ -79,13 +137,13 @@ class _LoginState extends State<Login> {
                           height: Sizes.screenHeight * 0.04,
                         ),
                         TextConst(
-                          title: "India",
+                          title: loc.india,
                           size: Sizes.fontSizeFive,
                           fontWeight: FontWeight.bold,
                         ),
                         SizedBox(width: Sizes.screenWidth * 0.015),
                         TextConst(
-                          title: "Change",
+                          title: loc.change,
                           size: Sizes.fontSizeFive,
                           fontWeight: FontWeight.w600,
                           color: PortColor.blue,
@@ -94,9 +152,9 @@ class _LoginState extends State<Login> {
                     ),
                   ),
                 ),
-                SizedBox(height: Sizes.screenHeight * 0.12),
+                SizedBox(height: Sizes.screenHeight * 0.1),
                 TextConst(
-                  title: "Mobile number",
+                  title: loc.mob_no,
                   color: PortColor.black.withOpacity(0.5),
                   size: Sizes.fontSizeSix,
                 ),
@@ -177,14 +235,14 @@ class _LoginState extends State<Login> {
                     Expanded(
                       child: RichText(
                         text: TextSpan(
-                          text: 'I have read and agreed to ',
+                          text: loc.i_have_read,
                           style: TextStyle(
                             color: PortColor.black.withOpacity(0.7),
                             fontFamily: AppFonts.kanitReg,
                           ),
                           children: [
                             TextSpan(
-                              text: 'Terms and Conditions',
+                              text: loc.terms_condition,
                               style: TextStyle(
                                 color: PortColor.blue,
                                 fontFamily: AppFonts.kanitReg,
@@ -198,14 +256,14 @@ class _LoginState extends State<Login> {
                                 },
                             ),
                             TextSpan(
-                              text: ' and ',
+                              text: loc.and,
                               style: TextStyle(
                                 color: PortColor.black.withOpacity(0.7),
                                 fontFamily: AppFonts.kanitReg,
                               ),
                             ),
                             TextSpan(
-                              text: 'Privacy Policy',
+                              text: loc.privacy_policy,
                               style: TextStyle(
                                 color: PortColor.blue,
                                 fontFamily: AppFonts.kanitReg,
@@ -257,14 +315,14 @@ class _LoginState extends State<Login> {
                     Expanded(
                       child: RichText(
                         text: TextSpan(
-                          text: 'I have read and hereby provide my consent on the ',
+                          text: loc.i_have_read_hereby,
                           style: TextStyle(
                             color: PortColor.black.withOpacity(0.7),
                             fontFamily: AppFonts.kanitReg,
                           ),
                           children: [
                             TextSpan(
-                              text: 'TDS Declaration',
+                              text: loc.tds_declaration,
                               style: TextStyle(
                                 color: PortColor.blue,
                                 fontFamily: AppFonts.kanitReg,
@@ -286,10 +344,6 @@ class _LoginState extends State<Login> {
                 SizedBox(height: Sizes.screenHeight * 0.035),
                 GestureDetector(
                   onTap: () {
-                    facebookAppEvents.logEvent(
-                      name: 'driver_login',
-                    );
-
                     if (isTermsAgreed && isTDSAgreed) {
                       if (loginViewModel.phoneController.text.length == 10 &&
                           RegExp(r'^\d{10}$').hasMatch(loginViewModel.phoneController.text)) {
@@ -301,13 +355,13 @@ class _LoginState extends State<Login> {
                       } else {
                         Utils.showErrorMessage(
                           context,
-                          "Please enter a valid 10-digit mobile number",
+                          loc.please_enter_valid_ten,
                         );
                       }
                     } else {
                       Utils.showErrorMessage(
                         context,
-                        "Please agree to all terms and conditions to proceed",
+                        loc.please_agree_to_all
                       );
                     }
                   },
@@ -322,7 +376,7 @@ class _LoginState extends State<Login> {
                     alignment: Alignment.center,
                     child: !loginViewModel.loading
                         ? TextConst(
-                            title: "LOGIN",
+                            title: loc.login,
                             color: PortColor.black,
                             size: Sizes.fontSizeSeven,
                             fontWeight: FontWeight.w400,
@@ -344,7 +398,7 @@ class _LoginState extends State<Login> {
                         ),
                       );
                     } else {
-                      Utils.showErrorMessage(context, "Video not available");
+                      Utils.showErrorMessage(context, loc.video_not_available);
                     }
                   },
                   child: Container(
@@ -370,7 +424,7 @@ class _LoginState extends State<Login> {
                               children: [
                                 TextConst(
                                   title:
-                                  "Watch this video to learn how to register and accept rides\non the YoyoMiles Partner app.",
+                                  loc.watch_this_video,
                                   maxLines: 3,
                                   overflow: TextOverflow.ellipsis,
                                   size: Sizes.fontSizeFive,
@@ -384,7 +438,7 @@ class _LoginState extends State<Login> {
                                   children: [
                                     TextConst(
                                       title:
-                                      "Watch Video",
+                                      loc.watch_video,
                                       size: Sizes.fontSizeSix,
                                       color: PortColor.blue,
                                       fontWeight: FontWeight.bold,

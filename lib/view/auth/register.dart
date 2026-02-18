@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:permission_handler/permission_handler.dart' as AppSettings;
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:yoyomiles_partner/generated/assets.dart';
+import 'package:yoyomiles_partner/l10n/app_localizations.dart';
 import 'package:yoyomiles_partner/res/constant_color.dart';
 import 'package:yoyomiles_partner/res/sizing_const.dart';
 import 'package:yoyomiles_partner/res/text_const.dart';
@@ -36,6 +37,8 @@ class _RegisterState extends State<Register> {
   );
 
   Future<bool> _onWillPop(BuildContext context) async {
+    final loc = AppLocalizations.of(context)!;
+
     return (await showDialog(
           context: context,
           builder: (context) => AlertDialog(
@@ -47,24 +50,24 @@ class _RegisterState extends State<Register> {
               horizontal: 20,
               vertical: 15,
             ),
-            title: const Text(
-              "Exit App",
+            title:  Text(
+              loc.exit_app,
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
                 color: PortColor.blue,
               ),
             ),
-            content: const Text(
-              "Are you sure you want to exit this app?",
+            content:  Text(
+              loc.are_you_sure_you_want,
               style: TextStyle(fontSize: 14, color: Colors.black87),
             ),
             actions: [
               TextButton(
                 onPressed: () =>
                     Navigator.of(context).pop(false), // Cancel button
-                child: const Text(
-                  "Cancel",
+                child:  Text(
+                  loc.cancel,
                   style: TextStyle(color: Colors.black54, fontSize: 14),
                 ),
               ),
@@ -83,8 +86,8 @@ class _RegisterState extends State<Register> {
 
                   SystemNavigator.pop(); // Exit app
                 },
-                child: const Text(
-                  "Exit",
+                child:  Text(
+                  loc.exit,
                   style: TextStyle(color: Colors.red, fontSize: 14),
                 ),
               ),
@@ -133,11 +136,12 @@ class _RegisterState extends State<Register> {
       // 🔥 2️⃣ DUE STATUS CHECK (FIRST PRIORITY)
       if (profileViewModel.profileModel!.duesStatus == 1) {
         if (mounted) {
+          final loc = AppLocalizations.of(context)!;
           Future.delayed(const Duration(milliseconds: 200), () {
             showDueDialog(
               context,
               profileViewModel.profileModel!.duesMessage ??
-                  "Pending dues found.",
+                  loc.pending_dues_found,
             );
           });
         }
@@ -192,6 +196,8 @@ class _RegisterState extends State<Register> {
   }
 
   void showAccountDeactivatedDialog(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
+
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -211,7 +217,7 @@ class _RegisterState extends State<Register> {
                 const SizedBox(height: 16),
 
                 TextConst(
-                  title: "Account Deactivated",
+                  title: loc.account_deactivate,
                   size: 16,
                   fontWeight: FontWeight.w700,
                   color: Colors.black87,
@@ -221,7 +227,7 @@ class _RegisterState extends State<Register> {
 
                 TextConst(
                   title:
-                      "Your account has been deactivated.\nPlease contact the admin for assistance.",
+                     loc.account_deactivated,
                   textAlign: TextAlign.center,
                   size: 14,
                   color: Colors.black54,
@@ -242,7 +248,7 @@ class _RegisterState extends State<Register> {
                       MaterialPageRoute(builder: (context) => Login()),
                     ),
                     child: Text(
-                      "OK",
+                      loc.ok,
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 15,
@@ -262,6 +268,7 @@ class _RegisterState extends State<Register> {
   @override
   Widget build(BuildContext context) {
     final profileViewModel = Provider.of<ProfileViewModel>(context);
+    final loc = AppLocalizations.of(context)!;
     return WillPopScope(
       onWillPop: () => _onWillPop(context),
       child: SafeArea(
@@ -317,10 +324,11 @@ class _RegisterState extends State<Register> {
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    const TextConst(
-                                      title: "Hii  ",
+                                     TextConst(
+                                      title: loc.hi,
                                       fontWeight: FontWeight.bold,
                                     ),
+                                    SizedBox(width: Sizes.screenWidth*0.01,),
                                     TextConst(
                                       title:
                                           profileViewModel
@@ -331,14 +339,14 @@ class _RegisterState extends State<Register> {
                                       fontWeight: FontWeight.bold,
                                     ),
                                     SizedBox(width: Sizes.screenWidth * 0.01),
-                                    const TextConst(
-                                      title: "welcome to yoyomiles",
+                                     TextConst(
+                                      title: loc.welcome_to_yoyomiles,
                                     ),
                                   ],
                                 ),
                                 TextConst(
                                   title:
-                                      "You are now a few steps away from getting your first trip",
+                                      loc.few_steps_away,
                                   size: 12,
                                   color: PortColor.black.withOpacity(0.5),
                                 ),
@@ -396,6 +404,7 @@ class _RegisterState extends State<Register> {
   }
 
   Widget pendingContainer() {
+    final loc = AppLocalizations.of(context)!;
     return Column(
       children: [
         Container(
@@ -410,10 +419,10 @@ class _RegisterState extends State<Register> {
           child: Column(
             children: [
               Image.asset(Assets.assetsPending),
-              const TextConst(
+               TextConst(
                 textAlign: TextAlign.center,
                 title:
-                    "Your document has been successfully uploaded and is pending approval. Please wait while the review process is completed.",
+                    loc.document_pending_approval,
                 fontWeight: FontWeight.w400,
               ),
             ],
@@ -427,6 +436,7 @@ class _RegisterState extends State<Register> {
     BuildContext context, {
     required VoidCallback onAccept,
   }) {
+    final loc = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -446,15 +456,14 @@ class _RegisterState extends State<Register> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const TextConst(
-                    title: 'Foreground Location Access Permissions Required',
+                   TextConst(
+                    title: loc.foreground_location_permission_required,
                     size: 18,
                     fontWeight: FontWeight.w600,
                   ),
                   const SizedBox(height: 12),
-                  const TextConst(
-                    title:
-                        'This app collects your location even when the app is closed or not in use to enable ride matching, show nearby ride requests, and keep you available while you are online as a driver.',
+                   TextConst(
+                    title: loc.location_permission_description,
                     size: 14,
                     color: Colors.black87,
                   ),
@@ -468,8 +477,8 @@ class _RegisterState extends State<Register> {
                         onPressed: () {
                           Navigator.pop(context);
                         },
-                        child: const Text(
-                          'CANCEL',
+                        child:  Text(
+                         loc.cancel,
                           style: TextStyle(
                             color: Colors.pink,
                             fontWeight: FontWeight.w600,
@@ -491,9 +500,9 @@ class _RegisterState extends State<Register> {
                             onAccept(); // aage jao
                           } else if (status.isDenied) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
+                               SnackBar(
                                 content: Text(
-                                  'Location permission is required',
+                                  loc.location_permission_required,
                                 ),
                               ),
                             );
@@ -501,8 +510,8 @@ class _RegisterState extends State<Register> {
                             AppSettings.openAppSettings();
                           }
                         },
-                        child: const Text(
-                          'ACCEPT',
+                        child:  Text(
+                          loc.accept,
                           style: TextStyle(
                             color: Colors.pink,
                             fontWeight: FontWeight.w600,
@@ -538,6 +547,8 @@ class _RegisterState extends State<Register> {
 
   Widget verifiedContainer() {
     final onlineStatusViewModel = Provider.of<OnlineStatusViewModel>(context);
+    final loc = AppLocalizations.of(context)!;
+
 
     return Consumer<YoyomilesPartnerCon>(
       builder: (context, ppc, child) {
@@ -593,7 +604,13 @@ class _RegisterState extends State<Register> {
                               ),
                               SizedBox(height: Sizes.screenHeight * 0.012),
                               TextConst(
-                                title: res.title,
+                                title:  res.titleKey == 'profile'
+                                    ? loc.profile
+                                    : res.titleKey == 'ride_history'
+                                    ? loc.ride_history
+                                    : res.titleKey == 'wallet_and_settlement'
+                                    ? loc.wallet_and_settlement
+                                    : loc.earning_report,
                                 size: Sizes.fontSizeSix,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -653,7 +670,7 @@ class _RegisterState extends State<Register> {
                         const SizedBox(height: 10),
                         Container(
                           width: Sizes.screenWidth * 0.75,
-                          height: Sizes.screenHeight * 0.09,
+                          // height: Sizes.screenHeight * 0.09,
                           decoration: BoxDecoration(
                             color: PortColor.white,
                             border: Border.all(color: PortColor.grey),
@@ -663,13 +680,13 @@ class _RegisterState extends State<Register> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const TextConst(
-                                  title: 'Upload documents',
+                                 TextConst(
+                                  title: loc.upload_documents,
                                   fontWeight: FontWeight.w500,
                                 ),
                                 const SizedBox(height: 4),
                                 TextConst(
-                                  title: 'Driving licence, Aadhaar card, etc.',
+                                  title: loc.upload_documents_description,
                                   color: PortColor.black.withOpacity(0.6),
                                 ),
                               ],
@@ -677,7 +694,7 @@ class _RegisterState extends State<Register> {
                           ),
                         ),
                         SizedBox(height: Sizes.screenHeight * 0.009),
-                        const Row(
+                         Row(
                           children: [
                             Icon(
                               Icons.check_circle,
@@ -685,7 +702,7 @@ class _RegisterState extends State<Register> {
                               size: 16,
                             ),
                             SizedBox(width: 4),
-                            TextConst(title: 'Verified', color: Colors.green),
+                            TextConst(title: loc.verified, color: Colors.green),
                           ],
                         ),
                         SizedBox(height: Sizes.screenHeight * 0.02),
@@ -711,14 +728,14 @@ class _RegisterState extends State<Register> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 TextConst(
-                                  title: 'Get your trip..!!',
+                                  title: loc.get_your_trip,
                                   color: PortColor.blackLight,
                                   fontWeight: FontWeight.bold,
                                   size: Sizes.fontSizeSeven,
                                 ),
                                 const SizedBox(height: 8),
                                 TextConst(
-                                  title: 'Voila! You are ready to do your trip',
+                                  title: loc.voila_ready_for_trip,
                                   color: PortColor.black,
                                   size: Sizes.fontSizeFour,
                                 ),
@@ -754,8 +771,8 @@ class _RegisterState extends State<Register> {
                                             mainAxisAlignment:
                                                 MainAxisAlignment.spaceBetween,
                                             children: [
-                                              const TextConst(
-                                                title: 'Go Online',
+                                               TextConst(
+                                                title: loc.go_online,
                                                 color: PortColor.black,
                                               ),
                                               Icon(
@@ -787,6 +804,7 @@ class _RegisterState extends State<Register> {
   Widget rejectedContainer() {
     final profileVm = Provider.of<ProfileViewModel>(context);
     final profile = profileVm.profileModel?.data;
+    final loc = AppLocalizations.of(context)!;
 
     return Column(
       children: [
@@ -854,7 +872,7 @@ class _RegisterState extends State<Register> {
                     borderRadius: BorderRadius.circular(10),
                   ),
                   alignment: Alignment.center,
-                  child: const TextConst(title: "Upload Again"),
+                  child:  TextConst(title: loc.upload_again),
                 ),
               ),
             ],

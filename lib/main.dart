@@ -1,11 +1,14 @@
 import 'dart:async';
-import 'package:facebook_app_events/facebook_app_events.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:yoyomiles_partner/controller/language_controller.dart';
 import 'package:yoyomiles_partner/firebase_options.dart';
+import 'package:yoyomiles_partner/l10n/app_localizations.dart';
 import 'package:yoyomiles_partner/res/const_without_polyline_map.dart';
 import 'package:yoyomiles_partner/res/notification_service.dart';
 import 'package:yoyomiles_partner/res/sizing_const.dart';
@@ -48,7 +51,7 @@ import 'package:yoyomiles_partner/view_model/video_view_model.dart';
 import 'package:yoyomiles_partner/view_model/withdraw_history_view_model.dart';
 import 'package:yoyomiles_partner/view_model/withdraw_view_model.dart';
 
-final FacebookAppEvents facebookAppEvents = FacebookAppEvents();
+// final FacebookAppEvents facebookAppEvents = FacebookAppEvents();
 // String? fcmToken;
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
@@ -80,6 +83,9 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
 
+  SharedPreferences sp = await SharedPreferences.getInstance();
+  final String languageCode = sp.getString('language_code') ?? '';
+
   // await initializeBackgroundService();
   // SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
   // 🔹 Get FCM Token
@@ -98,14 +104,17 @@ Future<void> main() async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   //
 
-  runApp(const MyApp());
+  runApp( MyApp(
+    locale: languageCode,
+  ));
 }
 
 double topPadding = 0.0;
 double bottomPadding = 0.0;
 
 class MyApp extends StatefulWidget {
-  const MyApp({super.key});
+  final String locale;
+  const MyApp({super.key ,required this.locale});
 
   @override
   State<MyApp> createState() => _MyAppState();
@@ -293,28 +302,45 @@ class _MyAppState extends State<MyApp> {
           ChangeNotifierProvider(create: (context) => ChangePayModeViewModel()),
           ChangeNotifierProvider(create: (context) => ContactListViewModel()),
           ChangeNotifierProvider(create: (context) => VideoViewModel()),
+          ChangeNotifierProvider(create: (context)=> LanguageController()),
+
           Provider<NotificationService>(
             create: (_) => NotificationService(navigatorKey: navigatorKey),
           ),
         ],
-        child: MaterialApp(
-          navigatorKey: navigatorKey,
-          debugShowCheckedModeBanner: false,
-          initialRoute: RoutesName.splash,
-          onGenerateRoute: (settings) {
-            if (settings.name != null) {
-              return CupertinoPageRoute(
-                builder: Routers.generateRoute(settings.name!),
-                settings: settings,
-              );
-            }
-            return null;
-          },
-          title: 'Yoyomiles Partner',
-          theme: ThemeData(
-            colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-            useMaterial3: true,
-          ),
+        child: Consumer<LanguageController>(
+          builder: (context, provider, child) {
+            return MaterialApp(
+              navigatorKey: navigatorKey,
+              debugShowCheckedModeBanner: false,
+              initialRoute: RoutesName.splash,
+              onGenerateRoute: (settings) {
+                if (settings.name != null) {
+                  return CupertinoPageRoute(
+                    builder: Routers.generateRoute(settings.name!),
+                    settings: settings,
+                  );
+                }
+                return null;
+              },
+              title: 'Yoyomiles Partner',
+              locale: provider.appLocale,
+              localizationsDelegates: [
+                AppLocalizations.delegate,
+                GlobalMaterialLocalizations.delegate,
+                GlobalWidgetsLocalizations.delegate,
+                GlobalCupertinoLocalizations.delegate
+              ],
+              supportedLocales: [
+                Locale('en'),
+                Locale('hi'),
+              ],
+              theme: ThemeData(
+                colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+                useMaterial3: true,
+              ),
+            );
+          }
         ),
       ),
     );
