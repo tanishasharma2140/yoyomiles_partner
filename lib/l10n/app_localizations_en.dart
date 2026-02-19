@@ -778,4 +778,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get change_language => 'Change Language';
+
+  @override
+  String get english => 'English';
+
+  @override
+  String get hindi => 'Hindi (भारत)';
 }

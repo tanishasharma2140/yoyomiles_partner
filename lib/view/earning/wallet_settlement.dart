@@ -476,6 +476,22 @@ class _WalletSettlementState extends State<WalletSettlement> {
                       fontSize: 13,
                     ),
                   ),
+                  const SizedBox(height: 2),
+                  TextConst(
+                    title:
+                    transaction.paymentGatewayStatus == 0
+                        ? "Pending"
+                        : transaction.paymentGatewayStatus == 1
+                        ? "Success"
+                        : "Failed",
+                    fontWeight: FontWeight.w600,
+                    size: 13,
+                    color: transaction.paymentGatewayStatus == 0
+                        ? Colors.orange
+                        : transaction.paymentGatewayStatus == 1
+                        ? Colors.green
+                        : Colors.red,
+                  ),
                 ],
 
                 // =======================
@@ -498,6 +514,22 @@ class _WalletSettlementState extends State<WalletSettlement> {
                       color: Colors.grey,
                       fontSize: 13,
                     ),
+                  ),
+                  const SizedBox(height: 2),
+                  TextConst(
+                    title:
+                    transaction.paymentGatewayStatus == 0
+                        ? "Pending"
+                        : transaction.paymentGatewayStatus == 1
+                        ? "Success"
+                        : "Failed",
+                    fontWeight: FontWeight.w600,
+                    size: 13,
+                    color: transaction.paymentGatewayStatus == 0
+                        ? Colors.orange
+                        : transaction.paymentGatewayStatus == 1
+                        ? Colors.green
+                        : Colors.red,
                   ),
                 ],
 

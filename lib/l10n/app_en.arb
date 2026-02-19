@@ -269,7 +269,10 @@
 "wait_for_customer_payment" : "Please wait while the customer completes the online payment.",
 "waiting_for_payment" : "Waiting for payment...",
 "please_enter_otp" : "Please enter OTP",
-"change_language" : "Change Language"
+"change_language" : "Change Language",
+"english" : "English",
+"hindi" : "Hindi (भारत)"
+
 
 
 

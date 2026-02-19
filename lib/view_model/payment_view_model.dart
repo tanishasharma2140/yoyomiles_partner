@@ -52,6 +52,7 @@ class PaymentViewModel with ChangeNotifier {
     try {
       final userViewModel = UserViewModel();
       final int? userId = await userViewModel.getUser();
+      debugPrint("USER ID => $userId");
 
       final Map<String, dynamic> data = {
         "userid": userId,
@@ -59,9 +60,11 @@ class PaymentViewModel with ChangeNotifier {
         "amount": amount,
         "firebase_order_id": firebaseOrderId,
       };
+      debugPrint("REQUEST DATA BEFORE API => $data");
 
       final PaytmGatewayModel model =
       await _paymentRepo.paymentApi(data);
+
 
       setLoading(false);
 

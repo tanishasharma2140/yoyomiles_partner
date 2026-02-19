@@ -35,7 +35,7 @@ class Data {
   String? platformFee;
   String? totalAmount;
   String? amount;
-  int? paymentGatewayStatus;
+  dynamic paymentGatewayStatus;
   String? orderId;
   String? createdAt;
   int? paymetBy;

@@ -267,5 +267,9 @@
 "wait_for_customer_payment" : "कृपया प्रतीक्षा करें जब तक ग्राहक ऑनलाइन भुगतान पूरा न कर ले।",
 "waiting_for_payment" : "भुगतान की प्रतीक्षा हो रही है...",
 "please_enter_otp" : "कृपया OTP दर्ज करें",
-"change_language" : "भाषा बदलें"
+"change_language" : "भाषा बदलें",
+"english" : "अंग्रेज़ी",
+"hindi" : "हिंदी (भारत)"
+
+
 }

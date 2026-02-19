@@ -59,6 +59,7 @@ class _LoginState extends State<Login> {
                   alignment: Alignment.topRight,
                   child: Consumer<LanguageController>(
                     builder: (context, languageProvider, child) {
+                      final loc = AppLocalizations.of(context)!;
                       return Container(
                         padding: const EdgeInsets.symmetric(horizontal: 12),
                         decoration: BoxDecoration(
@@ -84,14 +85,14 @@ class _LoginState extends State<Login> {
                               fontWeight: FontWeight.w600,
                               fontSize: 14,
                             ),
-                            items: const [
+                            items:  [
                               DropdownMenuItem(
                                 value: 'en',
-                                child: Text("English"),
+                                child: TextConst(title: loc.english),
                               ),
                               DropdownMenuItem(
                                 value: 'hi',
-                                child: Text("Hindi"),
+                                child: TextConst(title: loc.hindi),
                               ),
                             ],
                             onChanged: (value) {
