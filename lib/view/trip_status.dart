@@ -56,6 +56,8 @@ class _TripStatusState extends State<TripStatus> {
 
   }
 
+
+
   @override
   void dispose() {
     try {
@@ -87,6 +89,8 @@ class _TripStatusState extends State<TripStatus> {
       print("⚠️ getCurrentLocation error: $e");
     }
   }
+
+
 
 
   void _showSwitchDialog() {
@@ -438,6 +442,8 @@ class _TripStatusState extends State<TripStatus> {
                                 itemBuilder: (context, index) {
                                   return BookingCard(
                                     bookingData: bookingList[index],
+                                    driverLat: currentLat,  // ✅ add
+                                    driverLng: currentLng,
                                     onAccept: (bookingId) {
                                       _handleAcceptRide(
                                         bookingId,
@@ -541,12 +547,43 @@ class _TripStatusState extends State<TripStatus> {
 class BookingCard extends StatelessWidget {
   final Map<String, dynamic> bookingData;
   final Function(String) onAccept;
+  final double driverLat;  // ✅ add
+  final double driverLng;
 
   const BookingCard({
     super.key,
     required this.bookingData,
     required this.onAccept,
+    required this.driverLat,  // ✅ add
+    required this.driverLng,
   });
+
+  String _getDriverToPickupDistance() {
+    print("📦 BookingData keys: ${bookingData.keys.toList()}");
+    print("📦 pickup_latitute: ${bookingData['pickup_latitute']}");
+    print("📦 pick_longitude: ${bookingData['pick_longitude']}");
+    print("📦 driverLat: $driverLat, driverLng: $driverLng");
+    try {
+      final pickupLat = double.tryParse(bookingData['pickup_latitute']?.toString() ?? '');
+      final pickupLng = double.tryParse(bookingData['pick_longitude']?.toString() ?? '');
+
+      if (pickupLat == null || pickupLng == null || driverLat == 0.0 || driverLng == 0.0) {
+        return 'N/A';
+      }
+
+      final distanceInMeters = Geolocator.distanceBetween(
+        driverLat, driverLng,
+        pickupLat, pickupLng,
+      );
+
+      final distanceInKm = distanceInMeters / 1000;
+      return '${distanceInKm.toStringAsFixed(1)} km';
+    } catch (e) {
+      return 'N/A';
+    }
+  }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -668,6 +705,7 @@ class BookingCard extends StatelessWidget {
               ],
             ),
             SizedBox(height: Sizes.screenHeight * 0.01),
+            // Existing distance row ke neeche ye add karo
             Row(
               children: [
                 Container(
@@ -693,10 +731,11 @@ class BookingCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                SizedBox(width: Sizes.screenWidth * 0.03),
+                SizedBox(width: Sizes.screenWidth * 0.02),
+                // ✅ Pickup to Drop distance (existing)
                 Container(
                   padding: EdgeInsets.symmetric(
-                    horizontal: Sizes.screenWidth * 0.04,
+                    horizontal: Sizes.screenWidth * 0.03,
                     vertical: Sizes.screenHeight * 0.01,
                   ),
                   decoration: BoxDecoration(
@@ -713,6 +752,31 @@ class BookingCard extends StatelessWidget {
                         size: Sizes.fontSizeFour,
                         fontWeight: FontWeight.bold,
                         color: Colors.blue,
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(width: Sizes.screenWidth * 0.02),
+                // ✅ Driver to Pickup distance (new)
+                Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: Sizes.screenWidth * 0.03,
+                    vertical: Sizes.screenHeight * 0.01,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.orange.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.orange.withOpacity(0.3)),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.navigation, color: Colors.orange, size: 18),
+                      SizedBox(width: Sizes.screenWidth * 0.01),
+                      TextConst(
+                        title: _getDriverToPickupDistance(),
+                        size: Sizes.fontSizeFour,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.orange,
                       ),
                     ],
                   ),

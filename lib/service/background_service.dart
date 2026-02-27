@@ -50,8 +50,25 @@ void backgroundServiceOnStart(ServiceInstance service) async {
       RingtoneHelper().stop();
       RideNotificationHelper.clear(fromBackground: true);
     },
+
+
   );
+  service.on('START_RINGTONE').listen((_) {
+    if (!RingtoneHelper().isPlaying) {
+      RingtoneHelper().start();
+      // ✅ UI isolate ko vibration start karne ka signal do
+      service.invoke('START_VIBRATION');
+    }
+  });
+
+  service.on('STOP_RINGTONE').listen((_) {
+    RingtoneHelper().stop();
+    // ✅ UI isolate ko vibration stop karne ka signal do
+    service.invoke('STOP_VIBRATION');
+  });
 }
+
+
 
 Future<void> stopBackgroundService() async {
   final service = FlutterBackgroundService();
@@ -99,4 +116,7 @@ Future<void> initializeBackgroundService() async {
   if (!isRunning) {
     await service.startService(); // ✅ only once
   }
+
+
+
 }
