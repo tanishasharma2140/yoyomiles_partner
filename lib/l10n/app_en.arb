@@ -271,7 +271,9 @@
 "please_enter_otp" : "Please enter OTP",
 "change_language" : "Change Language",
 "english" : "English",
-"hindi" : "Hindi (भारत)"
+"hindi" : "Hindi (भारत)",
+"your_pickup_distance" : "Your Pickup Distance",
+"pickup_drop" : "Pickup → Drop"
 
 
 

@@ -784,4 +784,10 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get hindi => 'हिंदी (भारत)';
+
+  @override
+  String get your_pickup_distance => 'आपकी वर्तमान लोकेशन से पिकअप दूरी';
+
+  @override
+  String get pickup_drop => 'पिकअप से ड्रॉप';
 }

@@ -361,9 +361,9 @@ class _TripStatusState extends State<TripStatus> {
                   ),
                 ] else
                   DraggableScrollableSheet(
-                    initialChildSize: 0.6,
-                    minChildSize: 0.6,
-                    maxChildSize: 0.6,
+                    initialChildSize: 0.8,
+                    minChildSize: 0.8,
+                    maxChildSize: 0.85,
                     builder: (context, scrollController) {
                       return Container(
                         decoration: BoxDecoration(
@@ -559,26 +559,59 @@ class BookingCard extends StatelessWidget {
   });
 
   String _getDriverToPickupDistance() {
-    print("📦 BookingData keys: ${bookingData.keys.toList()}");
-    print("📦 pickup_latitute: ${bookingData['pickup_latitute']}");
-    print("📦 pick_longitude: ${bookingData['pick_longitude']}");
-    print("📦 driverLat: $driverLat, driverLng: $driverLng");
-    try {
-      final pickupLat = double.tryParse(bookingData['pickup_latitute']?.toString() ?? '');
-      final pickupLng = double.tryParse(bookingData['pick_longitude']?.toString() ?? '');
+    print("========== DISTANCE DEBUG START ==========");
 
-      if (pickupLat == null || pickupLng == null || driverLat == 0.0 || driverLng == 0.0) {
+    print("📦 BookingData Full: $bookingData");
+    print("📦 BookingData Keys: ${bookingData.keys.toList()}");
+
+    print("📦 pickup_latitude: ${bookingData['pickup_latitude']}");
+    print("📦 pickup_latitute (wrong spelling check): ${bookingData['pickup_latitute']}");
+    print("📦 pick_longitude: ${bookingData['pick_longitude']}");
+
+    print("🚗 Driver Lat: $driverLat");
+    print("🚗 Driver Lng: $driverLng");
+
+    try {
+      final pickupLat = double.tryParse(
+        bookingData['pickup_latitude']?.toString() ??
+            bookingData['pickup_latitute']?.toString() ??
+            '',
+      );
+
+      final pickupLng = double.tryParse(
+        bookingData['pick_longitude']?.toString() ?? '',
+      );
+
+      print("✅ Parsed Pickup Lat: $pickupLat");
+      print("✅ Parsed Pickup Lng: $pickupLng");
+
+      if (pickupLat == null ||
+          pickupLng == null ||
+          driverLat == 0.0 ||
+          driverLng == 0.0) {
+        print("❌ One of the values is null or zero");
         return 'N/A';
       }
 
       final distanceInMeters = Geolocator.distanceBetween(
-        driverLat, driverLng,
-        pickupLat, pickupLng,
+        driverLat,
+        driverLng,
+        pickupLat,
+        pickupLng,
       );
 
+      print("📏 Distance in meters: $distanceInMeters");
+
       final distanceInKm = distanceInMeters / 1000;
+
+      print("📏 Distance in KM: $distanceInKm");
+
+      print("========== DISTANCE DEBUG END ==========");
+
       return '${distanceInKm.toStringAsFixed(1)} km';
     } catch (e) {
+      print("🔥 Distance Error: $e");
+      print("========== DISTANCE DEBUG ERROR ==========");
       return 'N/A';
     }
   }
@@ -705,9 +738,9 @@ class BookingCard extends StatelessWidget {
               ],
             ),
             SizedBox(height: Sizes.screenHeight * 0.01),
-            // Existing distance row ke neeche ye add karo
             Row(
               children: [
+                // 💰 Amount
                 Container(
                   padding: EdgeInsets.symmetric(
                     horizontal: Sizes.screenWidth * 0.04,
@@ -731,33 +764,8 @@ class BookingCard extends StatelessWidget {
                     ],
                   ),
                 ),
+
                 SizedBox(width: Sizes.screenWidth * 0.02),
-                // ✅ Pickup to Drop distance (existing)
-                Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: Sizes.screenWidth * 0.03,
-                    vertical: Sizes.screenHeight * 0.01,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.blue.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.blue.withOpacity(0.3)),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(Icons.social_distance, color: Colors.blue, size: 18),
-                      SizedBox(width: Sizes.screenWidth * 0.01),
-                      TextConst(
-                        title: '${bookingData['distance'] ?? '0'} km',
-                        size: Sizes.fontSizeFour,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.blue,
-                      ),
-                    ],
-                  ),
-                ),
-                SizedBox(width: Sizes.screenWidth * 0.02),
-                // ✅ Driver to Pickup distance (new)
                 Container(
                   padding: EdgeInsets.symmetric(
                     horizontal: Sizes.screenWidth * 0.03,
@@ -768,19 +776,69 @@ class BookingCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(color: Colors.orange.withOpacity(0.3)),
                   ),
-                  child: Row(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(Icons.navigation, color: Colors.orange, size: 18),
-                      SizedBox(width: Sizes.screenWidth * 0.01),
                       TextConst(
-                        title: _getDriverToPickupDistance(),
-                        size: Sizes.fontSizeFour,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.orange,
+                        title: loc.your_pickup_distance,
+                        size: 9,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.brown,
+                      ),
+                      Row(
+                        children: [
+                          Icon(Icons.navigation, color: Colors.orange, size: 16),
+                          SizedBox(width: 4),
+                          TextConst(
+                            title: _getDriverToPickupDistance(),
+                            size: Sizes.fontSizeFour,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.orange,
+                          ),
+                        ],
                       ),
                     ],
                   ),
                 ),
+                SizedBox(width: Sizes.screenWidth * 0.02),
+                // 📍 Pickup → Drop Distance
+                Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: Sizes.screenWidth * 0.03,
+                    vertical: Sizes.screenHeight * 0.01,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.blue.withOpacity(0.3)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      TextConst(
+                        title: loc.pickup_drop,
+                        size: 10,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.blueGrey,
+                      ),
+                      Row(
+                        children: [
+                          Icon(Icons.route, color: Colors.blue, size: 16),
+                          SizedBox(width: 4),
+                          TextConst(
+                            title: '${bookingData['distance'] ?? '0'} km',
+                            size: Sizes.fontSizeFour,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.blue,
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+
+
+                // 🚗 Driver → Pickup Distance
               ],
             ),
             SizedBox(height: Sizes.screenHeight * 0.015),

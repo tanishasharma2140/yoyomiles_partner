@@ -269,7 +269,9 @@
 "please_enter_otp" : "कृपया OTP दर्ज करें",
 "change_language" : "भाषा बदलें",
 "english" : "अंग्रेज़ी",
-"hindi" : "हिंदी (भारत)"
+"hindi" : "हिंदी (भारत)",
+"your_pickup_distance": "आपकी वर्तमान लोकेशन से पिकअप दूरी",
+"pickup_drop": "पिकअप से ड्रॉप"
 
 
 }

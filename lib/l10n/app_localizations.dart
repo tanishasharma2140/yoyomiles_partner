@@ -1648,6 +1648,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Hindi (भारत)'**
   String get hindi;
+
+  /// No description provided for @your_pickup_distance.
+  ///
+  /// In en, this message translates to:
+  /// **'Your Pickup Distance'**
+  String get your_pickup_distance;
+
+  /// No description provided for @pickup_drop.
+  ///
+  /// In en, this message translates to:
+  /// **'Pickup → Drop'**
+  String get pickup_drop;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

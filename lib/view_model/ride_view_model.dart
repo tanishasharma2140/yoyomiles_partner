@@ -164,6 +164,10 @@ class RideViewModel extends ChangeNotifier {
           'rideStatus': data['ride_status'] ?? 0,
           'payMode': data['paymode'] ?? 1,
           'otp': data['otp'] ?? 1,
+          'pickup_latitute': data['pickup_latitute']?.toString(),
+          'pick_longitude': data['pick_longitude']?.toString(),
+          'drop_latitude': data['drop_latitute']?.toString(),
+          'drop_longitude': data['drop_logitute']?.toString(),
         };
 
         // if (rideStatus == 6 && data['accepted_driver_id'].toString() == driverIdStr) {
