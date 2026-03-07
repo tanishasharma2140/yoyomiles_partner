@@ -1,11 +1,5 @@
-import 'dart:convert';
-
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:yoyomiles_partner/repo/assign_ride_repo.dart';
-import 'package:yoyomiles_partner/utils/utils.dart';
 import 'package:yoyomiles_partner/view/live_ride_screen.dart';
 import 'package:yoyomiles_partner/view_model/user_view_model.dart';
 class AssignRideViewModel with ChangeNotifier {
@@ -49,14 +43,14 @@ class AssignRideViewModel with ChangeNotifier {
         try {
           print("📌 Updating Firestore Document: $rideDocId");
 
-          await FirebaseFirestore.instance
-              .collection('order')
-              .doc(rideDocId)
-              .update({
-            'accepted_driver_id': userId,
-            'ride_status': 1,
-            'ride_started': true,
-          });
+          // await FirebaseFirestore.instance
+          //     .collection('order')
+          //     .doc(rideDocId)
+          //     .update({
+          //   'accepted_driver_id': userId,
+          //   'ride_status': 1,
+          //   'ride_started': true,
+          // });
 
           print("🔥 Firestore Updated Successfully");
 

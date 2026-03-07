@@ -1,10 +1,8 @@
 import 'dart:async';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:yoyomiles_partner/generated/assets.dart';
 import 'package:yoyomiles_partner/l10n/app_localizations.dart';
-import 'package:yoyomiles_partner/main.dart';
 import 'package:yoyomiles_partner/res/app_fonts.dart';
 import 'package:yoyomiles_partner/res/const_map.dart';
 import 'package:yoyomiles_partner/res/constant_color.dart';
@@ -82,8 +80,8 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
   bool _showRideCompletedDialog = false;
   bool _mapPopupShown = false;
 
-  StreamSubscription<DocumentSnapshot>? _paymentSubscription;
-  StreamSubscription<DocumentSnapshot>? _rideStatusSubscription;
+  // StreamSubscription<DocumentSnapshot>? _paymentSubscription;
+  // StreamSubscription<DocumentSnapshot>? _rideStatusSubscription;
 
   void _openGoogleMapsDirections() {
     final url =
@@ -361,6 +359,10 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
       context,
       listen: false,
     );
+    final updateRideStatusVm = Provider.of<UpdateRideStatusViewModel>(  // ✅ ADD
+      context,
+      listen: false,
+    );
     final loc = AppLocalizations.of(context)!;
 
     final orderId = liveRideViewModel.liveOrderModel!.data!.id.toString();
@@ -371,17 +373,14 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
       print("💰 Reached tapped | payMode = $payMode");
 
       /// 🔥 WALLET PAYMENT (paymode == 3)
+      /// 🔥 WALLET PAYMENT (paymode == 3)
       if (payMode == 3) {
         print("👛 Wallet payment detected → completing ride directly");
 
-        rideStatus.updateRideStatus(6);
+        // ✅ Socket ki jagah REST API
+        await updateRideStatusVm.updateRideApi(context, orderId, "6");
 
-        // liveRideViewModel.liveOrderModel!.data!.rideStatus = 6;
-
-        Utils.showSuccessMessage(
-          context,
-          loc.ride_completed_wallet,
-        );
+        Utils.showSuccessMessage(context, loc.ride_completed_wallet);
 
         Future.delayed(const Duration(milliseconds: 300), () {
           _showRideCompletedDialogMethod();
@@ -394,12 +393,8 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
       if (payMode == 1) {
         print("💵 Cash payment → move to collect payment");
 
-        await FirebaseFirestore.instance
-            .collection('order')
-            .doc(orderId)
-            .update({'ride_status': 5});
-
-        // liveRideViewModel.liveOrderModel!.data!.rideStatus = 5;
+        // ✅ Firebase hata ke updateRideApi use karo
+        await updateRideStatusVm.updateRideApi(context, orderId, "5");
 
         Utils.showSuccessMessage(context, loc.reached_destination);
 
@@ -418,12 +413,8 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
       if (payMode == 2) {
         print("💳 Online payment → waiting for payment");
 
-        await FirebaseFirestore.instance
-            .collection('order')
-            .doc(orderId)
-            .update({'ride_status': 5});
-
-        // liveRideViewModel.liveOrderModel!.data!.rideStatus = 5;
+        // ✅ Firebase hata ke updateRideApi use karo
+        await updateRideStatusVm.updateRideApi(context, orderId, "5");
 
         Utils.showSuccessMessage(
           context,
@@ -440,7 +431,6 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
       Utils.showErrorMessage(context, "${loc.failed_update_ride_status} $e");
     }
   }
-
   void _showGoToMapDialog() {
     final loc = AppLocalizations.of(context)!;
     showDialog(
@@ -508,8 +498,8 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
   @override
   void dispose() {
     print("🗑️ Disposing LiveRideScreen - Cancelling listeners");
-    _paymentSubscription?.cancel();
-    _rideStatusSubscription?.cancel();
+    // _paymentSubscription?.cancel();
+    // _rideStatusSubscription?.cancel();
     super.dispose();
   }
 
@@ -698,33 +688,30 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
 
   void _showOtpDialog(String orderId) {
     final TextEditingController _otpController = TextEditingController();
-    final liveRideViewModel = Provider.of<LiveRideViewModel>(
-      context,
-      listen: false,
-    );
     final loc = AppLocalizations.of(context)!;
 
     final rideStatus = Provider.of<RideViewModel>(context, listen: false);
+
+    // ✅ ADD — UpdateRideStatusViewModel lo
+    final updateRideStatusVm = Provider.of<UpdateRideStatusViewModel>(
+      context,
+      listen: false,
+    );
+
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (context) => WillPopScope(
         onWillPop: () async => false,
         child: Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           backgroundColor: Colors.white,
           child: Padding(
             padding: const EdgeInsets.all(20),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(
-                  Icons.verified_user_rounded,
-                  color: PortColor.gold,
-                  size: 50,
-                ),
+                Icon(Icons.verified_user_rounded, color: PortColor.gold, size: 50),
                 const SizedBox(height: 10),
                 Text(
                   loc.trip_otp_verification,
@@ -736,7 +723,6 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                   ),
                 ),
                 const SizedBox(height: 20),
-
                 TextField(
                   controller: _otpController,
                   keyboardType: TextInputType.number,
@@ -746,23 +732,15 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                     hintStyle: TextStyle(color: Colors.grey),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
-                      borderSide: const BorderSide(
-                        color: Colors.grey,
-                        width: 1,
-                      ),
+                      borderSide: const BorderSide(color: Colors.grey, width: 1),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
-                      borderSide: const BorderSide(
-                        color: Colors.grey,
-                        width: 1,
-                      ),
+                      borderSide: const BorderSide(color: Colors.grey, width: 1),
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 20),
-
                 Row(
                   children: [
                     Expanded(
@@ -775,10 +753,7 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                           ),
                         ),
                         onPressed: () => Navigator.of(context).pop(),
-                        child:  Text(
-                          loc.cancel,
-                          style: TextStyle(color: Colors.black),
-                        ),
+                        child: Text(loc.cancel, style: TextStyle(color: Colors.black)),
                       ),
                     ),
                     const SizedBox(width: 10),
@@ -797,25 +772,25 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                             return;
                           }
                           try {
-                            final firestoreOtp =
-                                rideStatus.activeRideData?['otp'];
-                            print("otpdfdd$firestoreOtp");
-                            print(enteredOtp);
+                            final savedOtp = rideStatus.activeRideData?['otp'];
+                            print("🔐 Saved OTP: $savedOtp | Entered: $enteredOtp");
 
-
-                            if (firestoreOtp.toString() ==
-                                enteredOtp.toString()) {
-                              rideStatus.updateRideStatus(4);
+                            if (savedOtp.toString() == enteredOtp.toString()) {
+                              // ✅ Socket ki jagah REST API
+                              await updateRideStatusVm.updateRideApi(
+                                context,
+                                orderId,
+                                "4",
+                              );
 
                               Navigator.of(context).pop();
                               Utils.showSuccessMessage(
                                 context,
                                 loc.otp_verified_ride_started,
                               );
-                              setState(() {
-                                isOtpVerified = true;
-                              });
+                              setState(() { isOtpVerified = true; });
                               _showGoToMapDialog();
+
                             } else {
                               Utils.showErrorMessage(
                                 context,
@@ -831,10 +806,7 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                             );
                           }
                         },
-                        child:  Text(
-                          loc.verify,
-                          style: TextStyle(color: Colors.white),
-                        ),
+                        child: Text(loc.verify, style: TextStyle(color: Colors.white)),
                       ),
                     ),
                   ],
@@ -1033,7 +1005,7 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
 
   Widget _buildSheetContent(
     ScrollController scrollController,
-    Map<String, dynamic>? activeRideData,
+      Map<String, dynamic>? activeRideDataFromSocket,
   ) {
     final liveRideViewModel = Provider.of<LiveRideViewModel>(context);
     final updateRideStatus = Provider.of<UpdateRideStatusViewModel>(context);
@@ -1086,9 +1058,20 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
       );
     }
     print('lololo');
-    print(activeRideData);
     final rideStatus = Provider.of<RideViewModel>(context);
-    final rs = activeRideData?['rideStatus'];
+
+    // ✅ liveRideViewModel se directly lo — reliable source
+    final liveData = liveRideViewModel.liveOrderModel!.data!;
+
+    // Socket se aaya toh socket use karo, warna liveRide API ka use karo
+    final Map<String, dynamic> activeRideData = {
+      'rideStatus': activeRideDataFromSocket?['rideStatus'] ?? liveData.rideStatus,
+      'payMode': activeRideDataFromSocket?['payMode'] ?? liveData.paymode,
+      'otp': activeRideDataFromSocket?['otp']?.toString() ?? liveData.otp?.toString() ?? '',
+      'id': liveData.id?.toString(),
+    };
+
+    final rs = activeRideData['rideStatus'];
 
     return Column(
       children: [
@@ -1393,43 +1376,41 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                       Expanded(
                         child: InkWell(
                           onTap: () async {
-                            final liveRideViewModel =
-                                Provider.of<LiveRideViewModel>(
-                                  context,
-                                  listen: false,
-                                );
-                            final orderId =
-                                liveRideViewModel.liveOrderModel!.data!.id;
-                            int currentStatus =
-                                activeRideData?['rideStatus'] ?? 1;
+                            final liveRideViewModel = Provider.of<LiveRideViewModel>(
+                              context,
+                              listen: false,
+                            );
+                            final updateRideStatusVm = Provider.of<UpdateRideStatusViewModel>(
+                              context,
+                              listen: false,
+                            );
+                            final orderId = liveRideViewModel.liveOrderModel!.data!.id.toString();
+                            int currentStatus = activeRideData?['rideStatus'] ?? 1;
 
                             try {
                               if (currentStatus == 1) {
-                                rideStatus.updateRideStatus(2);
+                                // ✅ Socket ki jagah REST API
+                                await updateRideStatusVm.updateRideApi(context, orderId, "2");
                                 _showGoToMapPopupFromCurrentLocation();
-                                Utils.showSuccessMessage(
-                                  context,
-                                  loc.ride_status_start_pickup,
-                                );
+                                Utils.showSuccessMessage(context, loc.ride_status_start_pickup);
+
                               } else if (currentStatus == 2) {
-                                rideStatus.updateRideStatus(3);
-                                Utils.showSuccessMessage(
-                                  context,
-                                  loc.ride_status_arrived_pickup,
-                                );
+                                // ✅ REST API
+                                await updateRideStatusVm.updateRideApi(context, orderId, "3");
+                                Utils.showSuccessMessage(context, loc.ride_status_arrived_pickup);
+
                               } else if (currentStatus == 3) {
-                                _showOtpDialog(orderId.toString());
+                                _showOtpDialog(orderId);
                                 return;
+
                               } else if (currentStatus == 4) {
                                 _handleReachedButtonClick();
                                 return;
                               }
+
                               setState(() {});
                             } catch (e) {
-                              Utils.showErrorMessage(
-                                context,
-                                "${loc.failed_update_ride_status} $e",
-                              );
+                              Utils.showErrorMessage(context, "${loc.failed_update_ride_status} $e");
                             }
                           },
 

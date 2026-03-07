@@ -1,4 +1,4 @@
-import "package:cloud_firestore/cloud_firestore.dart";
+// import "package:cloud_firestore/cloud_firestore.dart";
 import "package:flutter/cupertino.dart";
 import "package:flutter/material.dart";
 import "package:yoyomiles_partner/res/app_fonts.dart";
@@ -18,8 +18,8 @@ class BankDetail extends StatefulWidget {
 }
 
 class _BankDetailState extends State<BankDetail> {
-  final CollectionReference myItems =
-  FirebaseFirestore.instance.collection("data");
+  // final CollectionReference myItems =
+  // FirebaseFirestore.instance.collection("data");
 
   final TextEditingController _bankController = TextEditingController();
   final TextEditingController _accountController = TextEditingController();

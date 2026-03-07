@@ -25,9 +25,10 @@ void backgroundServiceOnStart(ServiceInstance service) async {
     print('❌ Driver ID not found');
     return;
   }
+
   print("start connecting....");
   SocketService().connect(
-    baseUrl: "https://admin.yoyomiles.com",
+    baseUrl: "https://yoyo.codescarts.com",
     driverId: driverId,
 
     onSyncRides: (rides) {

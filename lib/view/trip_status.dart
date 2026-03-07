@@ -70,21 +70,26 @@ class _TripStatusState extends State<TripStatus> {
   void getCurrentLocation() async {
     try {
       final userId = await UserViewModel().getUser();
-      setState(() {
-        userIds = userId!;
-      });
+      setState(() { userIds = userId!; });
+
       Position pos = await Geolocator.getCurrentPosition();
       currentLat = pos.latitude;
       currentLng = pos.longitude;
 
-      List<Placemark> placemark = await placemarkFromCoordinates(
+      // ✅ Socket pe location bhejo
+      Provider.of<RideViewModel>(context, listen: false)
+          .updateDriverLocation(
+        userId.toString(),
         pos.latitude,
         pos.longitude,
       );
-      _currentAddress =
-          "${placemark.first.street}, ${placemark.first.locality}";
+
+      List<Placemark> placemark = await placemarkFromCoordinates(
+        pos.latitude, pos.longitude,
+      );
+      _currentAddress = "${placemark.first.street}, ${placemark.first.locality}";
       if (mounted) setState(() {});
-      Provider.of<ConstMapController>(context,listen: false).toggleLightMode(true);
+      Provider.of<ConstMapController>(context, listen: false).toggleLightMode(true);
     } catch (e) {
       print("⚠️ getCurrentLocation error: $e");
     }
