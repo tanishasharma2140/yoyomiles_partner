@@ -19,24 +19,36 @@ class UpdateRideStatusViewModel with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> updateRideApi(context, String id, String rideStatus) async {
+  Future<void> updateRideApi(
+      BuildContext context,
+      String id,
+      dynamic otp,
+      String rideStatus, {
+        bool navigateAfter = false,
+      }) async {
     setLoading(true);
 
-    Map data = {"id": id, "ride_status": rideStatus};
+    Map data = {
+      "id": id,
+      "ride_status": rideStatus,
+      // ✅ OTP ko int mein convert karo, empty string exclude karo
+      if (otp != null && otp.toString().isNotEmpty)
+        'otp': int.tryParse(otp.toString()) ?? otp,
+    };
+
+    print("lololololkkih");
+    print(data);
 
     _updateRideStatusRepo.updateRideApi(data).then((value) async {
       setLoading(false);
       if (value['success'] == true) {
-        // Navigator.pushNamedAndRemoveUntil(
-        //   context,
-        //   RoutesName.tripStatus,
-        //       (route) => false,
-        // );
-        Navigator.pushNamedAndRemoveUntil(
-          context,
-          RoutesName.tripStatus,
-              (route) => route.settings.name == RoutesName.register,
-        );
+        if (navigateAfter) {
+          Navigator.pushNamedAndRemoveUntil(
+            context,
+            RoutesName.tripStatus,
+                (route) => route.settings.name == RoutesName.register,
+          );
+        }
         Utils.showSuccessMessage(context, "Ride status updated successfully!");
       } else {
         Utils.showSuccessMessage(context, value["message"]);

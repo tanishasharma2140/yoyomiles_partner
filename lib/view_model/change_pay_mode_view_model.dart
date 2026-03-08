@@ -8,6 +8,9 @@ class ChangePayModeViewModel with ChangeNotifier {
 
   bool get loading => _loading;
 
+  int? _updatedPayMode; // ✅ ADD
+  int? get updatedPayMode => _updatedPayMode;
+
   setLoading(bool value) {
     _loading = value;
     notifyListeners();
@@ -19,6 +22,9 @@ class ChangePayModeViewModel with ChangeNotifier {
     required int payMode,
   }) async {
     setLoading(true);
+    _updatedPayMode = payMode; // ✅ ADD
+    setLoading(false);
+    notifyListeners();
 
     final Map data = {
       "order_id": orderId,

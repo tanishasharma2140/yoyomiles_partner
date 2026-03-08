@@ -314,6 +314,7 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
+import 'package:yoyomiles_partner/main.dart';
 import 'package:yoyomiles_partner/view/auth/register.dart';
 import 'package:yoyomiles_partner/view_model/profile_view_model.dart';
 
@@ -404,6 +405,7 @@ class RideViewModel extends ChangeNotifier {
           if (isRideCompleted && activeRide != null) {
             log("here it is geting to the case//");
             setActiveRideData(activeRide);
+            print("✅ ActiveRideData set — id: ${_activeRideData?['id']}");
           }
           log('active ride data found as null');
         }
@@ -585,11 +587,46 @@ class RideViewModel extends ChangeNotifier {
       if (mapped == null) return;
 
       final rideStatus = mapped['rideStatus'] as int;
+      final mappedId = mapped['id']?.toString().trim();
+      final activeId = _activeRideData?['id']?.toString().trim();
 
-      // Existing list update karo
+      print("📦 ORDER_UPDATE — mappedId: $mappedId | activeId: $activeId | status: $rideStatus");
+
+      // ✅ Active ride sync
+      if (activeId != null && activeId == mappedId) {
+        _activeRideData = mapped;
+        print("✅ activeRideData synced");
+      }
+
+      // ✅ Status 7/8 — DIRECTLY handle, flag check mat karo
+      if (rideStatus == 7 || rideStatus == 8) {
+        // ✅ ID match karo — agar match ho ya activeRideData empty/null ho
+        final bool idMatches = activeId != null &&
+            activeId.isNotEmpty &&
+            activeId == mappedId;
+
+        // ✅ Agar activeRideData mein koi data hai lekin id match nahi — skip karo
+        // Agar activeRideData empty/null hai — show karo (status 1 pe bhi)
+        final bool noActiveRide = activeId == null || activeId.isEmpty;
+
+        print("🔍 Status 7/8 check — idMatches: $idMatches | noActiveRide: $noActiveRide");
+
+        if (idMatches || noActiveRide) {
+          final userName = mapped['sender_name']?.toString() ?? 'User';
+          print("🚨 Showing cancel dialog for: $userName");
+          _showRideCancelledDialogMethod(userName, context);
+        } else {
+          print("⚠️ ID mismatch — cancel dialog skip kiya");
+          print("   activeId: '$activeId'");
+          print("   mappedId: '$mappedId'");
+        }
+        return;
+      }
+
+      // Existing list update
       final existing = List<Map<String, dynamic>>.from(_allRideData ?? []);
       final idx = existing.indexWhere(
-            (e) => e['id'].toString() == mapped['id'].toString(),
+            (e) => e['id'].toString() == mappedId,
       );
       if (idx != -1) {
         existing[idx] = mapped;
@@ -597,16 +634,13 @@ class RideViewModel extends ChangeNotifier {
         existing.add(mapped);
       }
 
-      // ── Same filtering as Firebase ──
       final activeList = <Map<String, dynamic>>[];
       final status78List = <Map<String, dynamic>>[];
 
       for (var ride in existing) {
         final s = ride['rideStatus'] as int;
-        if (s == 7 ||
-            s == 8 ||
-            (s == 6 &&
-                ride['accepted_driver_id'].toString() == driverIdStr)) {
+        if (s == 7 || s == 8 ||
+            (s == 6 && ride['accepted_driver_id'].toString() == driverIdStr)) {
           status78List.add(ride);
         } else {
           activeList.add(ride);
@@ -699,15 +733,25 @@ class RideViewModel extends ChangeNotifier {
       ) {
     for (var ride in list) {
       final status = ride['rideStatus'];
-      if (_activeRideData!['id'] == ride['id']) {
-        if (status == 6 && activeRideData != null) {
-          activeRideData!['rideStatus'] = status;
+
+      // ✅ activeRideData null/empty हो तो भी check करो
+      final activeId = _activeRideData?['id']?.toString();
+      final rideId = ride['id']?.toString();
+
+      print("🔍 handleStatus78 — activeId: $activeId | rideId: $rideId | status: $status");
+
+      // ✅ ID match karo — agar activeRideData empty hai toh bhi status 7/8 show karo
+      final bool idMatches = activeId != null && activeId == rideId;
+      final bool noActiveRide = activeId == null || activeId.isEmpty;
+
+      if (idMatches || noActiveRide) {
+        if (status == 6 && _activeRideData != null) {
+          _activeRideData!['rideStatus'] = status;
+          notifyListeners();
         }
-        if (status == 7) {
-          _showRideCancelledDialogMethod(ride['sender_name'], context);
-        }
-        if (status == 8) {
-          _showRideCancelledDialogMethod(ride['sender_name'], context);
+        if (status == 7 || status == 8) {
+          final userName = ride['sender_name']?.toString() ?? 'User';
+          _showRideCancelledDialogMethod(userName, context);
         }
       }
     }
@@ -723,22 +767,33 @@ class RideViewModel extends ChangeNotifier {
       return;
     }
 
+    // ✅ navigatorKey se valid context lo — socket callback mein original context invalid hota hai
+    final ctx = navigatorKey.currentContext;
+    if (ctx == null) {
+      print("❌ navigatorKey context null — dialog skip");
+      return;
+    }
+
     print("❌ Showing RIDE CANCELLED dialog by user: $userName");
     _showRideCancelledDialog = true;
 
     showDialog(
-      context: context,
+      context: ctx, // ✅ original context ki jagah navigatorKey context
       barrierDismissible: false,
-      builder: (context) {
-        return _buildRideCancelledDialog(userName, context);
+      builder: (dialogContext) {
+        return _buildRideCancelledDialog(userName, dialogContext);
       },
     ).then((_) {
       print("🔒 Ride cancelled dialog closed");
       _showRideCancelledDialog = false;
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (context) => Register()),
-            (route) => false,
-      );
+
+      final navCtx = navigatorKey.currentContext;
+      if (navCtx != null) {
+        Navigator.of(navCtx).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (_) => Register()),
+              (route) => false,
+        );
+      }
     });
   }
 
@@ -820,12 +875,14 @@ Widget _buildRideCancelledDialog(String userName, BuildContext context) {
                 minimumSize: const Size(120, 45),
               ),
               onPressed: () {
-                print("🏠 OK pressed from cancelled - Navigating to Register");
                 Navigator.pop(context);
-                Navigator.of(context).pushAndRemoveUntil(
-                  MaterialPageRoute(builder: (context) => Register()),
-                      (route) => false,
-                );
+                final navCtx = navigatorKey.currentContext;
+                if (navCtx != null) {
+                  Navigator.of(navCtx).pushAndRemoveUntil(
+                    MaterialPageRoute(builder: (_) => Register()),
+                        (route) => false,
+                  );
+                }
               },
               child: const Text(
                 "OK",

@@ -153,6 +153,8 @@
 //     },
 //   );
 // }
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
@@ -264,6 +266,7 @@ class OnlineStatusViewModel with ChangeNotifier {
 
       final profileData = profileViewModel.profileModel?.data;
 
+
       // ── Profile data map banao — Firebase mein jo save hota tha
       final Map<String, dynamic> driverPayload = {
         'driverId': driverId,
@@ -305,17 +308,36 @@ class OnlineStatusViewModel with ChangeNotifier {
     try {
       final profileData = profileViewModel.profileModel?.data;
 
-      // ── toJson() se direct key access karo — getter naam ki zarurat nahi
-      final profileJson = profileData?.toJson();
 
-      final profileLat = double.tryParse(
-        profileJson?['current_latitude']?.toString() ?? '',
-      );
-      final profileLng = double.tryParse(
-        profileJson?['current_longitude']?.toString() ?? '',
-      );
+      print("📦 FULL PROFILE MODEL:");
+      print(jsonEncode(profileViewModel.profileModel?.toJson()));
+
+      print("📦 FULL PROFILE DATAuyuy:");
+      print(jsonEncode(profileData?.toJson()));
+      print("LAT FROM MODEL -> ${profileData?.phone}");
+      print("LNG FROM MODEL -> ${profileData?.currentLongitude}");
+      final jsonString = jsonEncode(profileViewModel.profileModel?.data?.toJson());
+
+      for (int i = 0; i < jsonString.length; i += 800) {
+        debugPrint(jsonString.substring(
+          i,
+          i + 800 > jsonString.length ? jsonString.length : i + 800,
+        ));
+      }
+      print("lolllo");
+           print(jsonString);
+      // latitude longitude ko double me convert karo
+      final double? profileLat =
+      double.tryParse(profileData?.currentLatitude?.toString() ?? '');
+
+      final double? profileLng =
+      double.tryParse(profileData?.currentLongitude?.toString() ?? '');
 
       print("📍 Profile location: lat=$profileLat, lng=$profileLng");
+      print("profileModel object: ${profileViewModel.profileModel}");
+      print("profileModel data: ${profileViewModel.profileModel?.data}");
+      print("latitude field: ${profileViewModel.profileModel?.data?.currentLatitude}");
+      print("longitude field: ${profileViewModel.profileModel?.data?.currentLongitude}");
 
       if (profileLat == null || profileLng == null) {
         print("⚠️ Profile location null — skipping distance check");
@@ -326,7 +348,8 @@ class OnlineStatusViewModel with ChangeNotifier {
         desiredAccuracy: LocationAccuracy.high,
       );
 
-      print("📱 Current GPS: lat=${currentPos.latitude}, lng=${currentPos.longitude}");
+      print(
+          "📱 Current GPS: lat=${currentPos.latitude}, lng=${currentPos.longitude}");
 
       final double distanceInMeters = Geolocator.distanceBetween(
         profileLat,
@@ -337,15 +360,16 @@ class OnlineStatusViewModel with ChangeNotifier {
 
       print("📏 Distance: ${distanceInMeters.toStringAsFixed(1)}m");
 
-      if (distanceInMeters > 20) {
-        print("✅ > 20m — Socket location update");
+      if (distanceInMeters > 0.2) {
+        print("✅ > 0.2m — Socket location update");
+
         rideViewModel.updateDriverLocation(
           driverId,
           currentPos.latitude,
           currentPos.longitude,
         );
       } else {
-        print("ℹ️ <= 20m — No update needed");
+        print("ℹ️ <= 0.2m — No update needed");
       }
     } catch (e) {
       print("❌ _checkAndUpdateLocationIfNeeded error: $e");

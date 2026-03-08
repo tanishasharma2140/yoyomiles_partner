@@ -69,6 +69,8 @@ class Data {
   int? status;
   int? verifyDocument;
   int? onlineStatus;
+  String? currentLatitude;
+  String? currentLongitude;
   int? ownerDocStatus;
   int? vehicleDocStatus;
   int? driverDocStatus;
@@ -114,6 +116,8 @@ class Data {
         this.status,
         this.verifyDocument,
         this.onlineStatus,
+        this.currentLatitude,
+        this.currentLongitude,
         this.ownerDocStatus,
         this.vehicleDocStatus,
         this.driverDocStatus,
@@ -159,6 +163,8 @@ class Data {
     status = json['status'];
     verifyDocument = json['verify_document'];
     onlineStatus = json['online_status'];
+    currentLatitude = json['current_latitude'];
+    currentLongitude = json['current_longitude'];
     ownerDocStatus = json['owner_doc_status'];
     vehicleDocStatus = json['vehicle_doc_status'];
     driverDocStatus = json['driver_doc_status'];
@@ -206,6 +212,8 @@ class Data {
     data['status'] = status;
     data['verify_document'] = verifyDocument;
     data['online_status'] = onlineStatus;
+    data['current_latitude'] = currentLatitude;
+    data['current_longitude'] = currentLongitude;
     data['owner_doc_status'] = ownerDocStatus;
     data['vehicle_doc_status'] = vehicleDocStatus;
     data['driver_doc_status'] = driverDocStatus;
