@@ -328,6 +328,7 @@ class RideViewModel extends ChangeNotifier {
 
   List<Map<String, dynamic>>? get allRideData => _allRideData;
   Map<String, dynamic>? get activeRideData => _activeRideData;
+
   bool get isListen => _isListen;
 
   bool _showRideCancelledDialog = false;
@@ -553,6 +554,13 @@ class RideViewModel extends ChangeNotifier {
 
         // ── Same filtering logic as Firebase ──
         if (rideStatus < 0 || rideStatus > 8) continue;
+        // ✅ Agar ye mapped ride current active ride hai toh payMode preserve karo
+        final existingPayMode = _activeRideData?['payMode'];
+        if (_activeRideData?['id']?.toString() == mapped['id']?.toString() &&
+            existingPayMode != null && existingPayMode != 0 &&
+            (mapped['payMode'] == null || mapped['payMode'] == 0)) {
+          mapped['payMode'] = existingPayMode;
+        }
 
         if (rideStatus == 7 ||
             rideStatus == 8 ||
@@ -594,8 +602,19 @@ class RideViewModel extends ChangeNotifier {
 
       // ✅ Active ride sync
       if (activeId != null && activeId == mappedId) {
+        final existingPayMode = _activeRideData?['payMode'];
+        final incomingPayMode = mapped['payMode'];
+
+        // Agar existing payMode valid (>0) aur incoming 0/null hai toh preserve karo
+        if (existingPayMode != null &&
+            existingPayMode != 0 &&
+            (incomingPayMode == null || incomingPayMode == 0)) {
+          mapped['payMode'] = existingPayMode;
+          print("🔒 payMode preserved: $existingPayMode (incoming was: $incomingPayMode)");
+        }
+
         _activeRideData = mapped;
-        print("✅ activeRideData synced");
+        print("✅ activeRideData synced | payMode: ${mapped['payMode']}");
       }
 
       // ✅ Status 7/8 — DIRECTLY handle, flag check mat karo
@@ -693,8 +712,8 @@ class RideViewModel extends ChangeNotifier {
   Map<String, dynamic>? _mapRideData(dynamic raw, String driverIdStr) {
     try {
       final data = Map<String, dynamic>.from(raw);
+      print("SERVER PAYMODE: ${data['paymode']}");
 
-      // SYNC_RIDES mein 'order_id' aata hai, ORDER_UPDATE mein 'id'
       final id = data['order_id']?.toString() ?? data['id']?.toString() ?? '';
       if (id.isEmpty) return null;
 
@@ -713,7 +732,7 @@ class RideViewModel extends ChangeNotifier {
         'distance': data['distance'] ?? 0,
         'accepted_driver_id': data['accepted_driver_id'] ?? 0,
         'rideStatus': int.tryParse(data['ride_status']?.toString() ?? '0') ?? 0,
-        'payMode': int.tryParse(data['paymode']?.toString() ?? '1') ?? 1,
+        'payMode': int.tryParse(data['paymode']?.toString() ?? '0') ?? 0,
         'otp': data['otp'] ?? 1,
         'pickup_latitute': data['pickup_latitute']?.toString(),
         'pick_longitude': data['pick_longitude']?.toString(),

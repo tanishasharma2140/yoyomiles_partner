@@ -38,6 +38,7 @@
       double dropLng = 0.0;
       bool isOtpVerified = false;
       int? _localRideStatus;
+      bool _paymentScreenOpened = false;
     
       @override
       @override
@@ -60,19 +61,23 @@
               dropLat = double.tryParse(data.dropLatitute.toString()) ?? 0.0;
               dropLng = double.tryParse(data.dropLogitute.toString()) ?? 0.0;
 
-              print("📍 Pickup LatLng = $pickupLat , $pickupLng");
-              print("📍 Drop LatLng   = $dropLat , $dropLng");
-            }
-            if (_localRideStatus == null) {
-              setState(() {
-                _localRideStatus = liveRideViewModel.liveOrderModel?.data?.rideStatus ?? 1;
-              });
-            }
+              int status = data.rideStatus ?? 1;
 
-            if (liveRideViewModel.liveOrderModel?.data?.id != null) {
-              // _startRideStatusListener(
-              //   liveRideViewModel.liveOrderModel!.data!.id.toString(),
-              // );
+              setState(() {
+                _localRideStatus = status;
+              });
+
+              print("🚦 Ride status from API: $status");
+
+              /// ⭐ FIX
+              if (status == 5 && !_paymentScreenOpened) {
+                _paymentScreenOpened = true;
+
+                Future.delayed(const Duration(milliseconds: 300), () {
+                  print("➡️ Opening CollectPaymentScreen");
+                  _navigateToWaitingPaymentScreen();
+                });
+              }
             }
           });
         });
@@ -359,79 +364,77 @@
           ),
         );
       }
-    
+
       void _handleReachedButtonClick() async {
-        final rideStatus = Provider.of<RideViewModel>(context, listen: false);
-        final liveRideViewModel = Provider.of<LiveRideViewModel>(
-          context,
-          listen: false,
-        );
-        final updateRideStatusVm = Provider.of<UpdateRideStatusViewModel>(  // ✅ ADD
-          context,
-          listen: false,
-        );
+        final rideVm = Provider.of<RideViewModel>(context, listen: false);
+        final liveRideVm = Provider.of<LiveRideViewModel>(context, listen: false);
+        final updateRideStatusVm =
+        Provider.of<UpdateRideStatusViewModel>(context, listen: false);
+
         final loc = AppLocalizations.of(context)!;
-    
-        final orderId = liveRideViewModel.liveOrderModel!.data!.id.toString();
-    
+
+        final orderId = liveRideVm.liveOrderModel!.data!.id.toString();
+
         try {
-          final payMode = rideStatus.activeRideData?['payMode'] ?? 1;
-    
+          // ✅ SERVER PAYMODE FIRST
+          final payMode =
+              liveRideVm.liveOrderModel?.data?.paymode ??
+                  rideVm.activeRideData?['payMode'] ??
+                  0;
+
           print("💰 Reached tapped | payMode = $payMode");
-    
-          /// 🔥 WALLET PAYMENT (paymode == 3)
-          /// 🔥 WALLET PAYMENT (paymode == 3)
+          print("SERVER PAYMODE: ${liveRideVm.liveOrderModel?.data?.paymode}");
+          print("SOCKET PAYMODE: ${rideVm.activeRideData?['payMode']}");
+
+          /// WALLET PAYMENT
           if (payMode == 3) {
-            print("👛 Wallet payment detected → completing ride directly");
-    
-            // ✅ Socket ki jagah REST API
-            await updateRideStatusVm.updateRideApi(context, orderId,"", "6", navigateAfter: true,);
-    
+            print("👛 Wallet payment detected → completing ride");
+
+            await updateRideStatusVm.updateRideApi(
+              context,
+              orderId,
+              "",
+              "6",
+              navigateAfter: true,
+            );
+
             Utils.showSuccessMessage(context, loc.ride_completed_wallet);
-    
+
             Future.delayed(const Duration(milliseconds: 300), () {
               _showRideCompletedDialogMethod();
             });
-    
+
             return;
           }
-    
-          /// 💵 CASH PAYMENT
+
+          /// CASH PAYMENT
           if (payMode == 1) {
-            print("💵 Cash payment → move to collect payment");
-    
-            // ✅ Firebase hata ke updateRideApi use karo
-            await updateRideStatusVm.updateRideApi(context, orderId,"", "5");
-    
+            print("💵 Cash payment → collect payment screen");
+
+            await updateRideStatusVm.updateRideApi(context, orderId, "", "5");
+
             Utils.showSuccessMessage(context, loc.reached_destination);
-    
-            Future.delayed(const Duration(milliseconds: 300), () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => CollectPaymentScreen(orderId: orderId),
-                ),
-              );
-            });
-    
+
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => CollectPaymentScreen(orderId: orderId),
+              ),
+            );
             return;
           }
-    
-          /// 💳 ONLINE PAYMENT
+
+          /// ONLINE PAYMENT
           if (payMode == 2) {
             print("💳 Online payment → waiting for payment");
-    
-            // ✅ Firebase hata ke updateRideApi use karo
-            await updateRideStatusVm.updateRideApi(context, orderId,"", "5");
-    
+
+            await updateRideStatusVm.updateRideApi(context, orderId, "", "5");
+
             Utils.showSuccessMessage(
               context,
               loc.ride_status_reached_destination,
             );
-    
-            Future.delayed(const Duration(milliseconds: 300), () {
-              _navigateToWaitingPaymentScreen();
-            });
-    
+
+            _navigateToWaitingPaymentScreen();
             return;
           }
         } catch (e) {
@@ -1512,17 +1515,17 @@
     class CollectPaymentScreen extends StatelessWidget {
       final String orderId;
       const CollectPaymentScreen({super.key, required this.orderId});
-    
+
       void _handlePaymentComplete(BuildContext context) async {
         final liveRideVm = Provider.of<LiveRideViewModel>(context, listen: false);
         final rideStatus = Provider.of<RideViewModel>(context, listen: false);
         final updateRideVM = Provider.of<UpdateRideStatusViewModel>(context, listen: false);
         final loc = AppLocalizations.of(context)!;
-    
-    
+
+
         try {
           print("💵 Payment completed → Updating ride to status 6");
-    
+
           // 🔹 Backend API update first
           await updateRideVM.updateRideApi(
             context,
@@ -1530,22 +1533,22 @@
             "",
             "6",
           );
-    
+
           // 🔹 Update Firestore too (if required)
           // await FirebaseFirestore.instance
           //     .collection('order')
           //     .doc(orderId)
           //     .update({'ride_status': 6});
-    
+
           // 🔹 Clear active ride state
           rideStatus.setActiveRideData(null);
           rideStatus.disable78();
-    
+
           Utils.showSuccessMessage(context, loc.ride_completed_successfully);
-    
+
           // 🔹 Close current screen
           Navigator.of(context).pop();
-    
+
           // 🔹 Show Completed Dialog after short delay (safe build)
           Future.delayed(const Duration(milliseconds: 300), () {
             showDialog(
@@ -1558,29 +1561,29 @@
           Utils.showErrorMessage(context, "${loc.failed_complete_ride} $e");
         }
       }
-  
-  
+
+
       Future<void> _changePaymode(BuildContext context, int newPaymode) async {
         final changePayModeViewModel = Provider.of<ChangePayModeViewModel>(
             context, listen: false);
         final loc = AppLocalizations.of(context)!;
-  
+
         try {
           await changePayModeViewModel.changePayModeApi(
             context: context,
             orderId: orderId,
             payMode: newPaymode,
           );
-  
+
           // ✅ Dialog band karo — UI apne aap update ho jayegi Consumer2 se
           // Navigator.pop(context);
           Utils.showSuccessMessage(context, "Paymode Change Succeess");
-  
+
         } catch (e) {
           Utils.showErrorMessage(context, "${loc.failed_change_payment_mode} $e");
         }
       }
-    
+
       void _showPaymodeChangeDialog(BuildContext context) {
         final loc = AppLocalizations.of(context)!;
         showDialog(
@@ -1589,10 +1592,14 @@
             return Consumer2<ChangePayModeViewModel, RideViewModel>( // ✅
               builder: (context, changePayModeVm, rideVm, child) {
                 // ✅ हर rebuild पर fresh payMode lo
-                final currentPaymode = changePayModeVm.updatedPayMode
-                    ?? rideVm.activeRideData?['payMode']
-                    ?? 1;
-  
+                final liveRideVm = Provider.of<LiveRideViewModel>(context, listen: false);
+
+                final currentPaymode =
+                    changePayModeVm.updatedPayMode ??
+                        liveRideVm.liveOrderModel?.data?.paymode ??
+                        rideVm.activeRideData?['payMode'] ??
+                        0;
+
                 return AlertDialog(
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
@@ -1660,8 +1667,9 @@
           },
         );
       }
-    
+
       Widget _buildRideCompletedDialog(BuildContext context) {
+        final rideStatus = Provider.of<RideViewModel>(context, listen: false);
         final loc = AppLocalizations.of(context)!;
         return WillPopScope(
           onWillPop: () async => false,
@@ -1702,6 +1710,8 @@
                       print(
                         "🏠 OK pressed from ride completed - Navigating to Register",
                       );
+                      rideStatus.setActiveRideData(null);
+                      rideStatus.disable78();
                       Navigator.pop(context);
                       // Provider.of<UpdateRideStatusViewModel>(
                       //   context,
@@ -1729,22 +1739,28 @@
           ),
         );
       }
-    
-    
+
+
       @override
       Widget build(BuildContext context) {
         return Consumer2<RideViewModel, ChangePayModeViewModel>( // ✅ Consumer2
           builder: (context, rideViewModel, changePayModeVm, child) {
             // ✅ changePayMode se aaya toh woh use karo, warna socket/default
-            final payMode = changePayModeVm.updatedPayMode
-                ?? rideViewModel.activeRideData?['payMode']
-                ?? 1;
-  
+            final liveRideVm = Provider.of<LiveRideViewModel>(context, listen: false);
+
             final rideStatus = rideViewModel.activeRideData?['rideStatus'] ?? 0;
+
+            final payMode =
+                changePayModeVm.updatedPayMode ??
+                    rideViewModel.activeRideData?['payMode'] ??   // ✅ socket data pehle
+                    liveRideVm.liveOrderModel?.data?.paymode ??   // API fallback baad mein
+                    0;
+
+
             final loc = AppLocalizations.of(context)!;
-  
+
             print("🎨 CollectPaymentScreen - PayMode: $payMode, RideStatus: $rideStatus");
-    
+
             return WillPopScope(
               onWillPop: () async => false,
               child: Scaffold(
@@ -1783,7 +1799,7 @@
                           ),
                         ),
                     ]
-    
+
                 ),
                 body: SafeArea(
                   child: Padding(
@@ -1817,7 +1833,7 @@
                           ),
                         ),
                         SizedBox(height: 24),
-    
+
                         // 🔥 DYNAMIC TITLE BASED ON STATE
                         Text(
                           (payMode == 2 && rideStatus == 6)
@@ -1836,7 +1852,7 @@
                           ),
                         ),
                         SizedBox(height: 16),
-    
+
                         // 🔥 DYNAMIC CONTENT BASED ON STATE
                         if (payMode == 1) ...[
                           // ✅ CASH PAYMENT UI
@@ -1908,7 +1924,7 @@
                             ),
                           ),
                           const SizedBox(height: 40),
-    
+
                           // OK BUTTON
                           SizedBox(
                             width: double.infinity,
@@ -1922,9 +1938,9 @@
                                   context,
                                   listen: false,
                                 );
-    
+
                                 print("🏠 OK pressed - Navigating to Register");
-    
+
                                 Navigator.of(context).pushAndRemoveUntil(
                                   MaterialPageRoute(builder: (context) => Register()),
                                       (route) => false,

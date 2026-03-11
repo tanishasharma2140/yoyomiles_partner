@@ -153,6 +153,7 @@
 //     },
 //   );
 // }
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
@@ -182,6 +183,8 @@ class OnlineStatusViewModel with ChangeNotifier {
     notifyListeners();
   }
 
+  StreamSubscription<Position>? _positionStream;
+
   Future<bool> onlineStatusApi(BuildContext context, int status) async {
     setLoading(true);
 
@@ -210,8 +213,6 @@ class OnlineStatusViewModel with ChangeNotifier {
         await profileViewModel.profileApi(context);
 
         if (status == 1) {
-          // ❌ REMOVED: FirebaseServices().saveOrUpdateDocument()
-          // ✅ Socket se JOIN_DRIVER emit karo profile data ke saath
           await _joinDriverWithProfile(
             context,
             userId.toString(),
@@ -252,132 +253,68 @@ class OnlineStatusViewModel with ChangeNotifier {
     }
   }
 
-  // ✅ JOIN_DRIVER — profile data ke saath emit karo
   Future<void> _joinDriverWithProfile(
       BuildContext context,
       String driverId,
       ProfileViewModel profileViewModel,
       ) async {
     try {
-      final rideViewModel = Provider.of<RideViewModel>(
-        context,
-        listen: false,
-      );
-
+      final rideViewModel = Provider.of<RideViewModel>(context, listen: false);
       final profileData = profileViewModel.profileModel?.data;
 
-
-      // ── Profile data map banao — Firebase mein jo save hota tha
       final Map<String, dynamic> driverPayload = {
         'driverId': driverId,
         'driver_name': profileData?.driverName ?? '',
         'phone': profileData?.phone?.toString() ?? '',
         'vehicle_no': profileData?.vehicleNo ?? '',
         'vehicle_type': profileData?.vehicleType?.toString() ?? '',
-        // 'vehicle_name': profileData?.vehicleName ?? '',
         'owner_selfie': profileData?.ownerSelfie ?? '',
         'online_status': 1,
       };
 
       print("📤 Emitting JOIN_DRIVER with profile: $driverPayload");
 
-      // ✅ RideViewModel ke socket se emit karo
       rideViewModel.joinDriverWithProfile(driverPayload);
 
-      // ── Location bhi saath update karo (20m check)
-      await _checkAndUpdateLocationIfNeeded(
-        context,
-        driverId,
-        profileViewModel,
-        rideViewModel,
-      );
+      /// Start live location tracking
+      _startLocationTracking(driverId, rideViewModel);
 
     } catch (e) {
       print("❌ _joinDriverWithProfile error: $e");
     }
   }
+  void _startLocationTracking(String driverId, RideViewModel rideViewModel) {
 
-  // ✅ Profile location vs GPS — 20m se zyada ho toh socket update
-// ✅ Profile location vs GPS — 20m se zyada ho toh socket update
-  Future<void> _checkAndUpdateLocationIfNeeded(
-      BuildContext context,
-      String driverId,
-      ProfileViewModel profileViewModel,
-      RideViewModel rideViewModel,
-      ) async {
-    try {
-      final profileData = profileViewModel.profileModel?.data;
+    print("🛰 Starting live location tracking...");
 
+    const LocationSettings locationSettings = LocationSettings(
+      accuracy: LocationAccuracy.high,
+      distanceFilter: 20, // 👈 20 meter move hone par update
+    );
 
-      print("📦 FULL PROFILE MODEL:");
-      print(jsonEncode(profileViewModel.profileModel?.toJson()));
+    _positionStream =
+        Geolocator.getPositionStream(locationSettings: locationSettings)
+            .listen((Position position) {
 
-      print("📦 FULL PROFILE DATAuyuy:");
-      print(jsonEncode(profileData?.toJson()));
-      print("LAT FROM MODEL -> ${profileData?.phone}");
-      print("LNG FROM MODEL -> ${profileData?.currentLongitude}");
-      final jsonString = jsonEncode(profileViewModel.profileModel?.data?.toJson());
+          print("📍 New GPS location received");
+          print("Latitude: ${position.latitude}");
+          print("Longitude: ${position.longitude}");
 
-      for (int i = 0; i < jsonString.length; i += 800) {
-        debugPrint(jsonString.substring(
-          i,
-          i + 800 > jsonString.length ? jsonString.length : i + 800,
-        ));
-      }
-      print("lolllo");
-           print(jsonString);
-      // latitude longitude ko double me convert karo
-      final double? profileLat =
-      double.tryParse(profileData?.currentLatitude?.toString() ?? '');
+          print("📤 Sending updated location to socket...");
 
-      final double? profileLng =
-      double.tryParse(profileData?.currentLongitude?.toString() ?? '');
+          rideViewModel.updateDriverLocation(
+            driverId,
+            position.latitude,
+            position.longitude,
+          );
 
-      print("📍 Profile location: lat=$profileLat, lng=$profileLng");
-      print("profileModel object: ${profileViewModel.profileModel}");
-      print("profileModel data: ${profileViewModel.profileModel?.data}");
-      print("latitude field: ${profileViewModel.profileModel?.data?.currentLatitude}");
-      print("longitude field: ${profileViewModel.profileModel?.data?.currentLongitude}");
+          print("✅ Location updated on server");
 
-      if (profileLat == null || profileLng == null) {
-        print("⚠️ Profile location null — skipping distance check");
-        return;
-      }
-
-      final Position currentPos = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
-      );
-
-      print(
-          "📱 Current GPS: lat=${currentPos.latitude}, lng=${currentPos.longitude}");
-
-      final double distanceInMeters = Geolocator.distanceBetween(
-        profileLat,
-        profileLng,
-        currentPos.latitude,
-        currentPos.longitude,
-      );
-
-      print("📏 Distance: ${distanceInMeters.toStringAsFixed(1)}m");
-
-      if (distanceInMeters > 0.2) {
-        print("✅ > 0.2m — Socket location update");
-
-        rideViewModel.updateDriverLocation(
-          driverId,
-          currentPos.latitude,
-          currentPos.longitude,
-        );
-      } else {
-        print("ℹ️ <= 0.2m — No update needed");
-      }
-    } catch (e) {
-      print("❌ _checkAndUpdateLocationIfNeeded error: $e");
-    }
+        });
   }
+
 }
 
-// ── Dialog same as before ────────────────────────────────────────
 void showDueDialog(BuildContext context, String message) {
   showDialog(
     context: context,
