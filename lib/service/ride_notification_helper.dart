@@ -36,6 +36,18 @@ class RideNotificationHelper {
 
 
   static Future<void> showIncomingRide(Map<String, dynamic> bookingData) async {
+    print("📦 Incoming bookingData: $bookingData");
+
+    if (bookingData.isEmpty || bookingData['id'] == null) {
+      print("❌ Invalid bookingData → Not showing notification");
+      return;
+    }
+
+    if (bookingData['pickup_address'] == null) {
+      print("❌ Missing pickup → Not showing notification");
+      return;
+    }
+
     // 🔥 Store booking data
     _currentBookingData = bookingData;
 

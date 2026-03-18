@@ -19,7 +19,7 @@ class ActiveRideViewModel with ChangeNotifier {
     notifyListeners();
   }
 
-  void setModelData(ActiveRideModel value) {
+  void setModelData(ActiveRideModel? value) {
     _activeRideModel = value;
     notifyListeners();
   }
@@ -27,6 +27,7 @@ class ActiveRideViewModel with ChangeNotifier {
   /// ✅ Fetch active ride from API
   Future<void> activeRideApi(String driverId) async {
     setLoading(true);
+    setModelData(null);
     try {
       final value = await _activeRideRepo.activeRideApi(driverId);
       debugPrint('Active ride API response: $value');

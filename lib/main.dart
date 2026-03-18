@@ -12,6 +12,7 @@ import 'package:yoyomiles_partner/l10n/app_localizations.dart';
 import 'package:yoyomiles_partner/res/const_without_polyline_map.dart';
 import 'package:yoyomiles_partner/res/notification_service.dart';
 import 'package:yoyomiles_partner/res/sizing_const.dart';
+import 'package:yoyomiles_partner/service/background_service.dart';
 import 'package:yoyomiles_partner/service/internet_checker_service.dart';
 import 'package:yoyomiles_partner/service/ride_notification_helper.dart';
 import 'package:yoyomiles_partner/utils/routes/routes.dart';
@@ -86,13 +87,7 @@ Future<void> main() async {
   SharedPreferences sp = await SharedPreferences.getInstance();
   final String languageCode = sp.getString('language_code') ?? '';
 
-  // await initializeBackgroundService();
-  // SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
-  // 🔹 Get FCM Token
-  //final fcmToken = await FirebaseMessaging.instance.getToken();
-  // if (kDebugMode) {
-  //   print("✅ FCM Token: $fcmToken");
-  // }
+  await initializeBackgroundService(); // ✅ UNCOMMENT KARO
 
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
@@ -100,13 +95,9 @@ Future<void> main() async {
   ]);
 
   nativeChannel.setMethodCallHandler(handleNativeCallback);
-
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  //
 
-  runApp( MyApp(
-    locale: languageCode,
-  ));
+  runApp(MyApp(locale: languageCode));
 }
 
 double topPadding = 0.0;
@@ -154,59 +145,51 @@ class _MyAppState extends State<MyApp> {
 
       if (action.type == ActionType.accept) {
         print("🚕 ACCEPT tapped");
-        print("📦 Booking data: ${action.bookingData}");
 
         final bookingData = action.bookingData;
-
         final context = navigatorKey.currentContext;
-        if (context == null) {
-          print("❌ Context not available");
-          return;
-        }
+        if (context == null) return;
 
-        final assignVm = Provider.of<AssignRideViewModel>(
-          context,
-          listen: false,
-        );
+        final assignVm = Provider.of<AssignRideViewModel>(context, listen: false);
 
-        // 🔥 SAFE extraction
-        final String orderId = action.bookingData['order_id']?.toString() ?? "";
+        // ✅ Ringtone band karo
+        final rideVm = Provider.of<RideViewModel>(context, listen: false);
+        rideVm.stopRideRingtone();
 
-        await assignVm.assignRideApi(
-          context,
-          1, // ACCEPT
-          orderId,
-          bookingData,
-        );
+        // ✅ order_id ya id — dono try karo
+        final String orderId =
+        bookingData['order_id']?.toString().isNotEmpty == true
+            ? bookingData['order_id'].toString()
+            : bookingData['id']?.toString() ?? "";
+
+        print("📦 Accept orderId: $orderId");
+
+        await assignVm.assignRideApi(context, 1, orderId, bookingData);
       }
 
       if (action.type == ActionType.reject) {
         print("❌ REJECT tapped");
-        print("📦 Booking data: ${action.bookingData}");
 
-        final String orderId = action.bookingData['order_id']?.toString() ?? "";
+        final bookingData = action.bookingData;
+        final context = navigatorKey.currentContext;
+        if (context == null) return;
+
+        // ✅ Ringtone band karo
+        final rideVm = Provider.of<RideViewModel>(context, listen: false);
+        rideVm.stopRideRingtone();
+
+        final String orderId =
+        bookingData['order_id']?.toString().isNotEmpty == true
+            ? bookingData['order_id'].toString()
+            : bookingData['id']?.toString() ?? "";
 
         if (orderId.isEmpty) {
           print("❌ Order ID missing");
           return;
         }
 
-        final context = navigatorKey.currentContext;
-        if (context == null) {
-          print("❌ Context not available");
-          return;
-        }
-
-        final ignoreVm = Provider.of<DriverIgnoredRideViewModel>(
-          context,
-          listen: false,
-        );
-
-        await ignoreVm.driverIgnoredRideApi(
-          context: context,
-          orderId: orderId, // ✅ STRING
-        );
-
+        final ignoreVm = Provider.of<DriverIgnoredRideViewModel>(context, listen: false);
+        await ignoreVm.driverIgnoredRideApi(context: context, orderId: orderId);
         print("✅ IGNORE API CALLED FOR ORDER: $orderId");
       }
     });

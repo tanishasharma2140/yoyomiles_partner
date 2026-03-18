@@ -23,6 +23,8 @@ class UpdateRideStatusViewModel with ChangeNotifier {
       BuildContext context,
       String id,
       dynamic otp,
+      dynamic currentLatitude,
+      dynamic currentLongitude,
       String rideStatus, {
         bool navigateAfter = false,
       }) async {
@@ -31,6 +33,9 @@ class UpdateRideStatusViewModel with ChangeNotifier {
     Map data = {
       "id": id,
       "ride_status": rideStatus,
+      "current_latitude": currentLatitude,
+      "current_longitude": currentLongitude,
+
       // ✅ OTP ko int mein convert karo, empty string exclude karo
       if (otp != null && otp.toString().isNotEmpty)
         'otp': int.tryParse(otp.toString()) ?? otp,
@@ -49,9 +54,10 @@ class UpdateRideStatusViewModel with ChangeNotifier {
                 (route) => route.settings.name == RoutesName.register,
           );
         }
-        Utils.showSuccessMessage(context, "Ride status updated successfully!");
+        // Utils.showSuccessMessage(context, "Ride status updated successfully!");
+        debugPrint( "Ride status updated successfully!");
       } else {
-        Utils.showSuccessMessage(context, value["message"]);
+        Utils.showErrorMessage(context, value["message"]);
       }
     }).onError((error, stackTrace) {
       setLoading(false);

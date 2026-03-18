@@ -1,5 +1,6 @@
     import 'dart:async';
     import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
     import 'package:url_launcher/url_launcher.dart';
     import 'package:yoyomiles_partner/generated/assets.dart';
     import 'package:yoyomiles_partner/l10n/app_localizations.dart';
@@ -41,7 +42,6 @@
       bool _paymentScreenOpened = false;
     
       @override
-      @override
       void initState() {
         super.initState();
     
@@ -50,6 +50,7 @@
             context,
             listen: false,
           );
+
 
           liveRideViewModel.liveRideApi().then((_) {
             if (liveRideViewModel.liveOrderModel?.data != null) {
@@ -284,7 +285,9 @@
                         context,
                         liveRideVm.liveOrderModel!.data!.id.toString(),
                         "",
-                        "6",
+                        "",
+                        "",
+                        "6"
                       );
                       // Navigator.of(context).pushAndRemoveUntil(
                       //   MaterialPageRoute(builder: (context) => Register()),
@@ -394,6 +397,8 @@
               context,
               orderId,
               "",
+              "",
+              "",
               "6",
               navigateAfter: true,
             );
@@ -410,8 +415,19 @@
           /// CASH PAYMENT
           if (payMode == 1) {
             print("💵 Cash payment → collect payment screen");
+            // 🔥 Get current location HERE only
+            Position position = await Geolocator.getCurrentPosition(
+              desiredAccuracy: LocationAccuracy.high,
+            );
 
-            await updateRideStatusVm.updateRideApi(context, orderId, "", "5");
+            String lat = position.latitude.toString();
+            String lng = position.longitude.toString();
+
+            print("📍 Current Lat: $lat, Lng: $lng");
+
+
+            await updateRideStatusVm.updateRideApi(context, orderId, "", lat,
+               lng ,"5",);
 
             Utils.showSuccessMessage(context, loc.reached_destination);
 
@@ -426,8 +442,17 @@
           /// ONLINE PAYMENT
           if (payMode == 2) {
             print("💳 Online payment → waiting for payment");
+            Position position = await Geolocator.getCurrentPosition(
+              desiredAccuracy: LocationAccuracy.high,
+            );
 
-            await updateRideStatusVm.updateRideApi(context, orderId, "", "5");
+            String lat = position.latitude.toString();
+            String lng = position.longitude.toString();
+
+            print("📍 Current Lat: $lat, Lng: $lng");
+
+
+            await updateRideStatusVm.updateRideApi(context, orderId, "",lat,lng, "5");
 
             Utils.showSuccessMessage(
               context,
@@ -799,7 +824,7 @@
                                   _showGoToMapDialog();
 
                                   // ✅ API background mein
-                                  updateRideStatusVm.updateRideApi(context, orderId,enteredOtp, "4").then((_) {
+                                  updateRideStatusVm.updateRideApi(context, orderId,enteredOtp, "","","4").then((_) {
                                     print("✅ updateRideApi status 4 done");
                                   }).catchError((e) {
                                     setState(() => _localRideStatus = 3);
@@ -1390,16 +1415,14 @@
                                 final orderId =
                                 liveRideViewModel.liveOrderModel!.data!.id.toString();
     
-                                // ✅ LOCAL STATUS USE KARO — activeRideData nahi
                                 int currentStatus = _localRideStatus ?? 1;
     
                                 try {
                                   if (currentStatus == 1) {
-                                    // ✅ PEHLE local update karo (optimistic)
                                     setState(() => _localRideStatus = 2);
     
                                     await updateRideStatusVm.updateRideApi(
-                                        context, orderId,"", "2");
+                                        context, orderId,"", "","","2");
                                     _showGoToMapPopupFromCurrentLocation();
                                     Utils.showSuccessMessage(
                                         context, loc.ride_status_start_pickup);
@@ -1408,7 +1431,7 @@
                                     setState(() => _localRideStatus = 3);
     
                                     await updateRideStatusVm.updateRideApi(
-                                        context, orderId,"", "3");
+                                        context, orderId,"", "","","3");
                                     Utils.showSuccessMessage(
                                         context, loc.ride_status_arrived_pickup);
     
@@ -1463,7 +1486,7 @@
                                     context,
                                     liveRideViewModel.liveOrderModel!.data!.id
                                         .toString(),
-                                   "", "8",
+                                   "", "","","8",
                                     navigateAfter: true,
                                   );
                                   // rideStatus.setActiveRideData(null);
@@ -1531,7 +1554,9 @@
             context,
             liveRideVm.liveOrderModel!.data!.id.toString(),
             "",
-            "6",
+            "",
+            "",
+            "6"
           );
 
           // 🔹 Update Firestore too (if required)

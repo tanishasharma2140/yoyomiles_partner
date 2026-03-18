@@ -162,6 +162,9 @@ class _RegisterState extends State<Register> {
       await activeRideVm.activeRideApi(driverId.toString());
 
       final activeModel = activeRideVm.activeRideModel;
+      print("📦 ACTIVE RIDE API RESPONSE: ${activeModel?.data}");
+      print("📦 ACTIVE RIDE JSON: ${activeModel?.data?.toJson()}");
+      print("📦 RIDE STATUS: ${activeModel?.data?.rideStatus}");
 
       bool hasRide =
           activeModel != null &&
@@ -169,7 +172,10 @@ class _RegisterState extends State<Register> {
           activeModel.data!.toJson().isNotEmpty;
 
       if (hasRide) {
+        print("🚀 NAVIGATING TO LIVE RIDE SCREEN");
         final ride = Provider.of<RideViewModel>(context, listen: false);
+        print("🧠 hasRide: $hasRide");
+        print("🧠 rideStatus: ${activeModel.data?.rideStatus}");
 
         ride.handleRideUpdate("", context);
 
@@ -178,7 +184,7 @@ class _RegisterState extends State<Register> {
             context,
             CupertinoPageRoute(
               builder: (context) =>
-                  LiveRideScreen(booking: activeModel!.data!.toJson()),
+                  LiveRideScreen(booking: activeModel.data!.toJson()),
             ),
           );
         }

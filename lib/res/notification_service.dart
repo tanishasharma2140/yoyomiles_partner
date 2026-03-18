@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:yoyomiles_partner/service/ride_notification_helper.dart';
 import 'package:yoyomiles_partner/view/auth/register.dart';
 import 'package:yoyomiles_partner/view_model/profile_view_model.dart';
 
@@ -15,7 +16,6 @@ class NotificationService {
   final FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin =
   FlutterLocalNotificationsPlugin();
 
-  // ✅ Request Permission
   Future<void> requestedNotificationPermission() async {
     await Permission.notification.request();
 
@@ -76,6 +76,7 @@ class NotificationService {
 
   // ✅ SAFE Profile API runner (context optional)
   void _runProfileApiSafe() {
+    RideNotificationHelper.clear();
     final ctx = navigatorKey.currentContext;
 
     if (ctx != null) {

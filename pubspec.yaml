@@ -49,6 +49,7 @@ dependencies:
   flutter_background_service: ^5.0.5
   just_audio: ^0.9.36
   audio_session: ^0.1.18
+  flutter_ringtone_player: ^4.0.0
 #  facebook_app_events: ^0.24.0
   in_app_update: ^4.2.5
   connectivity_plus:
