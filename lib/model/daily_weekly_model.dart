@@ -43,10 +43,10 @@ class DailyWeeklyModel {
 }
 
 class TripDetails {
-  int? id;
-  int? distance;
-  int? amount;
-  String? createdAt;
+  dynamic id;
+  dynamic distance;
+  dynamic amount;
+  dynamic createdAt;
 
   TripDetails({this.id, this.distance, this.amount, this.createdAt});
 

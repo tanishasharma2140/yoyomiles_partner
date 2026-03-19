@@ -1,7 +1,7 @@
 class ProfileModel {
   Data? data;
   int? duesStatus;
-  String? duesMessage;
+  dynamic duesMessage;
   String? message;
   int? status;
   bool? success;
@@ -15,7 +15,7 @@ class ProfileModel {
         this.success});
 
   ProfileModel.fromJson(Map<String, dynamic> json) {
-    data = json['data'] != null ? Data.fromJson(json['data']) : null;
+    data = json['data'] != null ? new Data.fromJson(json['data']) : null;
     duesStatus = json['dues_status'];
     duesMessage = json['dues_message'];
     message = json['message'];
@@ -38,51 +38,49 @@ class ProfileModel {
 }
 
 class Data {
-  int? id;
-  String? wallet;
-  String? duesPayment;
-  String? vehicleNo;
-  String? rcFront;
-  String? rcBack;
-  int? cityId;
-  String? vehicleType;
-  String? vehicleBodyDetailsType;
-  String? vehicleBodyType;
-  int? fuelType;
-  String? ownerName;
-  String? ownerAadhaarBack;
-  String? ownerAadhaarFront;
-  String? ownerPanFornt;
-  String? ownerPanBack;
-  String? ownerSelfie;
-  String? driverName;
-  String? drivingLicenceBack;
-  String? drivingLicenceFront;
-  int? phone;
-  int? driveOperator;
+  dynamic id;
+  dynamic wallet;
+  dynamic duesPayment;
+  dynamic vehicleNo;
+  dynamic rcFront;
+  dynamic rcBack;
+  dynamic cityId;
+  dynamic vehicleType;
+  dynamic vehicleBodyDetailsType;
+  dynamic vehicleBodyType;
+  dynamic fuelType;
+  dynamic ownerName;
+  dynamic ownerAadhaarBack;
+  dynamic ownerAadhaarFront;
+  dynamic ownerPanFornt;
+  dynamic ownerPanBack;
+  dynamic ownerSelfie;
+  dynamic driverName;
+  dynamic drivingLicenceBack;
+  dynamic drivingLicenceFront;
+  dynamic phone;
+  dynamic driveOperator;
   dynamic deviceId;
   dynamic docRejResion;
   dynamic email;
-  String? fcm;
-  String? updatedAt;
-  String? createdAt;
-  int? status;
-  int? verifyDocument;
-  int? onlineStatus;
-  String? currentLatitude;
-  String? currentLongitude;
-  int? ownerDocStatus;
-  int? vehicleDocStatus;
-  int? driverDocStatus;
-  int? ratingSum;
-  int? ratingCount;
-  String? vehicleTypeName;
-  String? vehicleTypeImage;
-  String? vehicleBodyDetail;
-  String? vehicleBodyTypeName;
-  String? vehicleBodyTypeImage;
-  String? fuelTypeName;
-  String? cityName;
+  dynamic fcm;
+  dynamic updatedAt;
+  dynamic createdAt;
+  dynamic status;
+  dynamic verifyDocument;
+  dynamic onlineStatus;
+  dynamic ownerDocStatus;
+  dynamic vehicleDocStatus;
+  dynamic driverDocStatus;
+  dynamic currentLatitude;
+  dynamic currentLongitude;
+  dynamic vehicleTypeName;
+  dynamic vehicleTypeImage;
+  dynamic vehicleBodyDetail;
+  dynamic vehicleBodyTypeName;
+  dynamic vehicleBodyTypeImage;
+  dynamic fuelTypeName;
+  dynamic cityName;
 
   Data(
       {this.id,
@@ -116,13 +114,11 @@ class Data {
         this.status,
         this.verifyDocument,
         this.onlineStatus,
-        this.currentLatitude,
-        this.currentLongitude,
         this.ownerDocStatus,
         this.vehicleDocStatus,
         this.driverDocStatus,
-        this.ratingSum,
-        this.ratingCount,
+        this.currentLatitude,
+        this.currentLongitude,
         this.vehicleTypeName,
         this.vehicleTypeImage,
         this.vehicleBodyDetail,
@@ -163,13 +159,11 @@ class Data {
     status = json['status'];
     verifyDocument = json['verify_document'];
     onlineStatus = json['online_status'];
-    currentLatitude = json['current_latitude'];
-    currentLongitude = json['current_longitude'];
     ownerDocStatus = json['owner_doc_status'];
     vehicleDocStatus = json['vehicle_doc_status'];
     driverDocStatus = json['driver_doc_status'];
-    ratingSum = json['rating_sum'];
-    ratingCount = json['rating_count'];
+    currentLatitude = json['current_latitude'];
+    currentLongitude = json['current_longitude'];
     vehicleTypeName = json['vehicle_type_name'];
     vehicleTypeImage = json['vehicle_type_image'];
     vehicleBodyDetail = json['vehicle_body_detail'];
@@ -212,13 +206,11 @@ class Data {
     data['status'] = status;
     data['verify_document'] = verifyDocument;
     data['online_status'] = onlineStatus;
-    data['current_latitude'] = currentLatitude;
-    data['current_longitude'] = currentLongitude;
     data['owner_doc_status'] = ownerDocStatus;
     data['vehicle_doc_status'] = vehicleDocStatus;
     data['driver_doc_status'] = driverDocStatus;
-    data['rating_sum'] = ratingSum;
-    data['rating_count'] = ratingCount;
+    data['current_latitude'] = currentLatitude;
+    data['current_longitude'] = currentLongitude;
     data['vehicle_type_name'] = vehicleTypeName;
     data['vehicle_type_image'] = vehicleTypeImage;
     data['vehicle_body_detail'] = vehicleBodyDetail;

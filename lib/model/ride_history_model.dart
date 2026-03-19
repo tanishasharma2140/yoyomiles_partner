@@ -10,68 +10,76 @@ class RideHistoryModel {
     if (json['data'] != null) {
       data = <Data>[];
       json['data'].forEach((v) {
-        data!.add(Data.fromJson(v));
+        data!.add(new Data.fromJson(v));
       });
     }
     message = json['message'];
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = <String, dynamic>{};
-    data['success'] = success;
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['success'] = this.success;
     if (this.data != null) {
       data['data'] = this.data!.map((v) => v.toJson()).toList();
     }
-    data['message'] = message;
+    data['message'] = this.message;
     return data;
   }
 }
 
 class Data {
-  int? id;
-  int? userid;
-  String? vehicleType;
-  int? vehicleBodyDetailsType;
-  int? vehicleBodyType;
-  String? availableDriverId;
-  int? driverId;
-  String? pickupAddress;
-  String? pickupLatitute;
-  String? pickLongitude;
-  String? dropAddress;
-  String? dropLatitute;
-  String? dropLogitute;
-  String? senderName;
-  int? senderPhone;
-  String? reciverName;
-  int? reciverPhone;
-  int? rideStatus;
-  int? amount;
-  int? paymode;
-  int? paymentStatus;
-  int? distance;
+  dynamic id;
+  dynamic userid;
+  dynamic rideStatus;
+  dynamic amount;
+  dynamic paymode;
+  dynamic vehicleType;
+  dynamic vehicleBodyDetailsType;
+  dynamic vehicleBodyType;
+  dynamic availableDriverId;
+  dynamic driverId;
+  dynamic pickupAddress;
+  dynamic pickupLatitute;
+  dynamic pickLongitude;
+  dynamic dropAddress;
+  dynamic dropLatitute;
+  dynamic dropLogitute;
+  dynamic senderName;
+  dynamic senderPhone;
+  dynamic reciverName;
+  dynamic reciverPhone;
+  dynamic paymentStatus;
+  dynamic distance;
   dynamic pickupSaveAs;
-  String? dropSaveAs;
-  int? orderType;
-  int? otp;
-  String? goodsType;
+  dynamic dropSaveAs;
+  dynamic orderType;
+  dynamic otp;
+  dynamic goodsType;
   dynamic txnId;
   dynamic orderTime;
-  String? datetime;
-  String? updatedAt;
-  String? createdAt;
+  dynamic datetime;
+  dynamic updatedAt;
+  dynamic createdAt;
   dynamic couponId;
-  int? ratingId;
-  int? ratingUserId;
-  String? ratingUserName;
-  int? userRating;
-  String? ratingCreatedAt;
-  int? ratingDriverId;
-  String? ratingOrderId;
+  dynamic ignoredDriverId;
+  dynamic cancelByAdmin;
+  dynamic extraCharges;
+  dynamic walletApplied;
+  dynamic amountWalletApplied;
+  dynamic ratingId;
+  dynamic ratingUserId;
+  dynamic ratingUserName;
+  dynamic userRating;
+  dynamic ratingCreatedAt;
+  dynamic ratingDriverId;
+  dynamic ratingOrderId;
 
   Data(
       {this.id,
         this.userid,
+        this.rideStatus,
+        this.amount,
+        this.paymode,
         this.vehicleType,
         this.vehicleBodyDetailsType,
         this.vehicleBodyType,
@@ -87,9 +95,6 @@ class Data {
         this.senderPhone,
         this.reciverName,
         this.reciverPhone,
-        this.rideStatus,
-        this.amount,
-        this.paymode,
         this.paymentStatus,
         this.distance,
         this.pickupSaveAs,
@@ -103,6 +108,11 @@ class Data {
         this.updatedAt,
         this.createdAt,
         this.couponId,
+        this.ignoredDriverId,
+        this.cancelByAdmin,
+        this.extraCharges,
+        this.walletApplied,
+        this.amountWalletApplied,
         this.ratingId,
         this.ratingUserId,
         this.ratingUserName,
@@ -114,6 +124,9 @@ class Data {
   Data.fromJson(Map<String, dynamic> json) {
     id = json['id'];
     userid = json['userid'];
+    rideStatus = json['ride_status'];
+    amount = json['amount'];
+    paymode = json['paymode'];
     vehicleType = json['vehicle_type'];
     vehicleBodyDetailsType = json['vehicle_body_details_type'];
     vehicleBodyType = json['vehicle_body_type'];
@@ -129,9 +142,6 @@ class Data {
     senderPhone = json['sender_phone'];
     reciverName = json['reciver_name'];
     reciverPhone = json['reciver_phone'];
-    rideStatus = json['ride_status'];
-    amount = json['amount'];
-    paymode = json['paymode'];
     paymentStatus = json['payment_status'];
     distance = json['distance'];
     pickupSaveAs = json['pickup_save_as'];
@@ -145,6 +155,11 @@ class Data {
     updatedAt = json['updated_at'];
     createdAt = json['created_at'];
     couponId = json['coupon_id'];
+    ignoredDriverId = json['ignored_driver_id'];
+    cancelByAdmin = json['cancel_by_admin'];
+    extraCharges = json['extra_charges'];
+    walletApplied = json['wallet_applied'];
+    amountWalletApplied = json['amount_wallet_applied'];
     ratingId = json['rating_id'];
     ratingUserId = json['rating_user_id'];
     ratingUserName = json['rating_user_name'];
@@ -155,47 +170,52 @@ class Data {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = <String, dynamic>{};
-    data['id'] = id;
-    data['userid'] = userid;
-    data['vehicle_type'] = vehicleType;
-    data['vehicle_body_details_type'] = vehicleBodyDetailsType;
-    data['vehicle_body_type'] = vehicleBodyType;
-    data['available_driver_id'] = availableDriverId;
-    data['driver_id'] = driverId;
-    data['pickup_address'] = pickupAddress;
-    data['pickup_latitute'] = pickupLatitute;
-    data['pick_longitude'] = pickLongitude;
-    data['drop_address'] = dropAddress;
-    data['drop_latitute'] = dropLatitute;
-    data['drop_logitute'] = dropLogitute;
-    data['sender_name'] = senderName;
-    data['sender_phone'] = senderPhone;
-    data['reciver_name'] = reciverName;
-    data['reciver_phone'] = reciverPhone;
-    data['ride_status'] = rideStatus;
-    data['amount'] = amount;
-    data['paymode'] = paymode;
-    data['payment_status'] = paymentStatus;
-    data['distance'] = distance;
-    data['pickup_save_as'] = pickupSaveAs;
-    data['drop_save_as'] = dropSaveAs;
-    data['order_type'] = orderType;
-    data['otp'] = otp;
-    data['goods_type'] = goodsType;
-    data['txn_id'] = txnId;
-    data['order_time'] = orderTime;
-    data['datetime'] = datetime;
-    data['updated_at'] = updatedAt;
-    data['created_at'] = createdAt;
-    data['coupon_id'] = couponId;
-    data['rating_id'] = ratingId;
-    data['rating_user_id'] = ratingUserId;
-    data['rating_user_name'] = ratingUserName;
-    data['user_rating'] = userRating;
-    data['rating_created_at'] = ratingCreatedAt;
-    data['rating_driver_id'] = ratingDriverId;
-    data['rating_order_id'] = ratingOrderId;
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['id'] = this.id;
+    data['userid'] = this.userid;
+    data['ride_status'] = this.rideStatus;
+    data['amount'] = this.amount;
+    data['paymode'] = this.paymode;
+    data['vehicle_type'] = this.vehicleType;
+    data['vehicle_body_details_type'] = this.vehicleBodyDetailsType;
+    data['vehicle_body_type'] = this.vehicleBodyType;
+    data['available_driver_id'] = this.availableDriverId;
+    data['driver_id'] = this.driverId;
+    data['pickup_address'] = this.pickupAddress;
+    data['pickup_latitute'] = this.pickupLatitute;
+    data['pick_longitude'] = this.pickLongitude;
+    data['drop_address'] = this.dropAddress;
+    data['drop_latitute'] = this.dropLatitute;
+    data['drop_logitute'] = this.dropLogitute;
+    data['sender_name'] = this.senderName;
+    data['sender_phone'] = this.senderPhone;
+    data['reciver_name'] = this.reciverName;
+    data['reciver_phone'] = this.reciverPhone;
+    data['payment_status'] = this.paymentStatus;
+    data['distance'] = this.distance;
+    data['pickup_save_as'] = this.pickupSaveAs;
+    data['drop_save_as'] = this.dropSaveAs;
+    data['order_type'] = this.orderType;
+    data['otp'] = this.otp;
+    data['goods_type'] = this.goodsType;
+    data['txn_id'] = this.txnId;
+    data['order_time'] = this.orderTime;
+    data['datetime'] = this.datetime;
+    data['updated_at'] = this.updatedAt;
+    data['created_at'] = this.createdAt;
+    data['coupon_id'] = this.couponId;
+    data['ignored_driver_id'] = this.ignoredDriverId;
+    data['cancel_by_admin'] = this.cancelByAdmin;
+    data['extra_charges'] = this.extraCharges;
+    data['wallet_applied'] = this.walletApplied;
+    data['amount_wallet_applied'] = this.amountWalletApplied;
+    data['rating_id'] = this.ratingId;
+    data['rating_user_id'] = this.ratingUserId;
+    data['rating_user_name'] = this.ratingUserName;
+    data['user_rating'] = this.userRating;
+    data['rating_created_at'] = this.ratingCreatedAt;
+    data['rating_driver_id'] = this.ratingDriverId;
+    data['rating_order_id'] = this.ratingOrderId;
     return data;
   }
 }

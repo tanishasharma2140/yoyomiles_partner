@@ -276,7 +276,7 @@ class _MyAppState extends State<MyApp> {
           ChangeNotifierProvider(
             create: (context) => WithdrawHistoryViewModel(),
           ),
-          ChangeNotifierProvider(create: (context) => OtpCountViewModel()),
+          // ChangeNotifierProvider(create: (context) => OtpCountViewModel()),
           ChangeNotifierProvider(
             create: (context) => DriverIgnoredRideViewModel(),
           ),

@@ -223,13 +223,10 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:yoyomiles_partner/main.dart';
 import 'package:yoyomiles_partner/repo/auth_repo.dart';
 import 'package:yoyomiles_partner/utils/routes/routes_name.dart';
 import 'package:yoyomiles_partner/utils/utils.dart';
 import 'package:yoyomiles_partner/view/auth/otp_page.dart';
-import 'package:yoyomiles_partner/view_model/otp_count_view_model.dart';
 import 'package:yoyomiles_partner/view_model/user_view_model.dart';
 
 class AuthViewModel with ChangeNotifier {
@@ -397,7 +394,7 @@ class AuthViewModel with ChangeNotifier {
           ),
         );
         Utils.showSuccessMessage(context, value['msg'] ?? 'OTP sent successfully');
-        Provider.of<OtpCountViewModel>(context,listen: false).otpCountApi(context);
+        // Provider.of<OtpCountViewModel>(context,listen: false).otpCountApi(context);
       } else {
         Utils.showErrorMessage(context, value['msg']);
       }
@@ -438,7 +435,7 @@ class AuthViewModel with ChangeNotifier {
       setLoading(false);
       if (value['error'].toString() == "200") {
         Utils.showSuccessMessage(context, value['msg'] ?? 'OTP resent successfully');
-        Provider.of<OtpCountViewModel>(context,listen: false).otpCountApi(context);
+        // Provider.of<OtpCountViewModel>(context,listen: false).otpCountApi(context);
       }  else {
         Utils.showErrorMessage(value['msg'], 'Failed to resend OTP');
       }
