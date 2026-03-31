@@ -88,7 +88,7 @@ class PaymentViewModel with ChangeNotifier {
         txnToken: model.data!.txnToken!,
         amount: model.data!.amount.toString(),
         firebaseOrderId: firebaseOrderId.toString(),
-        callbackUrl: "https://admin.yoyomiles.com/api/paytm/callback",
+        callbackUrl: "https://dev.yoyomiles.com/api/paytm/callback",
         context: context,
       );
     } catch (e) {

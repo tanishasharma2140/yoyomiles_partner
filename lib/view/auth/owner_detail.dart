@@ -527,7 +527,7 @@ class _OwnerDetailState extends State<OwnerDetail> {
     });
 
     try {
-      final url = Uri.parse("https://admin.yoyomiles.com/api/driver_register");
+      final url = Uri.parse("https://dev.yoyomiles.com/api/driver_register");
       final request = http.MultipartRequest('POST', url);
 
       UserViewModel userViewModel = UserViewModel();

@@ -267,6 +267,7 @@ class AuthViewModel with ChangeNotifier {
       final Map<String, dynamic> data = {
         "phone": phoneController.text.trim(),
         "fcm": fcmToken,
+        // "fcm": fcmToken,
       };
 
       final value = await _authRepo.loginApi(data);
@@ -286,7 +287,7 @@ class AuthViewModel with ChangeNotifier {
 
         Navigator.pushReplacementNamed(
           context,
-          RoutesName.register, // ✅ HOME PAGE
+          RoutesName.register,
         );
         return;
       }
@@ -304,7 +305,7 @@ class AuthViewModel with ChangeNotifier {
           RoutesName.owner,
           arguments: {
             "phone": phoneController.text.trim(),
-          },// ✅ OWNER DETAIL PAGE
+          },
         );
         return;
       }

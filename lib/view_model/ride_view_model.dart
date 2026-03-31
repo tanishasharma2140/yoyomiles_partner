@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
@@ -21,7 +22,7 @@ class RideViewModel extends ChangeNotifier {
 
   bool _showRideCancelledDialog = false;
 
-  static const String _baseUrl = "https://admin.yoyomiles.com/";
+  static const String _baseUrl = "https://dev.yoyomiles.com/";
 
   setAllRideData(List<Map<String, dynamic>>? data) {
     _allRideData = data;
@@ -315,11 +316,39 @@ class RideViewModel extends ChangeNotifier {
       final id = data['order_id']?.toString() ?? data['id']?.toString() ?? '';
       if (id.isEmpty) return null;
 
+      print("========== MAPPED RIDE DATA START ==========");
+      print("🆔 ID: $id");
+      print("📍 Pickup: ${data['pickup_address']}");
+      print("📍 Drop: ${data['drop_address']}");
+
+// 🔥 RAW stops
+      print("🧾 RAW STOPS: ${data['stops']}");
+
+// 🔥 PARSED stops
+      final parsedStops = data['stops'] != null && data['stops'].toString().isNotEmpty
+          ? List<Map<String, dynamic>>.from(jsonDecode(data['stops']))
+          : [];
+
+      print("✅ PARSED STOPS: $parsedStops");
+
+// 🔍 each stop detail
+      for (int i = 0; i < parsedStops.length; i++) {
+        print("➡️ Stop $i:");
+        parsedStops[i].forEach((key, value) {
+          print("   $key : $value");
+        });
+      }
+
+      print("========== MAPPED RIDE DATA END ==========");
+
       return {
         'id': id,
         'sender_name': data['sender_name']?.toString() ?? 'N/A',
         'sender_phone': data['sender_phone']?.toString() ?? 'N/A',
         'pickup_address': data['pickup_address']?.toString() ?? 'N/A',
+        'stops': data['stops'] != null && data['stops'].toString().isNotEmpty
+            ? List<Map<String, dynamic>>.from(jsonDecode(data['stops']))
+            : [],
         'reciver_name': data['reciver_name']?.toString() ?? 'N/A',
         'reciver_phone': data['reciver_phone']?.toString() ?? 'N/A',
         'drop_address': data['drop_address']?.toString() ?? 'N/A',
