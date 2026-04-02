@@ -188,7 +188,7 @@ class RideViewModel extends ChangeNotifier {
     });
 
     _socket!.on('ORDER_UPDATE', (data) {
-      print("📦 ORDER_UPDATE received: Status=${data['ride_status']}");
+      print("📦 ORDER_UPDATE received: Status=${data['ride_status']}, Paymode=${data['paymode']}");
       _handleOrderUpdate(data, driverIdStr, context, onUpdate);
     });
 
@@ -243,23 +243,40 @@ class RideViewModel extends ChangeNotifier {
 
       final rideStatus = mapped['rideStatus'] as int;
       final mappedId = mapped['id']?.toString().trim();
-      
+      final activeId = _activeRideData?['id']?.toString().trim();
+
+      bool isMyActiveRide = activeId != null && activeId == mappedId;
+
       // ✅ IMPROVED: Robust matching to update active ride data
       bool belongsToMe = mapped['accepted_driver_id'].toString() == driverIdStr &&
                          rideStatus > 0 && rideStatus <= 6;
 
-      if (belongsToMe) {
-        final existingPayMode = _activeRideData?['payMode'];
-        if (existingPayMode != null && existingPayMode != 0 && (mapped['payMode'] == null || mapped['payMode'] == 0)) {
-          mapped['payMode'] = existingPayMode;
+      if (isMyActiveRide || belongsToMe) {
+        if (isMyActiveRide) {
+          // Merge to avoid losing data from partial updates
+          final mergedData = Map<String, dynamic>.from(_activeRideData!);
+
+          // Only update if the value is provided (non-zero/non-null)
+          if (mapped['payMode'] != 0) {
+            mergedData['payMode'] = mapped['payMode'];
+          }
+          if (mapped['rideStatus'] != 0) {
+            mergedData['rideStatus'] = mapped['rideStatus'];
+          }
+          // Keep/update other fields selectively
+          if (mapped['sender_name'] != 'N/A') mergedData['sender_name'] = mapped['sender_name'];
+          if (mapped['sender_phone'] != 'N/A') mergedData['sender_phone'] = mapped['sender_phone'];
+
+          _activeRideData = mergedData;
+        } else {
+          _activeRideData = mapped;
         }
-        _activeRideData = mapped;
+
         notifyListeners();
-        print("✅ Active ride updated via ORDER_UPDATE: Status $rideStatus");
+        print("✅ Active ride updated via ORDER_UPDATE: Status ${_activeRideData?['rideStatus']}, PayMode ${_activeRideData?['payMode']}");
       }
 
       if (rideStatus == 7 || rideStatus == 8) {
-        final activeId = _activeRideData?['id']?.toString().trim();
         if (activeId == null || activeId == mappedId) {
           FlutterBackgroundService().invoke('STOP_RINGTONE');
           RideNotificationHelper.clear();

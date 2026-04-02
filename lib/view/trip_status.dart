@@ -14,7 +14,6 @@ import 'package:yoyomiles_partner/res/custom_appbar.dart';
 import 'package:yoyomiles_partner/res/sizing_const.dart';
 import 'package:yoyomiles_partner/res/text_const.dart';
 import 'package:yoyomiles_partner/service/background_service.dart';
-import 'package:yoyomiles_partner/service/socket_service.dart';
 import 'package:yoyomiles_partner/view_model/assign_ride_view_model.dart';
 import 'package:yoyomiles_partner/view_model/delete_old_order_view_model.dart';
 import 'package:yoyomiles_partner/view_model/driver_ignored_ride_view_model.dart';

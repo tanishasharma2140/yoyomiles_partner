@@ -10,19 +10,19 @@ class RideHistoryModel {
     if (json['data'] != null) {
       data = <Data>[];
       json['data'].forEach((v) {
-        data!.add(new Data.fromJson(v));
+        data!.add(Data.fromJson(v));
       });
     }
     message = json['message'];
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['success'] = this.success;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['success'] = success;
     if (this.data != null) {
       data['data'] = this.data!.map((v) => v.toJson()).toList();
     }
-    data['message'] = this.message;
+    data['message'] = message;
     return data;
   }
 }
@@ -33,6 +33,7 @@ class Data {
   dynamic rideStatus;
   dynamic amount;
   dynamic paymode;
+  dynamic stops;
   dynamic vehicleType;
   dynamic vehicleBodyDetailsType;
   dynamic vehicleBodyType;
@@ -80,6 +81,7 @@ class Data {
         this.rideStatus,
         this.amount,
         this.paymode,
+        this.stops,
         this.vehicleType,
         this.vehicleBodyDetailsType,
         this.vehicleBodyType,
@@ -127,6 +129,7 @@ class Data {
     rideStatus = json['ride_status'];
     amount = json['amount'];
     paymode = json['paymode'];
+    stops = json['stops'];
     vehicleType = json['vehicle_type'];
     vehicleBodyDetailsType = json['vehicle_body_details_type'];
     vehicleBodyType = json['vehicle_body_type'];
@@ -170,52 +173,53 @@ class Data {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['id'] = this.id;
-    data['userid'] = this.userid;
-    data['ride_status'] = this.rideStatus;
-    data['amount'] = this.amount;
-    data['paymode'] = this.paymode;
-    data['vehicle_type'] = this.vehicleType;
-    data['vehicle_body_details_type'] = this.vehicleBodyDetailsType;
-    data['vehicle_body_type'] = this.vehicleBodyType;
-    data['available_driver_id'] = this.availableDriverId;
-    data['driver_id'] = this.driverId;
-    data['pickup_address'] = this.pickupAddress;
-    data['pickup_latitute'] = this.pickupLatitute;
-    data['pick_longitude'] = this.pickLongitude;
-    data['drop_address'] = this.dropAddress;
-    data['drop_latitute'] = this.dropLatitute;
-    data['drop_logitute'] = this.dropLogitute;
-    data['sender_name'] = this.senderName;
-    data['sender_phone'] = this.senderPhone;
-    data['reciver_name'] = this.reciverName;
-    data['reciver_phone'] = this.reciverPhone;
-    data['payment_status'] = this.paymentStatus;
-    data['distance'] = this.distance;
-    data['pickup_save_as'] = this.pickupSaveAs;
-    data['drop_save_as'] = this.dropSaveAs;
-    data['order_type'] = this.orderType;
-    data['otp'] = this.otp;
-    data['goods_type'] = this.goodsType;
-    data['txn_id'] = this.txnId;
-    data['order_time'] = this.orderTime;
-    data['datetime'] = this.datetime;
-    data['updated_at'] = this.updatedAt;
-    data['created_at'] = this.createdAt;
-    data['coupon_id'] = this.couponId;
-    data['ignored_driver_id'] = this.ignoredDriverId;
-    data['cancel_by_admin'] = this.cancelByAdmin;
-    data['extra_charges'] = this.extraCharges;
-    data['wallet_applied'] = this.walletApplied;
-    data['amount_wallet_applied'] = this.amountWalletApplied;
-    data['rating_id'] = this.ratingId;
-    data['rating_user_id'] = this.ratingUserId;
-    data['rating_user_name'] = this.ratingUserName;
-    data['user_rating'] = this.userRating;
-    data['rating_created_at'] = this.ratingCreatedAt;
-    data['rating_driver_id'] = this.ratingDriverId;
-    data['rating_order_id'] = this.ratingOrderId;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['id'] = id;
+    data['userid'] = userid;
+    data['ride_status'] = rideStatus;
+    data['amount'] = amount;
+    data['paymode'] = paymode;
+    data['stops'] = stops;
+    data['vehicle_type'] = vehicleType;
+    data['vehicle_body_details_type'] = vehicleBodyDetailsType;
+    data['vehicle_body_type'] = vehicleBodyType;
+    data['available_driver_id'] = availableDriverId;
+    data['driver_id'] = driverId;
+    data['pickup_address'] = pickupAddress;
+    data['pickup_latitute'] = pickupLatitute;
+    data['pick_longitude'] = pickLongitude;
+    data['drop_address'] = dropAddress;
+    data['drop_latitute'] = dropLatitute;
+    data['drop_logitute'] = dropLogitute;
+    data['sender_name'] = senderName;
+    data['sender_phone'] = senderPhone;
+    data['reciver_name'] = reciverName;
+    data['reciver_phone'] = reciverPhone;
+    data['payment_status'] = paymentStatus;
+    data['distance'] = distance;
+    data['pickup_save_as'] = pickupSaveAs;
+    data['drop_save_as'] = dropSaveAs;
+    data['order_type'] = orderType;
+    data['otp'] = otp;
+    data['goods_type'] = goodsType;
+    data['txn_id'] = txnId;
+    data['order_time'] = orderTime;
+    data['datetime'] = datetime;
+    data['updated_at'] = updatedAt;
+    data['created_at'] = createdAt;
+    data['coupon_id'] = couponId;
+    data['ignored_driver_id'] = ignoredDriverId;
+    data['cancel_by_admin'] = cancelByAdmin;
+    data['extra_charges'] = extraCharges;
+    data['wallet_applied'] = walletApplied;
+    data['amount_wallet_applied'] = amountWalletApplied;
+    data['rating_id'] = ratingId;
+    data['rating_user_id'] = ratingUserId;
+    data['rating_user_name'] = ratingUserName;
+    data['user_rating'] = userRating;
+    data['rating_created_at'] = ratingCreatedAt;
+    data['rating_driver_id'] = ratingDriverId;
+    data['rating_order_id'] = ratingOrderId;
     return data;
   }
 }

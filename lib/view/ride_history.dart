@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:yoyomiles_partner/l10n/app_localizations.dart';
@@ -8,6 +10,53 @@ import 'package:yoyomiles_partner/res/text_const.dart';
 import 'package:yoyomiles_partner/view_model/profile_view_model.dart';
 import 'package:yoyomiles_partner/view_model/ride_history_view_model.dart';
 import 'package:provider/provider.dart';
+
+// ─── Stop Model ───────────────────────────────────────────────────────────────
+
+class StopModel {
+  final String name;
+  final String phone;
+  final double lat;
+  final double lng;
+  final String address;
+  final int status; // 1 = reached, 0 = pending
+
+  StopModel({
+    required this.name,
+    required this.phone,
+    required this.lat,
+    required this.lng,
+    required this.address,
+    required this.status,
+  });
+
+  factory StopModel.fromJson(Map<String, dynamic> json) {
+    return StopModel(
+      name: json['name']?.toString() ?? '',
+      phone: json['phone']?.toString() ?? '',
+      lat: (json['lat'] as num?)?.toDouble() ?? 0.0,
+      lng: (json['lng'] as num?)?.toDouble() ?? 0.0,
+      address: json['address']?.toString() ?? '',
+      status: (json['status'] as num?)?.toInt() ?? 0,
+    );
+  }
+}
+
+List<StopModel> parseStops(dynamic stopsRaw) {
+  if (stopsRaw == null) return [];
+  try {
+    final String stopsStr = stopsRaw.toString().trim();
+    if (stopsStr.isEmpty || stopsStr == 'null') return [];
+    final List<dynamic> jsonList = jsonDecode(stopsStr);
+    return jsonList
+        .map((e) => StopModel.fromJson(e as Map<String, dynamic>))
+        .toList();
+  } catch (_) {
+    return [];
+  }
+}
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
 
 class RideHistory extends StatefulWidget {
   const RideHistory({super.key});
@@ -62,16 +111,13 @@ class _RideHistoryState extends State<RideHistory> {
                 ),
                 child: Row(
                   children: [
-                    // Back Button
                     Container(
                       decoration: BoxDecoration(
                         color: PortColor.gold.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: IconButton(
-                        onPressed: () {
-                          Navigator.pop(context);
-                        },
+                        onPressed: () => Navigator.pop(context),
                         icon: Icon(
                           Icons.arrow_back_ios_rounded,
                           color: PortColor.gold,
@@ -80,7 +126,6 @@ class _RideHistoryState extends State<RideHistory> {
                       ),
                     ),
                     SizedBox(width: 20),
-                    // Title
                     Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -102,7 +147,6 @@ class _RideHistoryState extends State<RideHistory> {
                         ),
                       ],
                     ),
-
                   ],
                 ),
               ),
@@ -111,10 +155,10 @@ class _RideHistoryState extends State<RideHistory> {
             // Content
             Expanded(
               child: rideHistoryViewModel.loading
-                  ?  Center(
+                  ? Center(
                 child: CupertinoActivityIndicator(
                   color: PortColor.blue,
-                  radius: 14, // optional – size control
+                  radius: 14,
                 ),
               )
                   : rideHistoryViewModel.rideHistoryModel == null ||
@@ -123,7 +167,6 @@ class _RideHistoryState extends State<RideHistory> {
                   ? pendingContainer()
                   : dataContainer(),
             ),
-
           ],
         ),
       ),
@@ -192,8 +235,6 @@ class _RideHistoryState extends State<RideHistory> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Header Row
-
                   SizedBox(height: Sizes.screenHeight * 0.02),
 
                   // Sender Details Card
@@ -203,13 +244,14 @@ class _RideHistoryState extends State<RideHistory> {
                       Icons.person_outline,
                       [
                         _buildDetailRow(loc.name, ride.senderName ?? ""),
-                        _buildDetailRow(loc.phone, ride.senderPhone?.toString() ?? ""),
+                        _buildDetailRow(
+                            loc.phone, ride.senderPhone?.toString() ?? ""),
                       ],
                     ),
 
                   SizedBox(height: Sizes.screenHeight * 0.02),
 
-                  // Route Details
+                  // Route Details (with stops)
                   _buildRouteCard(ride),
 
                   SizedBox(height: Sizes.screenHeight * 0.02),
@@ -221,20 +263,21 @@ class _RideHistoryState extends State<RideHistory> {
                       Icons.person,
                       [
                         _buildDetailRow(loc.name, ride.reciverName ?? ""),
-                        _buildDetailRow(loc.phone, ride.reciverPhone?.toString() ?? ""),
+                        _buildDetailRow(
+                            loc.phone, ride.reciverPhone?.toString() ?? ""),
                       ],
                     ),
 
                   SizedBox(height: Sizes.screenHeight * 0.02),
 
+                  // Status Row
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      TextConst(
-                        title: loc.status,
-                      ),
+                      TextConst(title: loc.status),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 6),
                         decoration: BoxDecoration(
                           color: ride.rideStatus == 6
                               ? Colors.green.withOpacity(0.1)
@@ -251,16 +294,13 @@ class _RideHistoryState extends State<RideHistory> {
                               : ride.rideStatus == 7
                               ? loc.cancelled_by_user
                               : ride.rideStatus == 8
-                          ?loc.cancelled_by_driver
-                              :"None"
-                          ,
+                              ? loc.cancelled_by_driver
+                              : "None",
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
                             color: ride.rideStatus == 6
                                 ? Colors.green
-                                : ride.rideStatus == 7
-                                ? Colors.red
                                 : Colors.red,
                           ),
                         ),
@@ -274,17 +314,20 @@ class _RideHistoryState extends State<RideHistory> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Container(
-                        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        padding: EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 8),
                         decoration: BoxDecoration(
                           color: PortColor.gold.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Row(
                           children: [
-                            Icon(Icons.space_dashboard, color: PortColor.gold, size: 16),
+                            Icon(Icons.space_dashboard,
+                                color: PortColor.gold, size: 16),
                             SizedBox(width: 6),
                             TextConst(
-                              title: "${ride.distance?.toString() ?? "0"} km",
+                              title:
+                              "${ride.distance?.toString() ?? "0"} km",
                               size: Sizes.fontSizeSeven,
                               fontWeight: FontWeight.w600,
                               color: PortColor.gold,
@@ -292,9 +335,9 @@ class _RideHistoryState extends State<RideHistory> {
                           ],
                         ),
                       ),
-
                       GestureDetector(
-                        onTap: () => Launcher.launchDialPad(context, ride.senderPhone?.toString() ?? ''),
+                        onTap: () => Launcher.launchDialPad(
+                            context, ride.senderPhone?.toString() ?? ''),
                         child: Container(
                           padding: EdgeInsets.all(10),
                           decoration: BoxDecoration(
@@ -308,7 +351,8 @@ class _RideHistoryState extends State<RideHistory> {
                               ),
                             ],
                           ),
-                          child: Icon(Icons.call, color: PortColor.white, size: 18),
+                          child: Icon(Icons.call,
+                              color: PortColor.white, size: 18),
                         ),
                       ),
                     ],
@@ -339,7 +383,6 @@ class _RideHistoryState extends State<RideHistory> {
                         ),
                       ],
                     ),
-
                 ],
               ),
             ),
@@ -349,7 +392,8 @@ class _RideHistoryState extends State<RideHistory> {
     );
   }
 
-  Widget _buildDetailCard(String title, IconData icon, List<Widget> children) {
+  Widget _buildDetailCard(
+      String title, IconData icon, List<Widget> children) {
     return Container(
       padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -412,8 +456,11 @@ class _RideHistoryState extends State<RideHistory> {
     );
   }
 
+  // ── Route card: pickup → stops → dropoff ──────────────────────────────────
   Widget _buildRouteCard(dynamic ride) {
     final loc = AppLocalizations.of(context)!;
+    final List<StopModel> stops = parseStops(ride.stops);
+
     return Container(
       padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -423,20 +470,11 @@ class _RideHistoryState extends State<RideHistory> {
       ),
       child: Column(
         children: [
-          // Pickup
+          // ── Pickup ──
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                width: 18,
-                height: 18,
-                margin: EdgeInsets.only(top: 2),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.orange,
-                  border: Border.all(color: Colors.white, width: 2),
-                ),
-              ),
+              _timelineDot(color: Colors.orange),
               SizedBox(width: 12),
               Expanded(
                 child: Column(
@@ -459,21 +497,99 @@ class _RideHistoryState extends State<RideHistory> {
               ),
             ],
           ),
-          SizedBox(height: Sizes.screenHeight*0.01,),
-          // Dropoff
+
+          // ── Stops (if any) ──
+          if (stops.isNotEmpty) ...[
+            for (final stop in stops) ...[
+              // Dashed connector line
+              _dashedConnector(),
+
+              // Stop row
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Orange dot with check/pending icon
+                  _stopDot(reached: stop.status == 1),
+                  SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Name + phone + badge in one row
+                        Row(
+                          children: [
+                            Flexible(
+                              child: TextConst(
+                                title: stop.name,
+                                size: Sizes.fontSizeSeven - 1,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.black87,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            SizedBox(width: 6),
+                            TextConst(
+                              title: stop.phone,
+                              size: Sizes.fontSizeSeven - 2,
+                              color: Colors.grey,
+                            ),
+                            SizedBox(width: 6),
+                            // Reached / Pending badge
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: stop.status == 1
+                                    ? Colors.green.withOpacity(0.12)
+                                    : Colors.orange.withOpacity(0.12),
+                                borderRadius: BorderRadius.circular(4),
+                                border: Border.all(
+                                  color: stop.status == 1
+                                      ? Colors.green
+                                      : Colors.orange,
+                                  width: 0.8,
+                                ),
+                              ),
+                              child: Text(
+                                stop.status == 1 ? "Reached" : "Pending",
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w600,
+                                  color: stop.status == 1
+                                      ? Colors.green
+                                      : Colors.orange,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 4),
+                        TextConst(
+                          title: stop.address.isEmpty
+                              ? loc.location_not_specified
+                              : stop.address,
+                          size: Sizes.fontSizeSeven - 2,
+                          color: Colors.black87,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ],
+
+          // Dashed connector before dropoff
+          _dashedConnector(),
+
+          // ── Dropoff ──
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                width: 18,
-                height: 18,
-                margin: EdgeInsets.only(top: 2),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.red,
-                  border: Border.all(color: Colors.white, width: 2),
-                ),
-              ),
+              _timelineDot(color: Colors.red),
               SizedBox(width: 12),
               Expanded(
                 child: Column(
@@ -497,6 +613,62 @@ class _RideHistoryState extends State<RideHistory> {
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  // ── Timeline helpers ───────────────────────────────────────────────────────
+
+  /// Solid filled circle for pickup / dropoff
+  Widget _timelineDot({required Color color}) {
+    return Container(
+      width: 18,
+      height: 18,
+      margin: EdgeInsets.only(top: 2),
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: color,
+        border: Border.all(color: Colors.white, width: 2),
+      ),
+    );
+  }
+
+  /// Small dot with icon for a stop — solid if reached, faded if pending
+  Widget _stopDot({required bool reached}) {
+    return Container(
+      width: 18,
+      height: 18,
+      margin: EdgeInsets.only(top: 2),
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: reached ? Colors.orange : Colors.orange.shade200,
+        border: Border.all(color: Colors.white, width: 2),
+      ),
+      child: Icon(
+        reached ? Icons.check : Icons.more_horiz,
+        color: Colors.white,
+        size: 10,
+      ),
+    );
+  }
+
+  /// Dashed vertical line between two stops
+  Widget _dashedConnector() {
+    return Padding(
+      padding: const EdgeInsets.only(left: 8),
+      child: Column(
+        children: List.generate(
+          5,
+              (_) => Container(
+            width: 2,
+            height: 4,
+            margin: const EdgeInsets.symmetric(vertical: 1.5),
+            decoration: BoxDecoration(
+              color: Colors.orange.withOpacity(0.4),
+              borderRadius: BorderRadius.circular(1),
+            ),
+          ),
+        ),
       ),
     );
   }

@@ -8,7 +8,6 @@ import 'package:yoyomiles_partner/res/image_preview_screen.dart';
 import 'package:yoyomiles_partner/res/sizing_const.dart';
 import 'package:yoyomiles_partner/res/text_const.dart';
 import 'package:yoyomiles_partner/service/background_service.dart';
-import 'package:yoyomiles_partner/service/socket_service.dart';
 import 'package:yoyomiles_partner/view/splash_screen.dart';
 import 'package:yoyomiles_partner/view_model/online_status_view_model.dart';
 import 'package:yoyomiles_partner/view_model/profile_view_model.dart';

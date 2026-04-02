@@ -4,28 +4,51 @@ import 'ringtone_helper.dart';
 
 @pragma('vm:entry-point')
 void backgroundServiceOnStart(ServiceInstance service) async {
+  // Initialize notification helper in background isolate
   await RideNotificationHelper.init();
   print("✅ Background service started");
 
+  service.on('START_RINGTONE').listen((data) {
+    print("🔔 START_RINGTONE received");
 
-
-  service.on('START_RINGTONE').listen((_) {
-    print("🔔 START_RINGTONE received in background");
     if (!RingtoneHelper().isPlaying) {
       RingtoneHelper().start();
-      service.invoke('START_VIBRATION'); // ✅ UI isolate ko vibration signal
+    }
+
+    // ✅ FIXED: Background isolate mein overlay directly nahi dikhta
+    // Main UI isolate ko signal bhejo
+    if (data != null) {
+      service.invoke('UI_SHOW_OVERLAY', data); // <-- Yeh add karo
+    }
+    // ❌ HATA DO: RideNotificationHelper.showIncomingRide(data) yahan se
+  });
+
+  FlutterBackgroundService().on('UI_SHOW_OVERLAY').listen((data) async {
+    if (data != null) {
+      print("📺 UI_SHOW_OVERLAY received in main isolate");
+      await RideNotificationHelper.showIncomingRide(
+        Map<String, dynamic>.from(data),
+      );
     }
   });
 
   service.on('STOP_RINGTONE').listen((_) {
     print("🔕 STOP_RINGTONE received in background");
     RingtoneHelper().stop();
-    service.invoke('STOP_VIBRATION'); // ✅ UI isolate ko vibration stop signal
+    RideNotificationHelper.clear();
   });
 
-  // ✅ Service stop
+  service.on('ACCEPT_RIDE_FROM_OVERLAY').listen((data) {
+    RingtoneHelper().stop();
+    service.invoke('UI_ACCEPT_RIDE', data);
+  });
+
+  service.on('REJECT_RIDE_FROM_OVERLAY').listen((data) {
+    RingtoneHelper().stop();
+    service.invoke('UI_REJECT_RIDE', data);
+  });
+
   service.on('stopService').listen((_) {
-    print("🛑 Background service stopping...");
     RingtoneHelper().stop();
     service.stopSelf();
   });
@@ -33,20 +56,14 @@ void backgroundServiceOnStart(ServiceInstance service) async {
 
 Future<void> stopBackgroundService() async {
   final service = FlutterBackgroundService();
-
-  final isRunning = await service.isRunning();
-  if (isRunning) {
-    print("🛑 Stopping background service...");
+  if (await service.isRunning()) {
     RingtoneHelper().stop();
-    RideNotificationHelper.clear(fromBackground: true);
     service.invoke("stopService");
   }
 }
 
 Future<void> initializeBackgroundService() async {
   final service = FlutterBackgroundService();
-  print('FlutterBackgroundService init');
-
   await service.configure(
     androidConfiguration: AndroidConfiguration(
       autoStart: false,
@@ -63,9 +80,7 @@ Future<void> initializeBackgroundService() async {
     ),
   );
 
-  final isRunning = await service.isRunning();
-  if (!isRunning) {
+  if (!(await service.isRunning())) {
     await service.startService();
-    print("✅ Background service started");
   }
 }

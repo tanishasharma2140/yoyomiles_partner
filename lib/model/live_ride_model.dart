@@ -28,6 +28,7 @@ class Data {
   dynamic rideStatus;
   dynamic amount;
   dynamic paymode;
+  List<Stops>? stops;
   dynamic vehicleType;
   dynamic vehicleBodyDetailsType;
   dynamic vehicleBodyType;
@@ -69,6 +70,7 @@ class Data {
         this.rideStatus,
         this.amount,
         this.paymode,
+        this.stops,
         this.vehicleType,
         this.vehicleBodyDetailsType,
         this.vehicleBodyType,
@@ -110,6 +112,12 @@ class Data {
     rideStatus = json['ride_status'];
     amount = json['amount'];
     paymode = json['paymode'];
+    if (json['stops'] != null) {
+      stops = <Stops>[];
+      json['stops'].forEach((v) {
+        stops!.add(Stops.fromJson(v));
+      });
+    }
     vehicleType = json['vehicle_type'];
     vehicleBodyDetailsType = json['vehicle_body_details_type'];
     vehicleBodyType = json['vehicle_body_type'];
@@ -153,6 +161,9 @@ class Data {
     data['ride_status'] = rideStatus;
     data['amount'] = amount;
     data['paymode'] = paymode;
+    if (stops != null) {
+      data['stops'] = stops!.map((v) => v.toJson()).toList();
+    }
     data['vehicle_type'] = vehicleType;
     data['vehicle_body_details_type'] = vehicleBodyDetailsType;
     data['vehicle_body_type'] = vehicleBodyType;
@@ -187,6 +198,37 @@ class Data {
     data['wallet_applied'] = walletApplied;
     data['amount_wallet_applied'] = amountWalletApplied;
     data['vehicle_name'] = vehicleName;
+    return data;
+  }
+}
+
+class Stops {
+  String? name;
+  String? phone;
+  double? lat;
+  double? lng;
+  String? address;
+  int? status;
+
+  Stops({this.name, this.phone, this.lat, this.lng, this.address, this.status});
+
+  Stops.fromJson(Map<String, dynamic> json) {
+    name = json['name'];
+    phone = json['phone'];
+    lat = json['lat'];
+    lng = json['lng'];
+    address = json['address'];
+    status = json['status'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['name'] = name;
+    data['phone'] = phone;
+    data['lat'] = lat;
+    data['lng'] = lng;
+    data['address'] = address;
+    data['status'] = status;
     return data;
   }
 }

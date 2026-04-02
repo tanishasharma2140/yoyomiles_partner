@@ -33,6 +33,7 @@ class ApiUrl{
   static const String changePaymentModeUrl ="${baseUrl}change-payment-mode";
   static const String contactListUrl ="${baseUrl}contact_list";
   static const String videoUrl ="${baseUrl}video";
+  static const String updateStopStatusUrl ="${baseUrl}update_stop_status";
 
 
 

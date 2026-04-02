@@ -9,7 +9,6 @@ import 'package:yoyomiles_partner/res/constant_color.dart';
 import 'package:yoyomiles_partner/res/sizing_const.dart';
 import 'package:yoyomiles_partner/res/text_const.dart';
 import 'package:yoyomiles_partner/service/background_service.dart';
-import 'package:yoyomiles_partner/service/socket_service.dart';
 import 'package:yoyomiles_partner/utils/routes/routes_name.dart';
 import 'package:yoyomiles_partner/view/auth/login.dart';
 import 'package:yoyomiles_partner/view/auth/owner_detail.dart';
