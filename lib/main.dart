@@ -5,8 +5,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:flutter_overlay_window/flutter_overlay_window.dart';
-import 'package:flutter_background_service/flutter_background_service.dart'; // ✅ Added this
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:yoyomiles_partner/controller/language_controller.dart';
 import 'package:yoyomiles_partner/firebase_options.dart';
@@ -16,7 +14,6 @@ import 'package:yoyomiles_partner/res/notification_service.dart';
 import 'package:yoyomiles_partner/res/sizing_const.dart';
 import 'package:yoyomiles_partner/service/background_service.dart';
 import 'package:yoyomiles_partner/service/internet_checker_service.dart';
-import 'package:yoyomiles_partner/service/overlay_screen.dart';
 import 'package:yoyomiles_partner/service/ride_notification_helper.dart';
 import 'package:yoyomiles_partner/utils/routes/routes.dart';
 import 'package:yoyomiles_partner/utils/routes/routes_name.dart';
@@ -39,6 +36,7 @@ import 'package:yoyomiles_partner/view_model/fuel_type_view_model.dart';
 import 'package:yoyomiles_partner/view_model/help_topics_view_model.dart';
 import 'package:yoyomiles_partner/view_model/live_ride_view_model.dart';
 import 'package:yoyomiles_partner/view_model/online_status_view_model.dart';
+import 'package:yoyomiles_partner/view_model/otp_count_view_model.dart';
 import 'package:yoyomiles_partner/view_model/payment_view_model.dart';
 import 'package:yoyomiles_partner/view_model/policy_view_model.dart';
 import 'package:yoyomiles_partner/view_model/profile_view_model.dart';
@@ -61,33 +59,15 @@ const MethodChannel nativeChannel = MethodChannel(
   'yoyomiles_partner/native_callback',
 );
 
-@pragma("vm:entry-point")
-void overlayMain() {
-  WidgetsFlutterBinding.ensureInitialized();
-  debugPrint("🎴 Overlay Isolate Started");
-  runApp(
-    const MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: OverlayScreen(),
-    ),
-  );
-}
-
 @pragma('vm:entry-point')
 Future<void> handleNativeCallback(MethodCall call) async {
   WidgetsFlutterBinding.ensureInitialized();
-
   switch (call.method) {
     case 'onRideEvent':
-      final Map<String, dynamic> data = Map<String, dynamic>.from(
-        call.arguments,
-      );
-
+      final Map<String, dynamic> data = Map<String, dynamic>.from(call.arguments);
       debugPrint("🚖 Ride Event from Native: $data");
-
       await RideNotificationHelper.showIncomingRide(data);
       break;
-
     default:
       debugPrint("⚠️ Unknown native callback");
   }
@@ -95,31 +75,24 @@ Future<void> handleNativeCallback(MethodCall call) async {
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // 🔥 Step 1: Initialize Notifications FIRST (Creates Channels)
+  await RideNotificationHelper.init();
+  
   await Firebase.initializeApp();
-
   SharedPreferences sp = await SharedPreferences.getInstance();
   final String languageCode = sp.getString('language_code') ?? '';
-
-  await initializeBackgroundService(); 
-
-  // 🔥 Request Overlay Permission
-  try {
-    bool isGranted = await FlutterOverlayWindow.isPermissionGranted();
-    if (!isGranted) {
-      await FlutterOverlayWindow.requestPermission();
-    }
-  } catch (e) {
-    debugPrint("Overlay permission error: $e");
-  }
-
+  
+  // 🔥 Step 2: Initialize Background Service AFTER Channels are ready
+  await initializeBackgroundService();
+  
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
-
+  
   nativeChannel.setMethodCallHandler(handleNativeCallback);
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-
   runApp(MyApp(locale: languageCode));
 }
 
@@ -128,40 +101,21 @@ double bottomPadding = 0.0;
 
 class MyApp extends StatefulWidget {
   final String locale;
-  const MyApp({super.key ,required this.locale});
-
+  const MyApp({super.key, required this.locale});
   @override
   State<MyApp> createState() => _MyAppState();
 }
 
 class _MyAppState extends State<MyApp> {
-  final InternetCheckerService _internetCheckerService =
-      InternetCheckerService();
-  bool hasActiveRide = false;
-
+  final InternetCheckerService _internetCheckerService = InternetCheckerService();
   final notificationService = NotificationService(navigatorKey: navigatorKey);
   late final StreamSubscription rideActionSub;
 
   @override
   void initState() {
     super.initState();
-    RideNotificationHelper.init();
-
-    // 🔥 Listen to Overlay Actions from Background Service
-    FlutterBackgroundService().on('UI_ACCEPT_RIDE').listen((data) {
-      if (data != null) {
-        debugPrint("✅ ACCEPT received from Overlay Background Bridge");
-        RideNotificationHelper.triggerAction(ActionType.accept, Map<String, dynamic>.from(data));
-      }
-    });
-
-    FlutterBackgroundService().on('UI_REJECT_RIDE').listen((data) {
-      if (data != null) {
-        debugPrint("❌ REJECT received from Overlay Background Bridge");
-        RideNotificationHelper.triggerAction(ActionType.reject, Map<String, dynamic>.from(data));
-      }
-    });
-
+    // RideNotificationHelper.init() removed from here, moved to main()
+    
     FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
       print("📩 Foreground message received");
       if (message.data.isNotEmpty) {
@@ -170,56 +124,36 @@ class _MyAppState extends State<MyApp> {
     });
 
     rideActionSub = RideNotificationHelper.actionStream.listen((action) async {
-      if (action.type == ActionType.openTripStatus) {
-        final context = navigatorKey.currentContext;
-        if (context == null) return;
+      final context = navigatorKey.currentContext;
+      if (context == null) return;
 
-        Navigator.pushNamed(
-          context,
-          RoutesName.tripStatus,
-          arguments: action.bookingData,
-        );
+
+      if (action.type == ActionType.openTripStatus) {
+        Navigator.pushNamed(context, RoutesName.tripStatus, arguments: action.bookingData);
       }
 
       if (action.type == ActionType.accept) {
-        print("🚕 ACCEPT action triggered");
-
+        print("🚕 ACCEPT tapped");
         final bookingData = action.bookingData;
-        final context = navigatorKey.currentContext;
-        if (context == null) return;
-
         final assignVm = Provider.of<AssignRideViewModel>(context, listen: false);
         final rideVm = Provider.of<RideViewModel>(context, listen: false);
         rideVm.stopRideRingtone();
 
-        final String orderId =
-        bookingData['order_id']?.toString().isNotEmpty == true
-            ? bookingData['order_id'].toString()
-            : bookingData['id']?.toString() ?? "";
-
-        print("📦 Processing Accept for orderId: $orderId");
+        final String orderId = bookingData['order_id']?.toString() ?? bookingData['id']?.toString() ?? "";
         await assignVm.assignRideApi(context, 1, orderId, bookingData);
       }
 
       if (action.type == ActionType.reject) {
-        print("❌ REJECT action triggered");
-
+        print("❌ REJECT tapped");
         final bookingData = action.bookingData;
-        final context = navigatorKey.currentContext;
-        if (context == null) return;
-
         final rideVm = Provider.of<RideViewModel>(context, listen: false);
         rideVm.stopRideRingtone();
 
-        final String orderId =
-        bookingData['order_id']?.toString().isNotEmpty == true
-            ? bookingData['order_id'].toString()
-            : bookingData['id']?.toString() ?? "";
+        final String orderId = bookingData['order_id']?.toString() ?? bookingData['id']?.toString() ?? "";
+        if (orderId.isEmpty) return;
 
-        if (orderId.isNotEmpty) {
-          final ignoreVm = Provider.of<DriverIgnoredRideViewModel>(context, listen: false);
-          await ignoreVm.driverIgnoredRideApi(context: context, orderId: orderId);
-        }
+        final ignoreVm = Provider.of<DriverIgnoredRideViewModel>(context, listen: false);
+        await ignoreVm.driverIgnoredRideApi(context: context, orderId: orderId);
       }
     });
 
@@ -229,12 +163,6 @@ class _MyAppState extends State<MyApp> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _internetCheckerService.startMonitoring(navigatorKey.currentContext!);
     });
-  }
-
-  @override
-  void dispose() {
-    rideActionSub.cancel();
-    super.dispose();
   }
 
   @override
@@ -290,46 +218,41 @@ class _MyAppState extends State<MyApp> {
           Provider<NotificationService>(create: (_) => NotificationService(navigatorKey: navigatorKey)),
         ],
         child: Consumer<LanguageController>(
-          builder: (context, provider, child) {
-            return MaterialApp(
-              navigatorKey: navigatorKey,
-              debugShowCheckedModeBanner: false,
-              initialRoute: RoutesName.splash,
-              onGenerateRoute: (settings) {
-                if (settings.name != null) {
-                  return CupertinoPageRoute(
-                    builder: Routers.generateRoute(settings.name!),
-                    settings: settings,
+            builder: (context, provider, child) {
+              return MaterialApp(
+                navigatorKey: navigatorKey,
+                debugShowCheckedModeBanner: false,
+                initialRoute: RoutesName.splash,
+                onGenerateRoute: (settings) {
+                  if (settings.name != null) {
+                    return CupertinoPageRoute(
+                      builder: Routers.generateRoute(settings.name!),
+                      settings: settings,
+                    );
+                  }
+                  return null;
+                },
+                title: 'Yoyomiles Partner',
+                locale: provider.appLocale,
+                localizationsDelegates: [
+                  AppLocalizations.delegate,
+                  GlobalMaterialLocalizations.delegate,
+                  GlobalWidgetsLocalizations.delegate,
+                  GlobalCupertinoLocalizations.delegate
+                ],
+                supportedLocales: [Locale('en'), Locale('hi')],
+                theme: ThemeData(
+                  colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+                  useMaterial3: true,
+                ),
+                builder: (context, child) {
+                  return MediaQuery(
+                    data: MediaQuery.of(context).copyWith(textScaler: const TextScaler.linear(1.0)),
+                    child: child!,
                   );
-                }
-                return null;
-              },
-              title: 'Yoyomiles Partner',
-              locale: provider.appLocale,
-              localizationsDelegates: [
-                AppLocalizations.delegate,
-                GlobalMaterialLocalizations.delegate,
-                GlobalWidgetsLocalizations.delegate,
-                GlobalCupertinoLocalizations.delegate
-              ],
-              supportedLocales: [
-                Locale('en'),
-                Locale('hi'),
-              ],
-              theme: ThemeData(
-                colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-                useMaterial3: true,
-              ),
-              builder: (context, child) {
-                return MediaQuery(
-                  data: MediaQuery.of(context).copyWith(
-                    textScaler: const TextScaler.linear(1.0),
-                  ),
-                  child: child!,
-                );
-              },
-            );
-          }
+                },
+              );
+            }
         ),
       ),
     );
