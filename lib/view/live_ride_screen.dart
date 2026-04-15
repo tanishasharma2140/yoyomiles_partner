@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:yoyomiles_partner/generated/assets.dart';
@@ -371,64 +372,64 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
     }
   }
 
-  void _showGoToMapDialog() {
-    final loc = AppLocalizations.of(context)!;
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-        child: Padding(
-          padding: const EdgeInsets.all(18),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.check_circle, color: Colors.green, size: 40),
-              const SizedBox(height: 12),
-              TextConst(
-                title: loc.otp_verified,
-                size: 16,
-                fontWeight: FontWeight.w700,
-              ),
-              const SizedBox(height: 8),
-              TextConst(
-                title: loc.open_google_maps_navigation,
-                textAlign: TextAlign.center,
-                size: 13,
-                color: Colors.black54,
-              ),
-              const SizedBox(height: 18),
-              InkWell(
-                onTap: () async {
-                  Navigator.pop(context);
-                  await _openGoogleMapsDirections();
-                },
-                borderRadius: BorderRadius.circular(8),
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  decoration: BoxDecoration(
-                    color: PortColor.gold,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Center(
-                    child: Text(
-                      loc.go_to_map,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
+  // void _showGoToMapDialog() {
+  //   final loc = AppLocalizations.of(context)!;
+  //   showDialog(
+  //     context: context,
+  //     barrierDismissible: false,
+  //     builder: (_) => Dialog(
+  //       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+  //       child: Padding(
+  //         padding: const EdgeInsets.all(18),
+  //         child: Column(
+  //           mainAxisSize: MainAxisSize.min,
+  //           children: [
+  //             const Icon(Icons.check_circle, color: Colors.green, size: 40),
+  //             const SizedBox(height: 12),
+  //             TextConst(
+  //               title: loc.otp_verified,
+  //               size: 16,
+  //               fontWeight: FontWeight.w700,
+  //             ),
+  //             const SizedBox(height: 8),
+  //             TextConst(
+  //               title: loc.open_google_maps_navigation,
+  //               textAlign: TextAlign.center,
+  //               size: 13,
+  //               color: Colors.black54,
+  //             ),
+  //             const SizedBox(height: 18),
+  //             InkWell(
+  //               onTap: () async {
+  //                 Navigator.pop(context);
+  //                 await _openGoogleMapsDirections();
+  //               },
+  //               borderRadius: BorderRadius.circular(8),
+  //               child: Container(
+  //                 width: double.infinity,
+  //                 padding: const EdgeInsets.symmetric(vertical: 12),
+  //                 decoration: BoxDecoration(
+  //                   color: PortColor.gold,
+  //                   borderRadius: BorderRadius.circular(8),
+  //                 ),
+  //                 child: Center(
+  //                   child: Text(
+  //                     loc.go_to_map,
+  //                     style: const TextStyle(
+  //                       color: Colors.white,
+  //                       fontSize: 15,
+  //                       fontWeight: FontWeight.w600,
+  //                     ),
+  //                   ),
+  //                 ),
+  //               ),
+  //             ),
+  //           ],
+  //         ),
+  //       ),
+  //     ),
+  //   );
+  // }
 
   @override
   void dispose() {
@@ -437,66 +438,6 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
       listen: false,
     ).removeListener(_onRideUpdate);
     super.dispose();
-  }
-
-  void _showGoToMapPopupFromCurrentLocation() {
-    final loc = AppLocalizations.of(context)!;
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => Dialog(
-        backgroundColor: Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-        child: Padding(
-          padding: const EdgeInsets.all(18),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.map, color: PortColor.gold, size: 40),
-              const SizedBox(height: 12),
-              Text(
-                loc.go_to_pickup_location,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                loc.open_google_maps_pickup,
-                textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 13, color: Colors.black54),
-              ),
-              const SizedBox(height: 18),
-              InkWell(
-                onTap: () async {
-                  Navigator.pop(context);
-                  await _openGoogleMapsFromCurrentLocation();
-                },
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  decoration: BoxDecoration(
-                    color: PortColor.gold,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Center(
-                    child: Text(
-                      loc.go_to_map,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
   }
 
   Future<void> _openGoogleMapsFromCurrentLocation() async {
@@ -520,60 +461,66 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
   Widget build(BuildContext context) {
     final profileViewModel = Provider.of<ProfileViewModel>(context);
     final liveRideViewModel = Provider.of<LiveRideViewModel>(context);
-    return SafeArea(
-      top: false,
-      bottom: true,
-      child: Scaffold(
-        backgroundColor: PortColor.scaffoldBgGrey,
-        appBar: CustomAppBar(
-          name: profileViewModel.profileModel!.data!.driverName!,
-          imageUrl: profileViewModel.profileModel!.data!.ownerSelfie ?? "",
-        ),
-        body: Consumer<RideViewModel>(
-          builder: (context, rideVm, child) {
-            return Stack(
-              children: [
-                SizedBox(
-                  width: double.infinity,
-                  height: double.infinity,
-                  child: ConstMap(
-                    data: [widget.booking],
-                    rideStatus:
-                        liveRideViewModel.liveOrderModel?.data?.rideStatus,
-                    onAddressFetched: (address) =>
-                        setState(() => _currentAddress = address),
+    return WillPopScope(
+      onWillPop: () async {
+        SystemNavigator.pop();
+        return false;
+      },
+      child: SafeArea(
+        top: false,
+        bottom: true,
+        child: Scaffold(
+          backgroundColor: PortColor.scaffoldBgGrey,
+          appBar: CustomAppBar(
+            name: profileViewModel.profileModel!.data!.driverName!,
+            imageUrl: profileViewModel.profileModel!.data!.ownerSelfie ?? "",
+          ),
+          body: Consumer<RideViewModel>(
+            builder: (context, rideVm, child) {
+              return Stack(
+                children: [
+                  SizedBox(
+                    width: double.infinity,
+                    height: double.infinity,
+                    child: ConstMap(
+                      data: [widget.booking],
+                      rideStatus:
+                          liveRideViewModel.liveOrderModel?.data?.rideStatus,
+                      onAddressFetched: (address) =>
+                          setState(() => _currentAddress = address),
+                    ),
                   ),
-                ),
-                DraggableScrollableSheet(
-                  initialChildSize: 0.75,
-                  minChildSize: 0.45,
-                  maxChildSize: 0.77,
-                  builder: (context, scrollController) {
-                    return Container(
-                      decoration: const BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.only(
-                          topLeft: Radius.circular(20),
-                          topRight: Radius.circular(20),
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black26,
-                            blurRadius: 10,
-                            offset: Offset(0, -2),
+                  DraggableScrollableSheet(
+                    initialChildSize: 0.75,
+                    minChildSize: 0.45,
+                    maxChildSize: 0.77,
+                    builder: (context, scrollController) {
+                      return Container(
+                        decoration: const BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.only(
+                            topLeft: Radius.circular(20),
+                            topRight: Radius.circular(20),
                           ),
-                        ],
-                      ),
-                      child: _buildSheetContent(
-                        scrollController,
-                        rideVm.activeRideData,
-                      ),
-                    );
-                  },
-                ),
-              ],
-            );
-          },
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black26,
+                              blurRadius: 10,
+                              offset: Offset(0, -2),
+                            ),
+                          ],
+                        ),
+                        child: _buildSheetContent(
+                          scrollController,
+                          rideVm.activeRideData,
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              );
+            },
+          ),
         ),
       ),
     );
@@ -747,7 +694,7 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                               "",
                               "4",
                             );
-                            _showGoToMapDialog();
+                            buildNavigateFromMapButton();
                           } else {
                             Utils.showErrorMessage(
                               context,
@@ -1252,7 +1199,10 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                   const Divider(height: 1),
                   SizedBox(height: Sizes.screenHeight * 0.015),
                   _buildEmergencySection(),
-                  SizedBox(height: Sizes.screenHeight * 0.015),
+                  SizedBox(height: Sizes.screenHeight * 0.012),
+                  if (rs == 2) buildNavigateToMapButton(),
+                  if (rs == 4)  buildNavigateFromMapButton(),
+                  SizedBox(height: Sizes.screenHeight * 0.012),
                   Container(
                     width: double.infinity,
                     padding: EdgeInsets.all(Sizes.screenWidth * 0.03),
@@ -1303,7 +1253,8 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                                   "",
                                   "2",
                                 );
-                                _showGoToMapPopupFromCurrentLocation();
+                                buildNavigateToMapButton();
+                                // _showGoToMapPopupFromCurrentLocation();
                                 Utils.showSuccessMessage(
                                   context,
                                   loc.ride_status_start_pickup,
@@ -1413,6 +1364,73 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
           ),
         ),
       ],
+    );
+  }
+  Widget buildNavigateToMapButton() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      child: InkWell(
+        onTap: () async {
+          await _openGoogleMapsFromCurrentLocation();
+        },
+        borderRadius: BorderRadius.circular(10),
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          decoration: BoxDecoration(
+            color: PortColor.gold,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: const Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.navigation, color: Colors.black),
+              SizedBox(width: 8),
+              TextConst(
+                title:
+                "Navigate to Pickup Location",
+                color: PortColor.black,
+                size: 14,
+                fontWeight: FontWeight.w600,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget buildNavigateFromMapButton() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      child: InkWell(
+        onTap: () async {
+          await _openGoogleMapsDirections();
+        },
+        borderRadius: BorderRadius.circular(10),
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          decoration: BoxDecoration(
+            color: PortColor.gold,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: const Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.navigation, color: Colors.black),
+              SizedBox(width: 8),
+              TextConst(
+                title:
+                "Navigate to Drop Location",
+                color: PortColor.black,
+                size: 14,
+                fontWeight: FontWeight.w600,
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

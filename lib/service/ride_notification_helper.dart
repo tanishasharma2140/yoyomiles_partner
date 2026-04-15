@@ -13,7 +13,7 @@ void notificationTapBackground(NotificationResponse response) {
 class RideNotificationHelper {
   static final _plugin = FlutterLocalNotificationsPlugin();
   static const int _notificationId = 999;
-  
+
   static const String _bookingChannelId = 'BOOKING_CHANNEL_HIGH';
   static const String _serviceChannelId = 'SERVICE_CHANNEL';
 

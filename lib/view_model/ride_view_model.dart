@@ -27,6 +27,7 @@ class RideViewModel extends ChangeNotifier {
   bool _isPopupShowing = false;
 
   static const String _baseUrl = "https://dev.yoyomiles.com/";
+  static const MethodChannel _channel = MethodChannel('rapido_background_button');
 
   setAllRideData(List<Map<String, dynamic>>? data) {
     _allRideData = data;
@@ -108,7 +109,7 @@ class RideViewModel extends ChangeNotifier {
         
         if (reqBookings.isNotEmpty) {
           FlutterBackgroundService().invoke('START_RINGTONE');
-          RideNotificationHelper.showIncomingRide(reqBookings.first);
+          // RideNotificationHelper.showIncomingRide(reqBookings.first);
         } else {
           FlutterBackgroundService().invoke('STOP_RINGTONE');
           RideNotificationHelper.clear();
@@ -189,7 +190,19 @@ class RideViewModel extends ChangeNotifier {
           .toList();
 
       if (reqBookings.isNotEmpty) {
-        RideNotificationHelper.showIncomingRide(reqBookings.first);
+        final ride = reqBookings.first;
+
+        // ✅ Ringtone start (background service)
+        FlutterBackgroundService().invoke('START_RINGTONE');
+
+        _channel.invokeMethod('scheduleIncomingOrderOverlay', {
+          'delayMs': 0,
+          'pickup': ride['pickup_address']?.toString() ?? '',
+          'drop': ride['drop_address']?.toString() ?? '',
+          'distance': ride['distance']?.toString() ?? '',
+          'orderId': ride['id']?.toString() ?? '',
+          'amount': ride['amount']?.toString() ?? '',
+        });
       }
       setAllRideData(reqBookings);
     });

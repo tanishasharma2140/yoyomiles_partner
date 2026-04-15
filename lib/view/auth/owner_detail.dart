@@ -443,20 +443,22 @@ class _OwnerDetailState extends State<OwnerDetail> {
 
   Future<void> _pickImage(String documentType, String side) async {
     try {
+      final ImageSource? source = await _showImageSourceDialog();
+      if (source == null) return;
+
       XFile? image;
 
-      // 👇 If it's a selfie, open FRONT camera
-      if (documentType == 'selfie') {
+      // 👇 Selfie → front camera if camera selected
+      if (documentType == 'selfie' && source == ImageSource.camera) {
         image = await _picker.pickImage(
-          source: ImageSource.camera,
+          source: source,
           preferredCameraDevice: CameraDevice.front,
           maxWidth: 1024,
           imageQuality: 80,
         );
       } else {
-        // Aadhaar / PAN uses rear camera
         image = await _picker.pickImage(
-          source: ImageSource.camera,
+          source: source,
           preferredCameraDevice: CameraDevice.rear,
           maxWidth: 1024,
           imageQuality: 80,
@@ -464,7 +466,7 @@ class _OwnerDetailState extends State<OwnerDetail> {
       }
 
       if (image != null) {
-        final imagePath = image.path; // ✅ safely store path here
+        final imagePath = image.path;
 
         setState(() {
           if (documentType == 'aadhaar') {
@@ -483,6 +485,45 @@ class _OwnerDetailState extends State<OwnerDetail> {
     }
   }
 
+  Future<ImageSource?> _showImageSourceDialog() async {
+    return showModalBottomSheet<ImageSource>(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                 TextConst(
+                   title:
+                  "Select Image Source",
+                     size: 16, fontWeight: FontWeight.w600
+                ),
+                const SizedBox(height: 16),
+
+                ListTile(
+                  leading: const Icon(Icons.camera_alt,color: PortColor.blackLight,),
+                  title:  TextConst(title: "Camera",color: PortColor.blackLight,),
+                  onTap: () => Navigator.pop(context, ImageSource.camera),
+                ),
+
+                ListTile(
+                  leading: const Icon(Icons.photo,color: PortColor.blackLight,),
+                  title:  TextConst(title: "Gallery",color: PortColor.blackLight,),
+                  onTap: () => Navigator.pop(context, ImageSource.gallery),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
 
 
   bool _validateForm() {
@@ -527,7 +568,7 @@ class _OwnerDetailState extends State<OwnerDetail> {
     });
 
     try {
-      final url = Uri.parse("https://dev.yoyomiles.com/api/driver_register");
+      final url = Uri.parse("https://admin.yoyomiles.com/api/driver_register");
       final request = http.MultipartRequest('POST', url);
 
       UserViewModel userViewModel = UserViewModel();

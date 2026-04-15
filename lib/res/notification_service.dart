@@ -76,7 +76,7 @@ class NotificationService {
 
   // ✅ SAFE Profile API runner (context optional)
   void _runProfileApiSafe() {
-    RideNotificationHelper.clear();
+    // RideNotificationHelper.clear();
     final ctx = navigatorKey.currentContext;
 
     if (ctx != null) {

@@ -273,7 +273,9 @@
 "english" : "English",
 "hindi" : "Hindi (भारत)",
 "your_pickup_distance" : "Your Pickup Distance",
-"pickup_drop" : "Pickup → Drop"
+"pickup_drop" : "Pickup → Drop",
+"navigate_to_pickup" : "Navigate to Pickup Location",
+"navigate_to_drop" : "Navigate to Drop Location"
 
 
 

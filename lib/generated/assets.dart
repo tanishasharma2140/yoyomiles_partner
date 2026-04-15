@@ -26,6 +26,7 @@ class Assets {
   static const String assetsLoginActivity = 'assets/login_activity.png';
   static const String assetsLostnetwork = 'assets/lostnetwork.gif';
   static const String assetsMapData = 'assets/map_data.gif';
+  static const String assetsNewRing = 'assets/new_ring.mp3';
   static const String assetsNoData = 'assets/no_data.gif';
   static const String assetsOffline = 'assets/offline.png';
   static const String assetsPanCard = 'assets/pan_card.jpg';
@@ -41,6 +42,7 @@ class Assets {
   static const String assetsRewardCoin = 'assets/reward_coin.png';
   static const String assetsRewardStarCoin = 'assets/reward_star_coin.png';
   static const String assetsRideHistoryDriver = 'assets/ride_history_driver.png';
+  static const String assetsRinger = 'assets/ringer.mp3';
   static const String assetsRingtone030437513 = 'assets/ringtone-030-437513.mp3';
   static const String assetsSorry = 'assets/sorry.gif';
   static const String assetsSplashImage = 'assets/splash_image.png';

@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:yoyomiles_partner/helper/helper/network/base_api_services.dart';
 import 'package:yoyomiles_partner/helper/helper/network/network_api_services.dart';
@@ -8,6 +10,7 @@ class AssignRideRepo {
 
   Future<dynamic> assignRideApi(dynamic data) async {
     try {
+      print(jsonEncode(data));
       dynamic response =
       await _apiServices.getPostApiResponse(ApiUrl.assignRideUrl,data );
       return response;

@@ -36,7 +36,6 @@ class RideHistoryViewModel with ChangeNotifier {
       if (value.success == true) {
         setModelData(value);
       } else {
-        // Optional: agar API success == false aaye to model ko null set kar do
         setModelData(RideHistoryModel(data: []));
       }
     }).onError((error, stackTrace) {

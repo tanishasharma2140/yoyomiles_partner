@@ -27,21 +27,21 @@ class AssignRideViewModel with ChangeNotifier {
     Map data = {
       "driver_id": userId,
       "ride_status": rideStatus,
-      "ride_id": rideDocId,  // API wale ride ID
+      "ride_id": rideDocId,
     };
 
-    print("📤 Sending API Request: $data");
+    debugPrint("📤 Sending API Request: $data");
 
     _assignRideRepo.assignRideApi(data).then((value) async {
       setLoading(false);
 
-      print("📥 API Response: $value");
+      debugPrint("📥 API Response: $value");
 
       if (value['success'] == true) {
-        print("✅ API SUCCESS");
+        debugPrint("✅ API SUCCESS");
 
         try {
-          print("📌 Updating Firestore Document: $rideDocId");
+          debugPrint("📌 Updating Firestore Document: $rideDocId");
 
           // await FirebaseFirestore.instance
           //     .collection('order')
@@ -51,16 +51,15 @@ class AssignRideViewModel with ChangeNotifier {
           //   'ride_status': 1,
           //   'ride_started': true,
           // });
-
-          print("🔥 Firestore Updated Successfully");
+          debugPrint("🔥 Firestore Updated Successfully");
 
         } catch (e) {
-          print("❌ FIRESTORE UPDATE FAILED: $e");
+          debugPrint("❌ FIRESTORE UPDATE FAILED: $e");
         }
 
         // Utils.showSuccessMessage(context, value["message"]);
 
-        print("➡ Navigating to LiveRideScreen");
+        debugPrint("➡ Navigating to LiveRideScreen");
 
         Navigator.push(
           context,
@@ -71,19 +70,19 @@ class AssignRideViewModel with ChangeNotifier {
       }
 
       else if (value['status'] == 400) {
-        print("⚠️ RIDE ALREADY ASSIGNED TO SOMEONE ELSE");
+        debugPrint("⚠️ RIDE ALREADY ASSIGNED TO SOMEONE ELSE");
       }
 
       else {
-        print("❌ API FAILED: ${value["message"]}");
+        debugPrint("❌ API FAILED: ${value["message"]}");
       }
 
     }).onError((error, stackTrace) {
       setLoading(false);
-      print("💥 API ERROR: $error");
+      debugPrint("💥 API ERROR: $error");
     });
 
-    print("================ ACCEPT RIDE END ================\n");
+    debugPrint("================ ACCEPT RIDE END ================\n");
   }
 
 

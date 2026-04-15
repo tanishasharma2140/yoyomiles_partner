@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:provider/provider.dart';
@@ -32,14 +33,13 @@ class TripStatus extends StatefulWidget {
 }
 
 class _TripStatusState extends State<TripStatus> {
+  static const _channel = MethodChannel('rapido_background_button');
   bool isSwitched = true;
   String? _currentAddress;
   double currentLat = 0.0;
   double currentLng = 0.0;
   Map<String, Timer> bookingTimers = {};
 
-  // late RingtoneViewModel ringtoneVM;
-  Set<String> _seenBookingIds = {};
   StreamSubscription? _bookingSubscription;
 
   int userIds = 0;
@@ -55,7 +55,32 @@ class _TripStatusState extends State<TripStatus> {
 
   }
 
+  Future<void> _safeInvoke(String method) async {
+    try {
+      await _channel.invokeMethod<void>(method);
+    } catch (_) {
+      // Keep quiet in release; but don't crash debug either.
+    }
+  }
 
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // App background gaya
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.hidden) {
+
+      if (isSwitched) {
+        // ✅ ONLINE → overlay show
+        _channel.invokeMethod('showBackgroundButton');
+      } else {
+        // ❌ OFFLINE → overlay hide
+        _channel.invokeMethod('hideBackgroundButton');
+      }
+    }
+
+    else if (state == AppLifecycleState.resumed) {
+      _channel.invokeMethod('hideBackgroundButton');
+    }
+  }
 
   @override
   void dispose() {
@@ -75,7 +100,6 @@ class _TripStatusState extends State<TripStatus> {
       currentLat = pos.latitude;
       currentLng = pos.longitude;
 
-      // ✅ Socket pe location bhejo
       Provider.of<RideViewModel>(context, listen: false)
           .updateDriverLocation(
         userId.toString(),
@@ -142,12 +166,11 @@ class _TripStatusState extends State<TripStatus> {
                   children: [
                     InkWell(
                       onTap: () async {
-                        final success = await onlineStatusViewModel.onlineStatusApi(context, 0);
+                       await onlineStatusViewModel.onlineStatusApi(context, 0);
 
-                        if (success == false) {
-                          await stopBackgroundService();
-                          // SocketService().disconnect();
-                        }
+                        await stopBackgroundService();
+
+                        await _safeInvoke('hideBackgroundButton');
 
                         if (mounted) {
                           setState(() {

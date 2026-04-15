@@ -36,11 +36,70 @@ class _AddDriverDetailState extends State<AddDriverDetail> {
   final ImagePicker _picker = ImagePicker();
 
   Future<File?> _pickImage() async {
-    final XFile? pickedFile = await _picker.pickImage(source: ImageSource.camera);
-    if (pickedFile != null) {
-      return File(pickedFile.path);
+    try {
+      final ImageSource? source = await _showImageSourceDialog();
+      if (source == null) return null;
+
+      final XFile? pickedFile = await _picker.pickImage(
+        source: source,
+        maxWidth: 1024,
+        imageQuality: 80,
+      );
+
+      if (pickedFile != null) {
+        return File(pickedFile.path);
+      }
+      return null;
+    } catch (e) {
+      debugPrint("Error picking image: $e");
+      return null;
     }
-    return null;
+  }
+
+  Future<ImageSource?> _showImageSourceDialog() async {
+    return showModalBottomSheet<ImageSource>(
+      context: context,
+      backgroundColor: Colors.white, // ✅ yeh add karo
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextConst(
+                  title: "Select Image Source",
+                  size: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+                const SizedBox(height: 16),
+
+                ListTile(
+                  leading: const Icon(Icons.camera_alt, color: PortColor.blackLight),
+                  title: TextConst(
+                    title: "Camera",
+                    color: PortColor.blackLight,
+                  ),
+                  onTap: () => Navigator.pop(context, ImageSource.camera),
+                ),
+
+                ListTile(
+                  leading: const Icon(Icons.photo, color: PortColor.blackLight),
+                  title: TextConst(
+                    title: "Gallery",
+                    color: PortColor.blackLight,
+                  ),
+                  onTap: () => Navigator.pop(context, ImageSource.gallery),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   // Image compression function
@@ -99,7 +158,7 @@ class _AddDriverDetailState extends State<AddDriverDetail> {
     });
 
     try {
-      var url = Uri.parse("https://dev.yoyomiles.com/api/driver_register");
+      var url = Uri.parse("https://admin.yoyomiles.com/api/driver_register");
       var request = http.MultipartRequest('POST', url);
       final fcmToken = await FirebaseMessaging.instance.getToken();
 

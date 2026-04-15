@@ -1327,19 +1327,77 @@ class _VehicleDetailState extends State<VehicleDetail> {
   }
 
   Future<void> _uploadRCDocument(String side) async {
-    final pickedFile = await _picker.pickImage(source: ImageSource.camera);
+    try {
+      final ImageSource? source = await _showImageSourceDialog();
+      if (source == null) return;
 
-    if (pickedFile != null) {
-      setState(() {
-        if (side == 'front') {
-          _rcFrontFile = pickedFile;
-          print("RC Front captured: ${pickedFile.path}");
-        } else {
-          _rcBackFile = pickedFile;
-          print("RC Back captured: ${pickedFile.path}");
-        }
-      });
+      final pickedFile = await _picker.pickImage(
+        source: source,
+        maxWidth: 1024,
+        imageQuality: 80,
+      );
+
+      if (pickedFile != null) {
+        setState(() {
+          if (side == 'front') {
+            _rcFrontFile = pickedFile;
+            print("RC Front selected: ${pickedFile.path}");
+          } else {
+            _rcBackFile = pickedFile;
+            print("RC Back selected: ${pickedFile.path}");
+          }
+        });
+      }
+    } catch (e) {
+      debugPrint("Error picking RC image: $e");
+      Utils.showErrorMessage(context, "Failed to pick image");
     }
+  }
+
+  Future<ImageSource?> _showImageSourceDialog() async {
+    return showModalBottomSheet<ImageSource>(
+      context: context,
+      backgroundColor: Colors.white, // ✅ yeh add karo
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextConst(
+                  title: "Select Image Source",
+                  size: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+                const SizedBox(height: 16),
+
+                ListTile(
+                  leading: const Icon(Icons.camera_alt, color: PortColor.blackLight),
+                  title: TextConst(
+                    title: "Camera",
+                    color: PortColor.blackLight,
+                  ),
+                  onTap: () => Navigator.pop(context, ImageSource.camera),
+                ),
+
+                ListTile(
+                  leading: const Icon(Icons.photo, color: PortColor.blackLight),
+                  title: TextConst(
+                    title: "Gallery",
+                    color: PortColor.blackLight,
+                  ),
+                  onTap: () => Navigator.pop(context, ImageSource.gallery),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   // API Call to submit vehicle details
@@ -1404,7 +1462,7 @@ class _VehicleDetailState extends State<VehicleDetail> {
     try {
       var request = http.MultipartRequest(
         'POST',
-        Uri.parse('https://dev.yoyomiles.com/api/driver_register'),
+        Uri.parse('https://admin.yoyomiles.com/api/driver_register'),
       );
 
       print("📤 Sending User ID in API request: $userId");

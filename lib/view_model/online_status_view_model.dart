@@ -289,7 +289,7 @@ class OnlineStatusViewModel with ChangeNotifier {
 
     const LocationSettings locationSettings = LocationSettings(
       accuracy: LocationAccuracy.high,
-      distanceFilter: 20, // 👈 20 meter move hone par update
+      distanceFilter: 10, // 👈 20 meter move hone par update
     );
 
     _positionStream =

@@ -4,6 +4,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:yoyomiles_partner/controller/language_controller.dart';
@@ -36,7 +37,6 @@ import 'package:yoyomiles_partner/view_model/fuel_type_view_model.dart';
 import 'package:yoyomiles_partner/view_model/help_topics_view_model.dart';
 import 'package:yoyomiles_partner/view_model/live_ride_view_model.dart';
 import 'package:yoyomiles_partner/view_model/online_status_view_model.dart';
-import 'package:yoyomiles_partner/view_model/otp_count_view_model.dart';
 import 'package:yoyomiles_partner/view_model/payment_view_model.dart';
 import 'package:yoyomiles_partner/view_model/policy_view_model.dart';
 import 'package:yoyomiles_partner/view_model/profile_view_model.dart';
@@ -73,24 +73,26 @@ Future<void> handleNativeCallback(MethodCall call) async {
   }
 }
 
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
+
   // 🔥 Step 1: Initialize Notifications FIRST (Creates Channels)
   await RideNotificationHelper.init();
-  
+
   await Firebase.initializeApp();
   SharedPreferences sp = await SharedPreferences.getInstance();
   final String languageCode = sp.getString('language_code') ?? '';
-  
+
   // 🔥 Step 2: Initialize Background Service AFTER Channels are ready
   await initializeBackgroundService();
-  
+
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
-  
+
   nativeChannel.setMethodCallHandler(handleNativeCallback);
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(MyApp(locale: languageCode));
@@ -106,56 +108,143 @@ class MyApp extends StatefulWidget {
   State<MyApp> createState() => _MyAppState();
 }
 
-class _MyAppState extends State<MyApp> {
+class _MyAppState extends State<MyApp> with WidgetsBindingObserver{
   final InternetCheckerService _internetCheckerService = InternetCheckerService();
   final notificationService = NotificationService(navigatorKey: navigatorKey);
   late final StreamSubscription rideActionSub;
+  static const _channel = MethodChannel('rapido_background_button');
+
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    final context = navigatorKey.currentContext;
+    if (context != null) {
+
+      final profileViewModel = Provider.of<ProfileViewModel>(context, listen: false);
+      print("ONLINE STATUS: ${profileViewModel.profileModel?.data?.onlineStatus}");
+      // Checking if driver is online (onlineStatus == 1)
+      final bool isOnline = profileViewModel.profileModel?.data?.onlineStatus.toString() == "1";
+
+      if (state == AppLifecycleState.paused || state == AppLifecycleState.hidden) {
+        if (isOnline) {
+          _safeInvoke('showBackgroundButton');
+
+          // Incoming order overlay: show after 1 minute in background.
+          _safeInvokeIncomingOrderSchedule();
+        } else {
+          _safeInvoke('hideBackgroundButton');
+          _safeInvoke('cancelIncomingOrderOverlay');
+        }
+      } else if (state == AppLifecycleState.resumed ||
+          state == AppLifecycleState.inactive) {
+        _safeInvoke('hideBackgroundButton');
+        _safeInvoke('cancelIncomingOrderOverlay');
+      }
+    }
+  }
+
+  Future<void> _safeInvokeIncomingOrderSchedule() async {
+
+  }
+
+  Future<void> _safeInvoke(String method) async {
+    try {
+      await _channel.invokeMethod<void>(method);
+    } catch (_) {
+      // Keep quiet in release; but don't crash debug either.
+    }
+  }
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     // RideNotificationHelper.init() removed from here, moved to main()
-    
+
+    _channel.setMethodCallHandler((call) async {
+      print("🔥 MethodChannel call received: ${call.method}");
+      if (call.method == 'navigateTo') {
+        final route = call.arguments as String?;
+        if (route == null || route.isEmpty) return;
+        navigatorKey.currentState?.pushNamed(route);
+      }
+
+      if (call.method == 'onOverlayAcceptRide') {
+        print("✅ ACCEPT BUTTON CLICKED FROM OVERLAY");
+
+        final data = Map<String, dynamic>.from(call.arguments);
+
+        print("📦 FULL DATA: $data");
+
+        final orderId = data['orderId']?.toString() ?? data['id']?.toString() ?? '';
+
+        print("📦 Final OrderId: $orderId");
+        print("📦 OrderId: $orderId");
+        if (orderId.isEmpty) return;
+
+        final context = navigatorKey.currentContext;
+        if (context == null) return;
+
+        FlutterBackgroundService().invoke('STOP_RINGTONE');
+
+        final rideVm = Provider.of<RideViewModel>(context, listen: false);
+        final bookingData = rideVm.allRideData?.firstWhere(
+              (e) => e['id']?.toString() == orderId,
+          orElse: () => {},
+        );
+
+        if (bookingData == null || bookingData.isEmpty) return;
+
+        final assignVm = Provider.of<AssignRideViewModel>(context, listen: false);
+        print("🚀 Calling Assign Ride API...");
+        await assignVm.assignRideApi(context, 1, orderId, bookingData);
+      }
+    });
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _tryHandleLaunchRoute();
+    });
+
     FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
       print("📩 Foreground message received");
       if (message.data.isNotEmpty) {
         await RideNotificationHelper.showIncomingRide(message.data);
       }
     });
-
-    rideActionSub = RideNotificationHelper.actionStream.listen((action) async {
-      final context = navigatorKey.currentContext;
-      if (context == null) return;
-
-
-      if (action.type == ActionType.openTripStatus) {
-        Navigator.pushNamed(context, RoutesName.tripStatus, arguments: action.bookingData);
-      }
-
-      if (action.type == ActionType.accept) {
-        print("🚕 ACCEPT tapped");
-        final bookingData = action.bookingData;
-        final assignVm = Provider.of<AssignRideViewModel>(context, listen: false);
-        final rideVm = Provider.of<RideViewModel>(context, listen: false);
-        rideVm.stopRideRingtone();
-
-        final String orderId = bookingData['order_id']?.toString() ?? bookingData['id']?.toString() ?? "";
-        await assignVm.assignRideApi(context, 1, orderId, bookingData);
-      }
-
-      if (action.type == ActionType.reject) {
-        print("❌ REJECT tapped");
-        final bookingData = action.bookingData;
-        final rideVm = Provider.of<RideViewModel>(context, listen: false);
-        rideVm.stopRideRingtone();
-
-        final String orderId = bookingData['order_id']?.toString() ?? bookingData['id']?.toString() ?? "";
-        if (orderId.isEmpty) return;
-
-        final ignoreVm = Provider.of<DriverIgnoredRideViewModel>(context, listen: false);
-        await ignoreVm.driverIgnoredRideApi(context: context, orderId: orderId);
-      }
-    });
+    //
+    // rideActionSub = RideNotificationHelper.actionStream.listen((action) async {
+    //   final context = navigatorKey.currentContext;
+    //   if (context == null) return;
+    //
+    //
+    //   if (action.type == ActionType.openTripStatus) {
+    //     Navigator.pushNamed(context, RoutesName.tripStatus, arguments: action.bookingData);
+    //   }
+    //
+    //   if (action.type == ActionType.accept) {
+    //     print("🚕 ACCEPT tapped");
+    //     final bookingData = action.bookingData;
+    //     final assignVm = Provider.of<AssignRideViewModel>(context, listen: false);
+    //     final rideVm = Provider.of<RideViewModel>(context, listen: false);
+    //     rideVm.stopRideRingtone();
+    //
+    //     final String orderId = bookingData['order_id']?.toString() ?? bookingData['id']?.toString() ?? "";
+    //     await assignVm.assignRideApi(context, 1, orderId, bookingData);
+    //   }
+    //
+    //   if (action.type == ActionType.reject) {
+    //     print("❌ REJECT tapped");
+    //     final bookingData = action.bookingData;
+    //     final rideVm = Provider.of<RideViewModel>(context, listen: false);
+    //     rideVm.stopRideRingtone();
+    //
+    //     final String orderId = bookingData['order_id']?.toString() ?? bookingData['id']?.toString() ?? "";
+    //     if (orderId.isEmpty) return;
+    //
+    //     final ignoreVm = Provider.of<DriverIgnoredRideViewModel>(context, listen: false);
+    //     await ignoreVm.driverIgnoredRideApi(context: context, orderId: orderId);
+    //   }
+    // });
 
     notificationService.requestedNotificationPermission();
     notificationService.firebaseInit(context);
@@ -163,6 +252,24 @@ class _MyAppState extends State<MyApp> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _internetCheckerService.startMonitoring(navigatorKey.currentContext!);
     });
+  }
+
+  Future<void> _tryHandleLaunchRoute() async {
+    try {
+      final String? route =
+      await _channel.invokeMethod<String>('getLaunchRoute');
+      if (route != null && route.isNotEmpty) {
+        navigatorKey.currentState?.pushNamed(route);
+      }
+    } catch (_) {
+      // Ignore if not supported on platform.
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
   }
 
   @override
@@ -221,6 +328,7 @@ class _MyAppState extends State<MyApp> {
             builder: (context, provider, child) {
               return MaterialApp(
                 navigatorKey: navigatorKey,
+
                 debugShowCheckedModeBanner: false,
                 initialRoute: RoutesName.splash,
                 onGenerateRoute: (settings) {
@@ -230,6 +338,7 @@ class _MyAppState extends State<MyApp> {
                       settings: settings,
                     );
                   }
+
                   return null;
                 },
                 title: 'Yoyomiles Partner',
@@ -258,3 +367,6 @@ class _MyAppState extends State<MyApp> {
     );
   }
 }
+
+
+

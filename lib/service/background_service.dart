@@ -6,12 +6,10 @@ import 'package:yoyomiles_partner/service/ride_notification_helper.dart';
 import 'ringtone_helper.dart';
 
 @pragma('vm:entry-point')
-
 void backgroundServiceOnStart(ServiceInstance service) async {
   DartPluginRegistrant.ensureInitialized();
-  WidgetsFlutterBinding.ensureInitialized(); // ✅ ADD THIS
+  WidgetsFlutterBinding.ensureInitialized();
 
-  /// ✅ Foreground notification (MANDATORY)
   if (service is AndroidServiceInstance) {
     service.setForegroundNotificationInfo(
       title: "Yoyomiles Driver Online",
@@ -20,44 +18,20 @@ void backgroundServiceOnStart(ServiceInstance service) async {
   }
 
   await RideNotificationHelper.init();
-  print("✅ Background service started");
 
   service.on('START_RINGTONE').listen((data) async {
-    print("🔔 START_RINGTONE received");
+    print("🔔 START_RINGTONE");
 
     if (!RingtoneHelper().isPlaying) {
-      RingtoneHelper().start();
+      await RingtoneHelper().start();
     }
+  });
 
-    if (data != null) {
-      final rideData = Map<String, dynamic>.from(data);
-
-      // ✅ MethodChannel hata diya — background isolate mein kaam nahi karta
-      // ✅ Seedha main UI ko signal bhejo, woh overlay dikhayega
-      service.invoke('UI_SHOW_OVERLAY', rideData);
-    }
-  });  service.on('STOP_RINGTONE').listen((_) {
+  service.on('STOP_RINGTONE').listen((_) {
     print("🔕 STOP_RINGTONE");
+
     RingtoneHelper().stop();
     RideNotificationHelper.clear();
-  });
-
-  service.on('ACCEPT_RIDE_FROM_OVERLAY').listen((data) async {
-    print("✅ ACCEPT FROM OVERLAY (BACKGROUND)");
-
-    RingtoneHelper().stop();
-
-    /// send to main UI
-    service.invoke('UI_ACCEPT_RIDE', data);
-  });
-
-  service.on('REJECT_RIDE_FROM_OVERLAY').listen((data) async {
-    print("❌ REJECT FROM OVERLAY (BACKGROUND)");
-
-    RingtoneHelper().stop();
-
-    /// send to main UI
-    service.invoke('UI_REJECT_RIDE', data);
   });
 
   service.on('stopService').listen((_) {

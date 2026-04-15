@@ -10,11 +10,11 @@ import 'package:yoyomiles_partner/res/sizing_const.dart';
 import 'package:yoyomiles_partner/res/text_const.dart';
 import 'package:yoyomiles_partner/service/background_service.dart';
 import 'package:yoyomiles_partner/utils/routes/routes_name.dart';
+import 'package:yoyomiles_partner/utils/utils.dart';
 import 'package:yoyomiles_partner/view/auth/login.dart';
 import 'package:yoyomiles_partner/view/auth/owner_detail.dart';
 import 'package:yoyomiles_partner/view/auth/vehicle_detail.dart';
 import 'package:yoyomiles_partner/view/controller/yoyomiles_partner_con.dart';
-import 'package:yoyomiles_partner/view/earning/wallet_settlement.dart';
 import 'package:yoyomiles_partner/view/live_ride_screen.dart';
 import 'package:yoyomiles_partner/view_model/active_ride_view_model.dart';
 import 'package:yoyomiles_partner/view_model/online_status_view_model.dart';
@@ -34,6 +34,9 @@ class _RegisterState extends State<Register> {
   final RefreshController _refreshController = RefreshController(
     initialRefresh: false,
   );
+
+  static const _channel = MethodChannel('rapido_background_button');
+  bool _askedOverlayPermissionThisSession = false;
 
   Future<bool> _onWillPop(BuildContext context) async {
     final loc = AppLocalizations.of(context)!;
@@ -550,6 +553,62 @@ class _RegisterState extends State<Register> {
     initializeBackgroundService();
   }
 
+  Future<bool> _maybeAskOverlayPermission() async {
+    bool hasPermission = true;
+
+    try {
+      final bool? platformValue =
+      await _channel.invokeMethod<bool>('hasOverlayPermission');
+      hasPermission = platformValue ?? true;
+    } catch (_) {
+      hasPermission = true;
+    }
+
+    if (hasPermission) return true;
+
+    if (!mounted) return false;
+
+    final shouldOpenSettings = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: PortColor.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        title:  TextConst(
+          title:
+          'Overlay Permission',
+            fontWeight: FontWeight.w600
+        ),
+        content: TextConst(title:
+          'Enable "Display over other apps" to continue.',
+            size: 13
+        ),
+        actionsPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child:  TextConst(title: 'Later',color: PortColor.black,),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child:  TextConst(title: 'Allow',color: PortColor.black,),
+          ),
+        ],
+      ),
+    );
+
+    if (shouldOpenSettings == true) {
+      await _channel.invokeMethod('requestPermissions');
+    }
+
+    // 🔁 Recheck
+    final bool? updated =
+    await _channel.invokeMethod<bool>('hasOverlayPermission');
+
+    return updated ?? false;
+  }
+
   Widget verifiedContainer() {
     final onlineStatusViewModel = Provider.of<OnlineStatusViewModel>(context);
     final loc = AppLocalizations.of(context)!;
@@ -750,10 +809,19 @@ class _RegisterState extends State<Register> {
                                     showLocationPermissionDialog(
                                       context,
                                       onAccept: () async {
-                                        final success =
-                                            await onlineStatusViewModel
-                                                .onlineStatusApi(context, 1);
 
+                                        bool overlayGranted = await _maybeAskOverlayPermission();
+
+                                        if (!overlayGranted) {
+                                          Utils.showErrorMessage(context, "Overlay permission required to go online");
+                                          return;
+                                        }
+
+                                        // 🔥 Step 2: API call
+                                        final success =
+                                        await onlineStatusViewModel.onlineStatusApi(context, 1);
+
+                                        // 🔥 Step 3: Socket start
                                         if (success) {
                                           await _startSocket();
                                         }
