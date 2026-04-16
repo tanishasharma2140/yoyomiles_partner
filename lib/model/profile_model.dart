@@ -5,22 +5,29 @@ class ProfileModel {
   String? message;
   int? status;
   bool? success;
+  dynamic driverReferralMessage;
+  dynamic driverReferralAmount;
 
-  ProfileModel(
-      {this.data,
-        this.duesStatus,
-        this.duesMessage,
-        this.message,
-        this.status,
-        this.success});
+  ProfileModel({
+    this.data,
+    this.duesStatus,
+    this.duesMessage,
+    this.message,
+    this.status,
+    this.success,
+    this.driverReferralMessage,
+    this.driverReferralAmount,
+  });
 
   ProfileModel.fromJson(Map<String, dynamic> json) {
-    data = json['data'] != null ? new Data.fromJson(json['data']) : null;
+    data = json['data'] != null ? Data.fromJson(json['data']) : null;
     duesStatus = json['dues_status'];
     duesMessage = json['dues_message'];
     message = json['message'];
     status = json['status'];
     success = json['success'];
+    driverReferralMessage = json['driver_referral_text'];
+    driverReferralAmount = json['driver_referral_reward_amount'];
   }
 
   Map<String, dynamic> toJson() {
@@ -39,6 +46,8 @@ class ProfileModel {
 
 class Data {
   dynamic id;
+  dynamic referralId;
+  dynamic referralCode;
   dynamic wallet;
   dynamic duesPayment;
   dynamic vehicleNo;
@@ -82,53 +91,58 @@ class Data {
   dynamic fuelTypeName;
   dynamic cityName;
 
-  Data(
-      {this.id,
-        this.wallet,
-        this.duesPayment,
-        this.vehicleNo,
-        this.rcFront,
-        this.rcBack,
-        this.cityId,
-        this.vehicleType,
-        this.vehicleBodyDetailsType,
-        this.vehicleBodyType,
-        this.fuelType,
-        this.ownerName,
-        this.ownerAadhaarBack,
-        this.ownerAadhaarFront,
-        this.ownerPanFornt,
-        this.ownerPanBack,
-        this.ownerSelfie,
-        this.driverName,
-        this.drivingLicenceBack,
-        this.drivingLicenceFront,
-        this.phone,
-        this.driveOperator,
-        this.deviceId,
-        this.docRejResion,
-        this.email,
-        this.fcm,
-        this.updatedAt,
-        this.createdAt,
-        this.status,
-        this.verifyDocument,
-        this.onlineStatus,
-        this.ownerDocStatus,
-        this.vehicleDocStatus,
-        this.driverDocStatus,
-        this.currentLatitude,
-        this.currentLongitude,
-        this.vehicleTypeName,
-        this.vehicleTypeImage,
-        this.vehicleBodyDetail,
-        this.vehicleBodyTypeName,
-        this.vehicleBodyTypeImage,
-        this.fuelTypeName,
-        this.cityName});
+  Data({
+    this.id,
+    this.referralId,
+    this.referralCode,
+    this.wallet,
+    this.duesPayment,
+    this.vehicleNo,
+    this.rcFront,
+    this.rcBack,
+    this.cityId,
+    this.vehicleType,
+    this.vehicleBodyDetailsType,
+    this.vehicleBodyType,
+    this.fuelType,
+    this.ownerName,
+    this.ownerAadhaarBack,
+    this.ownerAadhaarFront,
+    this.ownerPanFornt,
+    this.ownerPanBack,
+    this.ownerSelfie,
+    this.driverName,
+    this.drivingLicenceBack,
+    this.drivingLicenceFront,
+    this.phone,
+    this.driveOperator,
+    this.deviceId,
+    this.docRejResion,
+    this.email,
+    this.fcm,
+    this.updatedAt,
+    this.createdAt,
+    this.status,
+    this.verifyDocument,
+    this.onlineStatus,
+    this.ownerDocStatus,
+    this.vehicleDocStatus,
+    this.driverDocStatus,
+    this.currentLatitude,
+    this.currentLongitude,
+    this.vehicleTypeName,
+    this.vehicleTypeImage,
+    this.vehicleBodyDetail,
+    this.vehicleBodyTypeName,
+    this.vehicleBodyTypeImage,
+    this.fuelTypeName,
+    this.cityName,
+  });
 
   Data.fromJson(Map<String, dynamic> json) {
     id = json['id'];
+    referralId = json['referral_id'];
+    referralCode = json['referral_code'];
     wallet = json['wallet'];
     duesPayment = json['dues_payment'];
     vehicleNo = json['vehicle_no'];
@@ -176,6 +190,8 @@ class Data {
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = <String, dynamic>{};
     data['id'] = id;
+    data['referral_id'] = referralId;
+    data['referral_code'] = referralCode;
     data['wallet'] = wallet;
     data['dues_payment'] = duesPayment;
     data['vehicle_no'] = vehicleNo;

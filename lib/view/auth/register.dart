@@ -16,6 +16,7 @@ import 'package:yoyomiles_partner/view/auth/owner_detail.dart';
 import 'package:yoyomiles_partner/view/auth/vehicle_detail.dart';
 import 'package:yoyomiles_partner/view/controller/yoyomiles_partner_con.dart';
 import 'package:yoyomiles_partner/view/live_ride_screen.dart';
+import 'package:yoyomiles_partner/view/refer/refer_and_earn.dart';
 import 'package:yoyomiles_partner/view_model/active_ride_view_model.dart';
 import 'package:yoyomiles_partner/view_model/online_status_view_model.dart';
 import 'package:yoyomiles_partner/view_model/profile_view_model.dart';
@@ -613,266 +614,398 @@ class _RegisterState extends State<Register> {
     final onlineStatusViewModel = Provider.of<OnlineStatusViewModel>(context);
     final loc = AppLocalizations.of(context)!;
 
-
     return Consumer<YoyomilesPartnerCon>(
       builder: (context, ppc, child) {
         return Container(
-          height: Sizes.screenHeight * 0.7,
           color: PortColor.scaffoldBgGrey,
-          child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: Sizes.screenWidth * 0.03),
-            child: Column(
-              // crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: Sizes.screenWidth * 0.01,
-                  ),
-                  child: GridView.builder(
-                    padding: EdgeInsets.only(top: Sizes.screenHeight * 0.02),
-                    physics: const NeverScrollableScrollPhysics(),
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          crossAxisSpacing: 10,
-                          mainAxisSpacing: 10,
-                          childAspectRatio: 1.2,
-                        ),
-                    shrinkWrap: true,
-                    itemCount: ppc.dashBoardGridList.length,
-                    itemBuilder: (BuildContext context, index) {
-                      final res = ppc.dashBoardGridList[index];
-                      return GestureDetector(
-                        onTap: () {
-                          if (res.route != '') {
-                            Navigator.pushNamed(context, res.route);
-                          }
-                        },
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            border: Border.all(color: PortColor.grey),
-                          ),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Container(
-                                height: Sizes.screenHeight * 0.08,
-                                width: Sizes.screenWidth * 0.18,
-                                decoration: BoxDecoration(
-                                  image: DecorationImage(
-                                    image: AssetImage(res.img),
-                                    fit: BoxFit.contain,
-                                  ),
-                                ),
-                              ),
-                              SizedBox(height: Sizes.screenHeight * 0.012),
-                              TextConst(
-                                title:  res.titleKey == 'profile'
-                                    ? loc.profile
-                                    : res.titleKey == 'ride_history'
-                                    ? loc.ride_history
-                                    : res.titleKey == 'wallet_and_settlement'
-                                    ? loc.wallet_and_settlement
-                                    : loc.earning_report,
-                                size: Sizes.fontSizeSix,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
-                  ),
+          child: Column(
+            children: [
+              // ── 1. Dashboard Grid ──────────────────────────────
+              Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: Sizes.screenWidth * 0.03,
                 ),
-                SizedBox(height: Sizes.screenHeight * 0.01),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(top: 17),
-                      child: Column(
-                        children: [
-                          const Icon(
-                            Icons.check_circle,
-                            color: Colors.green,
-                            size: 24,
-                          ),
-                          Container(width: 2, height: 80, color: Colors.green),
-                          Container(
-                            width: 30,
-                            height: 30,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              gradient: const LinearGradient(
-                                colors: [
-                                  PortColor.yellow, // orange
-                                  Color(0xFFFF7043), // coral red
-                                ],
-                                begin: Alignment.topCenter,
-                                end: Alignment.bottomCenter,
-                              ),
-                              border: Border.all(
-                                color: PortColor.yellow,
-                                width: 2.0,
-                              ),
-                            ),
-                            child: const Center(
-                              child: TextConst(
-                                title: '2',
-                                color: PortColor.blackLight, // Text color
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    SizedBox(width: Sizes.screenWidth * 0.035),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const SizedBox(height: 10),
-                        Container(
-                          width: Sizes.screenWidth * 0.75,
-                          // height: Sizes.screenHeight * 0.09,
-                          decoration: BoxDecoration(
-                            color: PortColor.white,
-                            border: Border.all(color: PortColor.grey),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(12.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                 TextConst(
-                                  title: loc.upload_documents,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                                const SizedBox(height: 4),
-                                TextConst(
-                                  title: loc.upload_documents_description,
-                                  color: PortColor.black.withOpacity(0.6),
-                                ),
-                              ],
-                            ),
-                          ),
+                child: GridView.builder(
+                  padding: EdgeInsets.only(top: Sizes.screenHeight * 0.02),
+                  physics: const NeverScrollableScrollPhysics(),
+                  shrinkWrap: true,
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 10,
+                    mainAxisSpacing: 10,
+                    childAspectRatio: 1.2,
+                  ),
+                  itemCount: ppc.dashBoardGridList.length,
+                  itemBuilder: (context, index) {
+                    final res = ppc.dashBoardGridList[index];
+                    return GestureDetector(
+                      onTap: () {
+                        if (res.route != '') {
+                          Navigator.pushNamed(context, res.route);
+                        }
+                      },
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          border: Border.all(color: PortColor.grey),
+                          borderRadius: BorderRadius.circular(8),
                         ),
-                        SizedBox(height: Sizes.screenHeight * 0.009),
-                         Row(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(
-                              Icons.check_circle,
-                              color: Colors.green,
-                              size: 16,
+                            SizedBox(
+                              height: Sizes.screenHeight * 0.07,
+                              width: Sizes.screenWidth * 0.16,
+                              child: Image.asset(res.img, fit: BoxFit.contain),
                             ),
-                            SizedBox(width: 4),
-                            TextConst(title: loc.verified, color: Colors.green),
+                            SizedBox(height: Sizes.screenHeight * 0.01),
+                            TextConst(
+                              title: res.titleKey == 'profile'
+                                  ? loc.profile
+                                  : res.titleKey == 'ride_history'
+                                  ? loc.ride_history
+                                  : res.titleKey == 'wallet_and_settlement'
+                                  ? loc.wallet_and_settlement
+                                  : loc.earning_report,
+                              size: Sizes.fontSizeSix,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ],
                         ),
-                        SizedBox(height: Sizes.screenHeight * 0.02),
-                        Container(
-                          width: Sizes.screenWidth * 0.75,
-                          decoration: const BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [
-                                Color(0xFFFFF176),
-                                Color(0xFFFFD54F),
-                                Color(0xFFFFA726),
-                              ],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
-                          ),
-                          child: Padding(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: Sizes.screenWidth * 0.04,
-                              vertical: Sizes.screenHeight * 0.01,
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                TextConst(
-                                  title: loc.get_your_trip,
-                                  color: PortColor.blackLight,
-                                  fontWeight: FontWeight.bold,
-                                  size: Sizes.fontSizeSeven,
-                                ),
-                                const SizedBox(height: 8),
-                                TextConst(
-                                  title: loc.voila_ready_for_trip,
-                                  color: PortColor.black,
-                                  size: Sizes.fontSizeFour,
-                                ),
-                                const SizedBox(height: 16),
-                                InkWell(
-                                  onTap: () {
-                                    showLocationPermissionDialog(
-                                      context,
-                                      onAccept: () async {
+                      ),
+                    );
+                  },
+                ),
+              ),
 
-                                        bool overlayGranted = await _maybeAskOverlayPermission();
+              SizedBox(height: Sizes.screenHeight * 0.012),
 
-                                        if (!overlayGranted) {
-                                          Utils.showErrorMessage(context, "Overlay permission required to go online");
-                                          return;
-                                        }
+              // ── 2. Refer & Earn Box ────────────────────────────
+              Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: Sizes.screenWidth * 0.03,
+                ),
+                child: _referAndEarnSection(context),
+              ),
 
-                                        // 🔥 Step 2: API call
-                                        final success =
-                                        await onlineStatusViewModel.onlineStatusApi(context, 1);
+              SizedBox(height: Sizes.screenHeight * 0.012),
 
-                                        // 🔥 Step 3: Socket start
-                                        if (success) {
-                                          await _startSocket();
-                                        }
-                                      },
-                                    );
-                                  },
-                                  child: Container(
-                                    padding: EdgeInsets.symmetric(
-                                      horizontal: Sizes.screenWidth * 0.015,
-                                    ),
-                                    height: Sizes.screenHeight * 0.05,
-                                    width: Sizes.screenWidth * 0.7,
-                                    color: PortColor.white,
-                                    child: onlineStatusViewModel.loading
-                                        ? CupertinoActivityIndicator(
-                                            color: PortColor.black,
-                                            radius: 18,
-                                          )
-                                        : Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.spaceBetween,
-                                            children: [
-                                               TextConst(
-                                                title: loc.go_online,
-                                                color: PortColor.black,
-                                              ),
-                                              Icon(
-                                                Icons.arrow_forward_ios_rounded,
-                                                color: PortColor.blue,
-                                                size:
-                                                    Sizes.screenHeight * 0.025,
-                                              ),
-                                            ],
-                                          ),
+              // ── 3. Go Online Section ───────────────────────────
+              Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: Sizes.screenWidth * 0.03,
+                ),
+                child: Container(
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: PortColor.white,
+                    border: Border.all(color: PortColor.grey),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Column(
+                    children: [
+                      // Documents Verified Row
+                      Padding(
+                        padding: const EdgeInsets.all(14),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.check_circle,
+                                color: Colors.green, size: 20),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  TextConst(
+                                    title: loc.upload_documents,
+                                    fontWeight: FontWeight.w600,
+                                    size: 14,
                                   ),
-                                ),
-                              ],
+                                  const SizedBox(height: 3),
+                                  TextConst(
+                                    title: loc.upload_documents_description,
+                                    size: 12,
+                                    color: PortColor.black.withOpacity(0.5),
+                                  ),
+                                ],
+                              ),
                             ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 10, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: Colors.green.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.check_circle,
+                                      color: Colors.green, size: 13),
+                                  const SizedBox(width: 4),
+                                  TextConst(
+                                    title: loc.verified,
+                                    size: 12,
+                                    color: Colors.green,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      Divider(height: 1, color: PortColor.grey),
+
+                      // Get Your Trip Banner
+                      Container(
+                        width: double.infinity,
+                        decoration: const BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              Color(0xFFFFF176),
+                              Color(0xFFFFD54F),
+                              Color(0xFFFFA726),
+                            ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.only(
+                            bottomLeft: Radius.circular(12),
+                            bottomRight: Radius.circular(12),
                           ),
                         ),
-                      ],
-                    ),
-                  ],
+                        padding: EdgeInsets.symmetric(
+                          horizontal: Sizes.screenWidth * 0.04,
+                          vertical: Sizes.screenHeight * 0.018,
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            TextConst(
+                              title: loc.get_your_trip,
+                              color: PortColor.blackLight,
+                              fontWeight: FontWeight.bold,
+                              size: Sizes.fontSizeSeven,
+                            ),
+                            const SizedBox(height: 6),
+                            TextConst(
+                              title: loc.voila_ready_for_trip,
+                              color: PortColor.black,
+                              size: Sizes.fontSizeFour,
+                            ),
+                            const SizedBox(height: 14),
+                            InkWell(
+                              onTap: () {
+                                showLocationPermissionDialog(
+                                  context,
+                                  onAccept: () async {
+                                    bool overlayGranted =
+                                    await _maybeAskOverlayPermission();
+                                    if (!overlayGranted) {
+                                      Utils.showErrorMessage(context,
+                                          "Overlay permission required to go online");
+                                      return;
+                                    }
+                                    final success = await onlineStatusViewModel
+                                        .onlineStatusApi(context, 1);
+                                    if (success) await _startSocket();
+                                  },
+                                );
+                              },
+                              borderRadius: BorderRadius.circular(8),
+                              child: Container(
+                                height: Sizes.screenHeight * 0.055,
+                                width: double.infinity,
+                                decoration: BoxDecoration(
+                                  color: PortColor.white,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: Sizes.screenWidth * 0.04),
+                                child: onlineStatusViewModel.loading
+                                    ? const Center(
+                                  child: CupertinoActivityIndicator(
+                                    color: PortColor.black,
+                                    radius: 14,
+                                  ),
+                                )
+                                    : Row(
+                                  mainAxisAlignment:
+                                  MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    TextConst(
+                                      title: loc.go_online,
+                                      color: PortColor.black,
+                                      fontWeight: FontWeight.w600,
+                                      size: 15,
+                                    ),
+                                    Icon(
+                                      Icons.arrow_forward_ios_rounded,
+                                      color: PortColor.blue,
+                                      size: Sizes.screenHeight * 0.022,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ],
-            ),
+              ),
+
+              SizedBox(height: Sizes.screenHeight * 0.02),
+            ],
           ),
         );
       },
     );
   }
+
+  Widget _referAndEarnSection(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          CupertinoPageRoute(builder: (context) => ReferAndEarn()),
+        );
+      },
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10), // ↓ reduced
+        decoration: BoxDecoration(
+          color: const Color(0xFFFFF9E6),
+          border: Border.all(color: const Color(0xFFFAC775)),
+          borderRadius: BorderRadius.circular(10), // ↓ slightly smaller
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 38, // ↓ reduced
+              height: 38,
+              decoration: const BoxDecoration(
+                color: Color(0xFFFAC775),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.people_alt_rounded,
+                color: Color(0xFF412402),
+                size: 18, // ↓ reduced
+              ),
+            ),
+            const SizedBox(width: 10), // ↓ reduced
+
+            const Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  TextConst(
+                    title: 'Refer & Earn',
+                    fontWeight: FontWeight.w600,
+                    size: 13, // ↓ reduced
+                    color: Color(0xFF412402),
+                  ),
+                  SizedBox(height: 2),
+                  TextConst(
+                    title: 'Invite your friends and start earning rewards!',
+                    size: 11, // ↓ reduced
+                    color: Color(0xFF854F0B),
+                  ),
+                ],
+              ),
+            ),
+
+            Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 8,
+                vertical: 5,
+              ), // ↓ reduced
+              decoration: BoxDecoration(
+                color: const Color(0xFFBA7517),
+                borderRadius: BorderRadius.circular(16), // ↓ reduced
+              ),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextConst(
+                    title: 'Refer',
+                    size: 11, // ↓ reduced
+                    color: Colors.white,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  SizedBox(width: 3),
+                  Icon(
+                    Icons.arrow_forward_ios_rounded,
+                    color: Colors.white,
+                    size: 10, // ↓ reduced
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+  // Widget _referAndEarnSection(BuildContext context) {
+  //   return GestureDetector(
+  //     onTap: () {
+  //       // Navigator.pushNamed(context, RoutesName.referAndEarn);
+  //     },
+  //     child: Container(
+  //       margin: EdgeInsets.symmetric(vertical: Sizes.screenHeight * 0.01),
+  //       padding: EdgeInsets.symmetric(
+  //         horizontal: 16,
+  //         vertical: 14,
+  //       ),
+  //       decoration: BoxDecoration(
+  //         color: const Color(0xFFFFF9E6),
+  //         border: Border.all(color: const Color(0xFFFAC775)),
+  //         borderRadius: BorderRadius.circular(12),
+  //       ),
+  //       child: Row(
+  //         children: [
+  //           Container(
+  //             width: 44, height: 44,
+  //             decoration: const BoxDecoration(
+  //               color: Color(0xFFFAC775),
+  //               shape: BoxShape.circle,
+  //             ),
+  //             child: const Icon(Icons.people_alt_rounded, color: Color(0xFF412402), size: 22),
+  //           ),
+  //           const SizedBox(width: 12),
+  //           const Expanded(
+  //             child: Column(
+  //               crossAxisAlignment: CrossAxisAlignment.start,
+  //               children: [
+  //                 TextConst(
+  //                   title: 'Refer & Earn',
+  //                   fontWeight: FontWeight.w600,
+  //                   size: 14,
+  //                   color: Color(0xFF412402),
+  //                 ),
+  //                 TextConst(
+  //                   title: 'Dosto ko refer karo, ₹200 kamao!',
+  //                   size: 12,
+  //                   color: Color(0xFF854F0B),
+  //                 ),
+  //               ],
+  //             ),
+  //           ),
+  //           const Icon(
+  //             Icons.arrow_forward_ios_rounded,
+  //             color: Color(0xFFBA7517),
+  //             size: 16,
+  //           ),
+  //         ],
+  //       ),
+  //     ),
+  //   );
+  // }
+
 
   Widget rejectedContainer() {
     final profileVm = Provider.of<ProfileViewModel>(context);

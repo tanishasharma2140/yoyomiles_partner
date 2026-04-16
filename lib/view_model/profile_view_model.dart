@@ -1,3 +1,4 @@
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:yoyomiles_partner/model/profile_model.dart';
 import 'package:yoyomiles_partner/repo/profile_repo.dart';
@@ -21,13 +22,18 @@ class ProfileViewModel with ChangeNotifier {
     notifyListeners();
   }
   Future<void> profileApi(context) async {
-    print("kjfnnfneofoefionieo");
     setLoading(true);
     try {
       UserViewModel userViewModel = UserViewModel();
-      int? userId = (await userViewModel.getUser());
-      print(userId);
-      final response = await _profileRepo.profileApi(userId.toString());
+      int? userId = await userViewModel.getUser();
+
+      final fcmToken = await FirebaseMessaging.instance.getToken();
+
+      final response = await _profileRepo.profileApi(
+        userId.toString(),
+        fcmToken??"",
+      );
+
       if (response.success == true) {
         setModelData(response);
       }

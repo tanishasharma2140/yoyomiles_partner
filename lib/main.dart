@@ -32,6 +32,7 @@ import 'package:yoyomiles_partner/view_model/contact_list_view_model.dart';
 import 'package:yoyomiles_partner/view_model/daily_weekly_view_model.dart';
 import 'package:yoyomiles_partner/view_model/delete_bank_detail_view_model.dart';
 import 'package:yoyomiles_partner/view_model/driver_ignored_ride_view_model.dart';
+import 'package:yoyomiles_partner/view_model/driver_referral_history_view_model.dart';
 import 'package:yoyomiles_partner/view_model/driver_vehicle_view_model.dart';
 import 'package:yoyomiles_partner/view_model/fuel_type_view_model.dart';
 import 'package:yoyomiles_partner/view_model/help_topics_view_model.dart';
@@ -66,7 +67,7 @@ Future<void> handleNativeCallback(MethodCall call) async {
     case 'onRideEvent':
       final Map<String, dynamic> data = Map<String, dynamic>.from(call.arguments);
       debugPrint("🚖 Ride Event from Native: $data");
-      await RideNotificationHelper.showIncomingRide(data);
+      // await RideNotificationHelper.showIncomingRide(data);
       break;
     default:
       debugPrint("⚠️ Unknown native callback");
@@ -170,16 +171,14 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver{
       }
 
       if (call.method == 'onOverlayAcceptRide') {
-        print("✅ ACCEPT BUTTON CLICKED FROM OVERLAY");
-
         final data = Map<String, dynamic>.from(call.arguments);
 
         print("📦 FULL DATA: $data");
 
-        final orderId = data['orderId']?.toString() ?? data['id']?.toString() ?? '';
+        final String orderId = data['id']?.toString() ?? "";
 
-        print("📦 Final OrderId: $orderId");
-        print("📦 OrderId: $orderId");
+        print("✅ FINAL ID: $orderId");
+
         if (orderId.isEmpty) return;
 
         final context = navigatorKey.currentContext;
@@ -187,17 +186,9 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver{
 
         FlutterBackgroundService().invoke('STOP_RINGTONE');
 
-        final rideVm = Provider.of<RideViewModel>(context, listen: false);
-        final bookingData = rideVm.allRideData?.firstWhere(
-              (e) => e['id']?.toString() == orderId,
-          orElse: () => {},
-        );
-
-        if (bookingData == null || bookingData.isEmpty) return;
-
         final assignVm = Provider.of<AssignRideViewModel>(context, listen: false);
-        print("🚀 Calling Assign Ride API...");
-        await assignVm.assignRideApi(context, 1, orderId, bookingData);
+
+        await assignVm.assignRideApi(context, 1, orderId, data);
       }
     });
 
@@ -322,6 +313,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver{
           ChangeNotifierProvider(create: (context) => VideoViewModel()),
           ChangeNotifierProvider(create: (context) => LanguageController()),
           ChangeNotifierProvider(create: (context) => UpdateStopStatusViewModel()),
+          ChangeNotifierProvider(create: (context) => DriverReferralHistoryViewModel()),
           Provider<NotificationService>(create: (_) => NotificationService(navigatorKey: navigatorKey)),
         ],
         child: Consumer<LanguageController>(

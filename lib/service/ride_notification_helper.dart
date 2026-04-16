@@ -55,6 +55,7 @@ class RideNotificationHelper {
     final String pickup = bookingData['pickup_address'] ?? "N/A";
     final String drop = bookingData['drop_address'] ?? "N/A";
     final String fare = "₹${bookingData['amount'] ?? '0'}";
+    final String orderId = "₹${bookingData['id'] ?? '0'}";
 
     final bigTextStyle = BigTextStyleInformation(
       "<br>📍 <b>PICKUP:</b> $pickup<br><br>"

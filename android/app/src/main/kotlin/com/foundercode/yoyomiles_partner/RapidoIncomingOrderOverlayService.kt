@@ -587,7 +587,7 @@ class RapidoIncomingOrderOverlayService : Service() {
     private var pickup: String = ""
     private var drop: String = ""
     private var distance: String = ""
-    private var orderId: String = ""
+    private var id: String = ""
     private var amount: String = ""
 
     override fun onBind(intent: Intent?): IBinder? = null
@@ -608,9 +608,9 @@ class RapidoIncomingOrderOverlayService : Service() {
                 pickup   = intent.getStringExtra("pickup")   ?: ""
                 drop     = intent.getStringExtra("drop")     ?: ""
                 distance = intent.getStringExtra("distance") ?: ""
-                orderId  = intent.getStringExtra("orderId")  ?: ""
+                id  = intent.getStringExtra("id")  ?: ""
                 amount   = intent.getStringExtra("amount")   ?: ""
-                Log.d(tag, "Data received — pickup=$pickup drop=$drop distance=$distance orderId=$orderId amount=$amount")
+                Log.d(tag, "Data received — pickup=$pickup drop=$drop distance=$distance id=$id amount=$amount")
                 scheduleShow(intent.getLongExtra(EXTRA_DELAY_MS, DEFAULT_DELAY_MS))
             }
             ACTION_SHOW_NOW -> showNow()
@@ -676,7 +676,7 @@ class RapidoIncomingOrderOverlayService : Service() {
         val expandedCard = buildExpandedCardView(
             onAccept = {
                 // ✅ Accept: Flutter ko orderId bhejo, normal route nahi
-                sendAcceptToFlutter(orderId)
+                sendAcceptToFlutter(id)
                 hideAndStop()
             },
             onMinimize = { setMinimized(true) }
@@ -909,7 +909,7 @@ class RapidoIncomingOrderOverlayService : Service() {
     }
 
     // ✅ Accept: app ko foreground mein laao aur Flutter ko orderId bhejo
-    private fun sendAcceptToFlutter(orderId: String) {
+    private fun sendAcceptToFlutter(id: String) {
         val intent = Intent(this, MainActivity::class.java).apply {
             addFlags(
                 Intent.FLAG_ACTIVITY_NEW_TASK or
@@ -917,7 +917,7 @@ class RapidoIncomingOrderOverlayService : Service() {
                         Intent.FLAG_ACTIVITY_SINGLE_TOP
             )
             putExtra(EXTRA_NAV_ROUTE, ROUTE_ACCEPT_RIDE)
-            putExtra(EXTRA_ORDER_ID, orderId)
+            putExtra(EXTRA_ORDER_ID, id)
         }
         startActivity(intent)
     }

@@ -40,6 +40,9 @@ class PortColor{
   static const Color yellowCoin = Color(0xffDFBF58);
   static const Color darkYellow = Color(0xffD99C35);
   static const Color lightYellow = Color(0xffF3D45B);
+  static const textDark = Color(0xFF1A1A1A);
+  static const textGrey = Color(0xFF888888);
+  static const bgColor = Color(0xFFF9F9F9);
 
 
   static   Color scaffoldBgGrey = Colors.grey.shade50;

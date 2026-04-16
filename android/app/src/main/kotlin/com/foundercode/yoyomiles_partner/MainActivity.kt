@@ -121,12 +121,16 @@ class MainActivity : FlutterActivity() {
                     val pickup = call.argument<String>("pickup") ?: ""
                     val drop = call.argument<String>("drop") ?: ""
                     val distance = call.argument<String>("distance") ?: ""
+                    val id = call.argument<String>("id") ?: ""
+                    val amount = call.argument<String>("amount") ?: ""
 
                     val intent = Intent(this, RapidoIncomingOrderOverlayService::class.java).apply {
                         action = RapidoIncomingOrderOverlayService.ACTION_SCHEDULE_SHOW
                         putExtra("pickup", pickup)
                         putExtra("drop", drop)
                         putExtra("distance", distance)
+                        putExtra("id", id)
+                        putExtra("amount", amount)
                         putExtra(RapidoIncomingOrderOverlayService.EXTRA_DELAY_MS, delayMs)
                     }
 

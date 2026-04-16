@@ -7,14 +7,15 @@ import 'package:yoyomiles_partner/res/api_url.dart';
 class ProfileRepo {
   final BaseApiServices _apiServices = NetworkApiServices();
 
-  Future<ProfileModel> profileApi(dynamic data) async {
+  Future<ProfileModel> profileApi(String userId, String fcm) async {
     try {
-      dynamic response =
-      await _apiServices.getGetApiResponse(ApiUrl.profileUrl+ data);
+      String url = "${ApiUrl.profileUrl}$userId?fcm=$fcm";
+
+      dynamic response = await _apiServices.getGetApiResponse(url);
       return ProfileModel.fromJson(response);
     } catch (e) {
       if (kDebugMode) {
-        print('Error occurred during loginApi: $e');
+        print('Error occurred during profileApi: $e');
       }
       rethrow;
     }
