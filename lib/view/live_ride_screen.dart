@@ -1367,6 +1367,7 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
     );
   }
   Widget buildNavigateToMapButton() {
+    final loc = AppLocalizations.of(context)!;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       child: InkWell(
@@ -1381,14 +1382,14 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
             color: PortColor.gold,
             borderRadius: BorderRadius.circular(10),
           ),
-          child: const Row(
+          child:  Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(Icons.navigation, color: Colors.black),
               SizedBox(width: 8),
               TextConst(
                 title:
-                "Navigate to Pickup Location",
+                loc.navigate_to_pickup,
                 color: PortColor.black,
                 size: 14,
                 fontWeight: FontWeight.w600,
@@ -1401,6 +1402,7 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
   }
 
   Widget buildNavigateFromMapButton() {
+    final loc = AppLocalizations.of(context)!;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       child: InkWell(
@@ -1415,14 +1417,14 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
             color: PortColor.gold,
             borderRadius: BorderRadius.circular(10),
           ),
-          child: const Row(
+          child:  Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(Icons.navigation, color: Colors.black),
               SizedBox(width: 8),
               TextConst(
                 title:
-                "Navigate to Drop Location",
+                loc.navigate_to_drop,
                 color: PortColor.black,
                 size: 14,
                 fontWeight: FontWeight.w600,

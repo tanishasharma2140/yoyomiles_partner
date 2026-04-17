@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:yoyomiles_partner/l10n/app_localizations.dart';
 import 'package:yoyomiles_partner/res/constant_color.dart';
 import 'package:yoyomiles_partner/res/text_const.dart';
 import 'package:yoyomiles_partner/view/refer/driver_referral_history.dart';
@@ -38,6 +39,7 @@ class _ReferAndEarnState extends State<ReferAndEarn> {
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
     final profile = Provider.of<ProfileViewModel>(context);
     return SafeArea(
       top: false,
@@ -47,10 +49,10 @@ class _ReferAndEarnState extends State<ReferAndEarn> {
         appBar: AppBar(
           backgroundColor: PortColor.white,
           elevation: 0,
-          leading: const BackButton(color: Colors.black),
+          leading:  BackButton(color: Colors.black),
           title:  TextConst(
             title:
-            'Refer & Earn',
+            loc.refer_n_earn,
             color: Colors.black,
             fontWeight: FontWeight.w700,
             size: 18,
@@ -106,10 +108,10 @@ class _ReferAndEarnState extends State<ReferAndEarn> {
                               color: Colors.black87,
                             ),
                           ),
-                          const SizedBox(width: 10),
+                           SizedBox(width: 10),
                            TextConst(
                              title:
-                            'Your Referral Code',
+                            loc.your_referral_code,
                              size: 14,
                              fontWeight: FontWeight.w700,
                              color: Color(0xFF1A1A1A),
@@ -162,7 +164,7 @@ class _ReferAndEarnState extends State<ReferAndEarn> {
                                     const SizedBox(width: 5),
                                     TextConst(
                                       title:
-                                      _copied ? 'Copied!' : 'Copy',
+                                      _copied ? loc.copied : loc.copy,
                                       size: 12,
                                       fontWeight: FontWeight.w700,
                                       color: Colors.black,
@@ -213,35 +215,35 @@ class _ReferAndEarnState extends State<ReferAndEarn> {
                               color: Colors.black87,
                             ),
                           ),
-                          const SizedBox(width: 10),
+                           SizedBox(width: 10),
                            TextConst(
                              title:
-                            'How it works',
+                            loc.how_it_work,
                              size: 14,
                              fontWeight: FontWeight.w700,
                              color: Color(0xFF1A1A1A),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 20),
+                       SizedBox(height: 20),
                       _StepRow(
                         icon: Icons.share_rounded,
-                        title: 'Share your code',
-                        subtitle: 'Send your unique code to friends & family',
+                        title: loc.share_your_code,
+                        subtitle: loc.sent_your_unique,
                         accentColor: PortColor.gold,
                         showLine: true,
                       ),
                       _StepRow(
                         icon: Icons.person_add_alt_1_rounded,
-                        title: 'Friend signs up',
-                        subtitle: 'They register using your referral code',
+                        title: loc.friend_sign_up,
+                        subtitle: loc.they_register_using_your,
                         accentColor: PortColor.gold,
                         showLine: true,
                       ),
                       _StepRow(
                         icon: Icons.currency_rupee_rounded,
-                        title: 'Both earn rewards',
-                        subtitle: 'You get ₹${profile.profileModel?.driverReferralAmount??""}',
+                        title: loc.both_earn_rewards,
+                        subtitle: ' ${loc.you_get} ₹${profile.profileModel?.driverReferralAmount??""}',
                         accentColor: PortColor.gold,
                         showLine: false,
                       ),
@@ -266,8 +268,8 @@ class _ReferAndEarnState extends State<ReferAndEarn> {
                     },
                     icon: const Icon(Icons.share_rounded,
                         color: Colors.black, size: 18),
-                    label: const TextConst(
-                      title: 'Share & Invite Friends',
+                    label:  TextConst(
+                      title: loc.share_and_invite_friends,
                       color: Colors.black,
                       fontWeight: FontWeight.w700,
                       size: 15,
@@ -294,107 +296,116 @@ class _ReferAndEarnState extends State<ReferAndEarn> {
   }
 }
 
-Widget referCard(context) {
+Widget referCard(BuildContext context) {
+  final loc = AppLocalizations.of(context)!;
   final profileVm = Provider.of<ProfileViewModel>(context);
-  return Container(
-    alignment: Alignment.center,
-    decoration: BoxDecoration(
-      borderRadius: BorderRadius.circular(20),
-      boxShadow: [
-        BoxShadow(
-          color: Colors.black.withOpacity(0.08),
-          blurRadius: 12,
-          offset: const Offset(0, 6),
-        ),
-      ],
-    ),
-    child: ClipRRect(
-      borderRadius: BorderRadius.circular(20),
-      child: Container(
-        color: PortColor.gold,
-        child: Stack(
-          children: [
-            // Background circles
-            Positioned(
-              top: -30,
-              right: -20,
-              child: Container(
-                width: 100,
-                height: 100,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.black.withOpacity(0.06),
-                ),
-              ),
-            ),
-            Positioned(
-              bottom: -20,
-              left: -10,
-              child: Container(
-                width: 70,
-                height: 70,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.black.withOpacity(0.05),
-                ),
-              ),
-            ),
 
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 24, 20, 24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 70,
-                    height: 70,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.black.withOpacity(0.1),
+  return Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+    child: Container(
+      width: double.infinity,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 12,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: Container(
+          width: double.infinity,
+          color: PortColor.gold,
+          child: Stack(
+            children: [
+              Positioned(
+                top: -30,
+                right: -20,
+                child: Container(
+                  width: 100,
+                  height: 100,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.black.withOpacity(0.06),
+                  ),
+                ),
+              ),
+              Positioned(
+                bottom: -20,
+                left: -10,
+                child: Container(
+                  width: 70,
+                  height: 70,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.black.withOpacity(0.05),
+                  ),
+                ),
+              ),
+
+              SizedBox(
+                width: double.infinity,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    SizedBox(height: 15,),
+                    Container(
+                      width: 70,
+                      height: 70,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.black.withOpacity(0.1),
+                      ),
+                      child: const Icon(
+                        Icons.card_giftcard_rounded,
+                        size: 36,
+                        color: Colors.black,
+                      ),
                     ),
-                    child: const Icon(
-                      Icons.card_giftcard_rounded,
-                      size: 36,
+
+                    const SizedBox(height: 14),
+
+                     TextConst(
+                      title: loc.invite_friend_n_earn,
+                      size: 20,
+                      fontWeight: FontWeight.w800,
                       color: Colors.black,
+                      textAlign: TextAlign.center,
                     ),
-                  ),
-                  const SizedBox(height: 14),
 
-                  const TextConst(
-                    title:
-                    'Invite Friends & Earn',
-                    size: 20, // ↓ slightly smaller
-                    fontWeight: FontWeight.w800,
-                    color: Colors.black,
-                  ),
-                  const SizedBox(height: 6),
+                    const SizedBox(height: 6),
 
-                   TextConst(
-                     title:
-                    'Refer friends and unlock exciting rewards!',
-                    textAlign: TextAlign.center,
-                     size: 12,
-                     color: Color(0xFF4A4A4A),
-                  ),
+                     TextConst(
+                      title: loc.refer_friend_and_unlock,
+                      textAlign: TextAlign.center,
+                      size: 12,
+                      color: Color(0xFF4A4A4A),
+                    ),
 
-                  const SizedBox(height: 16),
+                    const SizedBox(height: 16),
 
-                   _RewardBadge(
-                    label: 'You earn',
-                    amount: "${profileVm.profileModel?.driverReferralAmount?? 0}Rs",
-                  ),
-                  const SizedBox(width: 12),
-                ],
-              ),
-            ),
-          ],
+                    _RewardBadge(
+                      label: loc.you_earn,
+                      amount:
+                      "${profileVm.profileModel?.driverReferralAmount ?? 0}₹",
+                    ),
+                    SizedBox(height: 10,)
+                  ],
+                ),
+              )
+            ],
+          ),
         ),
       ),
     ),
   );
 }
 
-// ── Reward Badge ──
 class _RewardBadge extends StatelessWidget {
   final String label;
   final String amount;
@@ -425,42 +436,6 @@ class _RewardBadge extends StatelessWidget {
   }
 }
 
-// ── Share Icon ──
-class _ShareIcon extends StatelessWidget {
-  final IconData icon;
-  final Color color;
-  final String label;
-
-  const _ShareIcon({
-    required this.icon,
-    required this.color,
-    required this.label,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Container(
-          width: 38,
-          height: 38,
-          decoration: BoxDecoration(
-            color: color.withOpacity(0.12),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Icon(icon, size: 18, color: color),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: const TextStyle(fontSize: 10, color: Color(0xFF888888)),
-        ),
-      ],
-    );
-  }
-}
-
-// ── Step Row ──
 class _StepRow extends StatelessWidget {
   final IconData icon;
   final String title;

@@ -866,6 +866,7 @@ class _RegisterState extends State<Register> {
   }
 
   Widget _referAndEarnSection(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -875,44 +876,44 @@ class _RegisterState extends State<Register> {
       },
       child: Container(
         width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10), // ↓ reduced
+        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 10),
         decoration: BoxDecoration(
-          color: const Color(0xFFFFF9E6),
-          border: Border.all(color: const Color(0xFFFAC775)),
-          borderRadius: BorderRadius.circular(10), // ↓ slightly smaller
+          color: PortColor.lightG,
+          border: Border.all(color: PortColor.face),
+          borderRadius: BorderRadius.circular(10),
         ),
         child: Row(
           children: [
             Container(
-              width: 38, // ↓ reduced
+              width: 38,
               height: 38,
               decoration: const BoxDecoration(
-                color: Color(0xFFFAC775),
+                color: PortColor.face,
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
+              child:  Icon(
                 Icons.people_alt_rounded,
-                color: Color(0xFF412402),
-                size: 18, // ↓ reduced
+                color: PortColor.brown,
+                size: 18,
               ),
             ),
-            const SizedBox(width: 10), // ↓ reduced
+            const SizedBox(width: 7),
 
-            const Expanded(
+             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   TextConst(
-                    title: 'Refer & Earn',
+                    title: loc.refer_n_earn,
                     fontWeight: FontWeight.w600,
-                    size: 13, // ↓ reduced
-                    color: Color(0xFF412402),
+                    size: 13,
+                    color: PortColor.brown,
                   ),
                   SizedBox(height: 2),
                   TextConst(
-                    title: 'Invite your friends and start earning rewards!',
-                    size: 11, // ↓ reduced
-                    color: Color(0xFF854F0B),
+                    title: loc.invite_your_friend,
+                    size: 11,
+                    color: PortColor.lightBrown,
                   ),
                 ],
               ),
@@ -921,26 +922,20 @@ class _RegisterState extends State<Register> {
             Container(
               padding: const EdgeInsets.symmetric(
                 horizontal: 8,
-                vertical: 5,
-              ), // ↓ reduced
-              decoration: BoxDecoration(
-                color: const Color(0xFFBA7517),
-                borderRadius: BorderRadius.circular(16), // ↓ reduced
+                vertical: 3,
               ),
-              child: const Row(
+              decoration: BoxDecoration(
+                color: PortColor.lightBrown,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child:  Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   TextConst(
-                    title: 'Refer',
-                    size: 11, // ↓ reduced
+                    title: loc.refer,
+                    size: 11,
                     color: Colors.white,
                     fontWeight: FontWeight.w500,
-                  ),
-                  SizedBox(width: 3),
-                  Icon(
-                    Icons.arrow_forward_ios_rounded,
-                    color: Colors.white,
-                    size: 10, // ↓ reduced
                   ),
                 ],
               ),
@@ -950,61 +945,6 @@ class _RegisterState extends State<Register> {
       ),
     );
   }
-  // Widget _referAndEarnSection(BuildContext context) {
-  //   return GestureDetector(
-  //     onTap: () {
-  //       // Navigator.pushNamed(context, RoutesName.referAndEarn);
-  //     },
-  //     child: Container(
-  //       margin: EdgeInsets.symmetric(vertical: Sizes.screenHeight * 0.01),
-  //       padding: EdgeInsets.symmetric(
-  //         horizontal: 16,
-  //         vertical: 14,
-  //       ),
-  //       decoration: BoxDecoration(
-  //         color: const Color(0xFFFFF9E6),
-  //         border: Border.all(color: const Color(0xFFFAC775)),
-  //         borderRadius: BorderRadius.circular(12),
-  //       ),
-  //       child: Row(
-  //         children: [
-  //           Container(
-  //             width: 44, height: 44,
-  //             decoration: const BoxDecoration(
-  //               color: Color(0xFFFAC775),
-  //               shape: BoxShape.circle,
-  //             ),
-  //             child: const Icon(Icons.people_alt_rounded, color: Color(0xFF412402), size: 22),
-  //           ),
-  //           const SizedBox(width: 12),
-  //           const Expanded(
-  //             child: Column(
-  //               crossAxisAlignment: CrossAxisAlignment.start,
-  //               children: [
-  //                 TextConst(
-  //                   title: 'Refer & Earn',
-  //                   fontWeight: FontWeight.w600,
-  //                   size: 14,
-  //                   color: Color(0xFF412402),
-  //                 ),
-  //                 TextConst(
-  //                   title: 'Dosto ko refer karo, ₹200 kamao!',
-  //                   size: 12,
-  //                   color: Color(0xFF854F0B),
-  //                 ),
-  //               ],
-  //             ),
-  //           ),
-  //           const Icon(
-  //             Icons.arrow_forward_ios_rounded,
-  //             color: Color(0xFFBA7517),
-  //             size: 16,
-  //           ),
-  //         ],
-  //       ),
-  //     ),
-  //   );
-  // }
 
 
   Widget rejectedContainer() {

@@ -29,12 +29,12 @@ class ApiUrl{
   static const String withdrawUrl="${baseUrl}withdraws";
   static const String withdrawHistoryUrl="${baseUrl}withdraw-history";
   static const String driverIgnoreRideOrderUrl ="${baseUrl}driver-ignore-ride-order";
-  // static const String deleteOldOrderUrl ="${baseUrl}delete-old-orders";
   static const String changePaymentModeUrl ="${baseUrl}change-payment-mode";
   static const String contactListUrl ="${baseUrl}contact_list";
   static const String videoUrl ="${baseUrl}video";
   static const String updateStopStatusUrl ="${baseUrl}update_stop_status";
   static const String driverReferralHistoryUrl ="${baseUrl}driver-referral-history";
+  static const String driverTransferUrl ="${baseUrl}driver-transfer";
 
 
 
@@ -42,7 +42,7 @@ class ApiUrl{
 
 
 
-  static const String sendOtpUrl ="https://dev.yoyomiles.com/api/send_otp?mode=live&digit=4&mobile=";
+  static const String sendOtpUrl ="https://dev.yoyomiles.com/api/send_otp?mode=test&digit=4&mobile=";
   static const String verifyOtpUrl ="https://dev.yoyomiles.com/api/verifyotp?mobile=";
   // static const String countOtpUrl ="${baseUrl}count_otp";
 

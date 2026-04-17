@@ -43,6 +43,10 @@ class PortColor{
   static const textDark = Color(0xFF1A1A1A);
   static const textGrey = Color(0xFF888888);
   static const bgColor = Color(0xFFF9F9F9);
+  static const brown = Color(0xFF412402);
+  static const lightBrown = Color(0xFF854F0B);
+  static const face = Color(0xFFFAC775);
+  static const lightG = Color(0xFFFFF9E6);
 
 
   static   Color scaffoldBgGrey = Colors.grey.shade50;

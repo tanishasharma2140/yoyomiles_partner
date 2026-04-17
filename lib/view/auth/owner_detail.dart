@@ -31,6 +31,7 @@ class OwnerDetail extends StatefulWidget {
 class _OwnerDetailState extends State<OwnerDetail> {
   String? mobileNumber;
   final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _referralCodeController = TextEditingController();
   final ImagePicker _picker = ImagePicker();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
@@ -121,10 +122,10 @@ class _OwnerDetailState extends State<OwnerDetail> {
                   _buildStepIndicator(),
                   const SizedBox(height: 32),
 
-                  // Name Field
                   _buildNameField(),
                   const SizedBox(height: 24),
-
+                  _buildReferralCode(),
+                  const SizedBox(height: 24),
                   // Upload Section
                   _buildUploadSection(),
                   const SizedBox(height: 32),
@@ -223,6 +224,32 @@ class _OwnerDetailState extends State<OwnerDetail> {
           ],
           controller: _nameController,
           hintText: loc.enter_name,
+          hintStyle: const TextStyle(color: PortColor.gray),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildReferralCode() {
+    final loc = AppLocalizations.of(context)!;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        TextConst(
+          title:
+          loc.referral_code,
+          color: Colors.black54,
+          fontWeight: FontWeight.w600,
+          size: 15,
+        ),
+        const SizedBox(height: 5),
+        CustomTextField(
+          inputFormatters: [
+            FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9]')),
+          ],
+          controller: _referralCodeController,
+          hintText: loc.enter_referral_code,
           hintStyle: const TextStyle(color: PortColor.gray),
         ),
       ],
@@ -448,7 +475,6 @@ class _OwnerDetailState extends State<OwnerDetail> {
 
       XFile? image;
 
-      // 👇 Selfie → front camera if camera selected
       if (documentType == 'selfie' && source == ImageSource.camera) {
         image = await _picker.pickImage(
           source: source,
@@ -582,6 +608,7 @@ class _OwnerDetailState extends State<OwnerDetail> {
         "vehicle_doc_status": '2',
         "driver_doc_status": '2',
         "id":userId.toString(),
+        "referral_code" : _referralCodeController.text.trim()
       });
 
       // Compress and attach files

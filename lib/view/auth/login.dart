@@ -54,7 +54,6 @@ class _LoginState extends State<Login> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 SizedBox(height: topPadding),
-                // 🔽 LANGUAGE DROPDOWN (TOP RIGHT)
                 Align(
                   alignment: Alignment.topRight,
                   child: Consumer<LanguageController>(
@@ -344,15 +343,16 @@ class _LoginState extends State<Login> {
                 ),
                 SizedBox(height: Sizes.screenHeight * 0.035),
                 GestureDetector(
-                  onTap: () {
+                  onTap: loginViewModel.loading
+                      ? null
+                      : () {
                     if (isTermsAgreed && isTDSAgreed) {
                       if (loginViewModel.phoneController.text.length == 10 &&
-                          RegExp(r'^\d{10}$').hasMatch(loginViewModel.phoneController.text)) {
-                        final loginViewModel = Provider.of<AuthViewModel>(
-                          context,
-                          listen: false,
-                        );
+                          RegExp(r'^\d{10}$')
+                              .hasMatch(loginViewModel.phoneController.text)) {
+
                         loginViewModel.otpSentApi(loginViewModel.phoneController.text, context);
+
                       } else {
                         Utils.showErrorMessage(
                           context,
@@ -362,7 +362,7 @@ class _LoginState extends State<Login> {
                     } else {
                       Utils.showErrorMessage(
                         context,
-                        loc.please_agree_to_all
+                        loc.please_agree_to_all,
                       );
                     }
                   },

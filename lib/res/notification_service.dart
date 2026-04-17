@@ -16,6 +16,7 @@ class NotificationService {
   final FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin =
   FlutterLocalNotificationsPlugin();
 
+
   Future<void> requestedNotificationPermission() async {
     await Permission.notification.request();
 
@@ -87,11 +88,10 @@ class NotificationService {
       );
     } else {
       print("⚠️ No context → Running Profile API without context");
-      ProfileViewModel().profileApi(ctx); // ← Modify API to accept null
+      ProfileViewModel().profileApi(ctx);
     }
   }
 
-  // ✅ Show Push Notification
   Future<void> showNotification(RemoteMessage message) async {
     final androidData = message.notification?.android;
 
@@ -107,7 +107,7 @@ class NotificationService {
       importance: Importance.high,
       priority: Priority.high,
       playSound: true,
-      fullScreenIntent: true,
+      // fullScreenIntent: true,
     );
 
     DarwinNotificationDetails iosDetails = const DarwinNotificationDetails(

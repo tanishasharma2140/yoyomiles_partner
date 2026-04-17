@@ -33,7 +33,6 @@ class _WalletSettlementState extends State<WalletSettlement> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      print("trabsactuyon");
       final transactionVm = Provider.of<TransactionViewModel>(
         context,
         listen: false,
@@ -41,6 +40,8 @@ class _WalletSettlementState extends State<WalletSettlement> {
       transactionVm.transactionApi(context);
       final bankVm = Provider.of<BankViewModel>(context, listen: false);
       bankVm.bankDetailViewApi();
+      final profileVm =  Provider.of<ProfileViewModel>(context,listen: false);
+      profileVm.profileApi(context);
     });
   }
 

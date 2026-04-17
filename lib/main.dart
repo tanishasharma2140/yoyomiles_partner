@@ -1,10 +1,10 @@
 import 'dart:async';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:yoyomiles_partner/controller/language_controller.dart';
@@ -15,7 +15,6 @@ import 'package:yoyomiles_partner/res/notification_service.dart';
 import 'package:yoyomiles_partner/res/sizing_const.dart';
 import 'package:yoyomiles_partner/service/background_service.dart';
 import 'package:yoyomiles_partner/service/internet_checker_service.dart';
-import 'package:yoyomiles_partner/service/ride_notification_helper.dart';
 import 'package:yoyomiles_partner/utils/routes/routes.dart';
 import 'package:yoyomiles_partner/utils/routes/routes_name.dart';
 import 'package:yoyomiles_partner/view/controller/yoyomiles_partner_con.dart';
@@ -33,6 +32,7 @@ import 'package:yoyomiles_partner/view_model/daily_weekly_view_model.dart';
 import 'package:yoyomiles_partner/view_model/delete_bank_detail_view_model.dart';
 import 'package:yoyomiles_partner/view_model/driver_ignored_ride_view_model.dart';
 import 'package:yoyomiles_partner/view_model/driver_referral_history_view_model.dart';
+import 'package:yoyomiles_partner/view_model/driver_transfer_view_model.dart';
 import 'package:yoyomiles_partner/view_model/driver_vehicle_view_model.dart';
 import 'package:yoyomiles_partner/view_model/fuel_type_view_model.dart';
 import 'package:yoyomiles_partner/view_model/help_topics_view_model.dart';
@@ -60,6 +60,24 @@ const MethodChannel nativeChannel = MethodChannel(
   'yoyomiles_partner/native_callback',
 );
 
+
+final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+FlutterLocalNotificationsPlugin();
+
+Future<void> createNotificationChannel() async {
+  const AndroidNotificationChannel channel = AndroidNotificationChannel(
+    'SERVICE_CHANNEL',
+    'Background Service',
+    description: 'This channel is used for background service',
+    importance: Importance.low,
+  );
+
+  await flutterLocalNotificationsPlugin
+      .resolvePlatformSpecificImplementation<
+      AndroidFlutterLocalNotificationsPlugin>()
+      ?.createNotificationChannel(channel);
+}
+
 @pragma('vm:entry-point')
 Future<void> handleNativeCallback(MethodCall call) async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -67,7 +85,6 @@ Future<void> handleNativeCallback(MethodCall call) async {
     case 'onRideEvent':
       final Map<String, dynamic> data = Map<String, dynamic>.from(call.arguments);
       debugPrint("🚖 Ride Event from Native: $data");
-      // await RideNotificationHelper.showIncomingRide(data);
       break;
     default:
       debugPrint("⚠️ Unknown native callback");
@@ -77,10 +94,10 @@ Future<void> handleNativeCallback(MethodCall call) async {
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
+  await createNotificationChannel();
 
   // 🔥 Step 1: Initialize Notifications FIRST (Creates Channels)
-  await RideNotificationHelper.init();
+  // await RideNotificationHelper.init();
 
   await Firebase.initializeApp();
   SharedPreferences sp = await SharedPreferences.getInstance();
@@ -196,47 +213,6 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver{
       _tryHandleLaunchRoute();
     });
 
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
-      print("📩 Foreground message received");
-      if (message.data.isNotEmpty) {
-        await RideNotificationHelper.showIncomingRide(message.data);
-      }
-    });
-    //
-    // rideActionSub = RideNotificationHelper.actionStream.listen((action) async {
-    //   final context = navigatorKey.currentContext;
-    //   if (context == null) return;
-    //
-    //
-    //   if (action.type == ActionType.openTripStatus) {
-    //     Navigator.pushNamed(context, RoutesName.tripStatus, arguments: action.bookingData);
-    //   }
-    //
-    //   if (action.type == ActionType.accept) {
-    //     print("🚕 ACCEPT tapped");
-    //     final bookingData = action.bookingData;
-    //     final assignVm = Provider.of<AssignRideViewModel>(context, listen: false);
-    //     final rideVm = Provider.of<RideViewModel>(context, listen: false);
-    //     rideVm.stopRideRingtone();
-    //
-    //     final String orderId = bookingData['order_id']?.toString() ?? bookingData['id']?.toString() ?? "";
-    //     await assignVm.assignRideApi(context, 1, orderId, bookingData);
-    //   }
-    //
-    //   if (action.type == ActionType.reject) {
-    //     print("❌ REJECT tapped");
-    //     final bookingData = action.bookingData;
-    //     final rideVm = Provider.of<RideViewModel>(context, listen: false);
-    //     rideVm.stopRideRingtone();
-    //
-    //     final String orderId = bookingData['order_id']?.toString() ?? bookingData['id']?.toString() ?? "";
-    //     if (orderId.isEmpty) return;
-    //
-    //     final ignoreVm = Provider.of<DriverIgnoredRideViewModel>(context, listen: false);
-    //     await ignoreVm.driverIgnoredRideApi(context: context, orderId: orderId);
-    //   }
-    // });
-
     notificationService.requestedNotificationPermission();
     notificationService.firebaseInit(context);
     notificationService.setupInteractMassage(context);
@@ -314,6 +290,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver{
           ChangeNotifierProvider(create: (context) => LanguageController()),
           ChangeNotifierProvider(create: (context) => UpdateStopStatusViewModel()),
           ChangeNotifierProvider(create: (context) => DriverReferralHistoryViewModel()),
+          ChangeNotifierProvider(create: (context) => DriverTransferViewModel()),
           Provider<NotificationService>(create: (_) => NotificationService(navigatorKey: navigatorKey)),
         ],
         child: Consumer<LanguageController>(

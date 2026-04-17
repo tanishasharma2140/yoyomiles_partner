@@ -531,7 +531,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get offline => 'Offline';
 
   @override
-  String get wallet => 'Wallet';
+  String get wallet => 'Wallet:';
 
   @override
   String get withdraw_funds => 'Withdraw Funds';
@@ -790,4 +790,127 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get pickup_drop => 'Pickup → Drop';
+
+  @override
+  String get navigate_to_pickup => 'Navigate to Pickup Location';
+
+  @override
+  String get navigate_to_drop => 'Navigate to Drop Location';
+
+  @override
+  String get refer_n_earn => 'Refer & Earn';
+
+  @override
+  String get invite_your_friend => 'Invite your friends and start earning rewards!';
+
+  @override
+  String get refer => 'Refer';
+
+  @override
+  String get your_referral_code => 'Your Referral Code';
+
+  @override
+  String get copied => 'Copied!';
+
+  @override
+  String get copy => 'Copy';
+
+  @override
+  String get how_it_work => 'How it works';
+
+  @override
+  String get share_your_code => 'Share your code';
+
+  @override
+  String get sent_your_unique => 'Send your unique code to friends & family';
+
+  @override
+  String get friend_sign_up => 'Friend signs up';
+
+  @override
+  String get they_register_using_your => 'They register using your referral code';
+
+  @override
+  String get both_earn_rewards => 'Both earn rewards';
+
+  @override
+  String get you_get => 'You get';
+
+  @override
+  String get share_and_invite_friends => 'Share & Invite Friends';
+
+  @override
+  String get invite_friend_n_earn => 'Invite Friends & Earn';
+
+  @override
+  String get refer_friend_and_unlock => 'Refer friends and unlock exciting rewards!';
+
+  @override
+  String get you_earn => 'You earn';
+
+  @override
+  String get driver_referral_hist => 'Driver Referral History';
+
+  @override
+  String get referral_history => 'Referral History';
+
+  @override
+  String get transaction => 'Transactions';
+
+  @override
+  String get no_referral_yet => 'No referrals yet';
+
+  @override
+  String get referrals => 'REFERRALS';
+
+  @override
+  String get unknown_driver => 'Unknown Driver';
+
+  @override
+  String get total_transferred => 'Total Transferred';
+
+  @override
+  String get total_bonus => 'Total Bonus';
+
+  @override
+  String get no_transaction_history => 'No transactions yet';
+
+  @override
+  String get all_transaction => 'ALL TRANSACTIONS';
+
+  @override
+  String get referral_bonus => 'Referral Bonus';
+
+  @override
+  String get transfer => 'Transfer';
+
+  @override
+  String get total_reward_amount => 'Total Reward Earned';
+
+  @override
+  String get referral_code => 'Referral Code';
+
+  @override
+  String get enter_referral_code => 'Enter Referral Code (optional)';
+
+  @override
+  String get transferred_from_wallet => 'Transferred form wallet';
+
+  @override
+  String get transferred_from_due => 'Transferred from Due wallet';
+
+  @override
+  String get transfer_reward => 'Transfer Rewards';
+
+  @override
+  String get reward_wallet => 'Reward Wallet';
+
+  @override
+  String get transfer_to => 'Transfer To';
+
+  @override
+  String get transfer_amount => 'Transfer Amount';
+
+  @override
+  String get to => 'To';
 }

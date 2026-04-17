@@ -1142,7 +1142,7 @@ abstract class AppLocalizations {
   /// No description provided for @wallet.
   ///
   /// In en, this message translates to:
-  /// **'Wallet'**
+  /// **'Wallet:'**
   String get wallet;
 
   /// No description provided for @withdraw_funds.
@@ -1660,6 +1660,252 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Pickup → Drop'**
   String get pickup_drop;
+
+  /// No description provided for @navigate_to_pickup.
+  ///
+  /// In en, this message translates to:
+  /// **'Navigate to Pickup Location'**
+  String get navigate_to_pickup;
+
+  /// No description provided for @navigate_to_drop.
+  ///
+  /// In en, this message translates to:
+  /// **'Navigate to Drop Location'**
+  String get navigate_to_drop;
+
+  /// No description provided for @refer_n_earn.
+  ///
+  /// In en, this message translates to:
+  /// **'Refer & Earn'**
+  String get refer_n_earn;
+
+  /// No description provided for @invite_your_friend.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite your friends and start earning rewards!'**
+  String get invite_your_friend;
+
+  /// No description provided for @refer.
+  ///
+  /// In en, this message translates to:
+  /// **'Refer'**
+  String get refer;
+
+  /// No description provided for @your_referral_code.
+  ///
+  /// In en, this message translates to:
+  /// **'Your Referral Code'**
+  String get your_referral_code;
+
+  /// No description provided for @copied.
+  ///
+  /// In en, this message translates to:
+  /// **'Copied!'**
+  String get copied;
+
+  /// No description provided for @copy.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy'**
+  String get copy;
+
+  /// No description provided for @how_it_work.
+  ///
+  /// In en, this message translates to:
+  /// **'How it works'**
+  String get how_it_work;
+
+  /// No description provided for @share_your_code.
+  ///
+  /// In en, this message translates to:
+  /// **'Share your code'**
+  String get share_your_code;
+
+  /// No description provided for @sent_your_unique.
+  ///
+  /// In en, this message translates to:
+  /// **'Send your unique code to friends & family'**
+  String get sent_your_unique;
+
+  /// No description provided for @friend_sign_up.
+  ///
+  /// In en, this message translates to:
+  /// **'Friend signs up'**
+  String get friend_sign_up;
+
+  /// No description provided for @they_register_using_your.
+  ///
+  /// In en, this message translates to:
+  /// **'They register using your referral code'**
+  String get they_register_using_your;
+
+  /// No description provided for @both_earn_rewards.
+  ///
+  /// In en, this message translates to:
+  /// **'Both earn rewards'**
+  String get both_earn_rewards;
+
+  /// No description provided for @you_get.
+  ///
+  /// In en, this message translates to:
+  /// **'You get'**
+  String get you_get;
+
+  /// No description provided for @share_and_invite_friends.
+  ///
+  /// In en, this message translates to:
+  /// **'Share & Invite Friends'**
+  String get share_and_invite_friends;
+
+  /// No description provided for @invite_friend_n_earn.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite Friends & Earn'**
+  String get invite_friend_n_earn;
+
+  /// No description provided for @refer_friend_and_unlock.
+  ///
+  /// In en, this message translates to:
+  /// **'Refer friends and unlock exciting rewards!'**
+  String get refer_friend_and_unlock;
+
+  /// No description provided for @you_earn.
+  ///
+  /// In en, this message translates to:
+  /// **'You earn'**
+  String get you_earn;
+
+  /// No description provided for @driver_referral_hist.
+  ///
+  /// In en, this message translates to:
+  /// **'Driver Referral History'**
+  String get driver_referral_hist;
+
+  /// No description provided for @referral_history.
+  ///
+  /// In en, this message translates to:
+  /// **'Referral History'**
+  String get referral_history;
+
+  /// No description provided for @transaction.
+  ///
+  /// In en, this message translates to:
+  /// **'Transactions'**
+  String get transaction;
+
+  /// No description provided for @no_referral_yet.
+  ///
+  /// In en, this message translates to:
+  /// **'No referrals yet'**
+  String get no_referral_yet;
+
+  /// No description provided for @referrals.
+  ///
+  /// In en, this message translates to:
+  /// **'REFERRALS'**
+  String get referrals;
+
+  /// No description provided for @unknown_driver.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown Driver'**
+  String get unknown_driver;
+
+  /// No description provided for @total_transferred.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Transferred'**
+  String get total_transferred;
+
+  /// No description provided for @total_bonus.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Bonus'**
+  String get total_bonus;
+
+  /// No description provided for @no_transaction_history.
+  ///
+  /// In en, this message translates to:
+  /// **'No transactions yet'**
+  String get no_transaction_history;
+
+  /// No description provided for @all_transaction.
+  ///
+  /// In en, this message translates to:
+  /// **'ALL TRANSACTIONS'**
+  String get all_transaction;
+
+  /// No description provided for @referral_bonus.
+  ///
+  /// In en, this message translates to:
+  /// **'Referral Bonus'**
+  String get referral_bonus;
+
+  /// No description provided for @transfer.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer'**
+  String get transfer;
+
+  /// No description provided for @total_reward_amount.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Reward Earned'**
+  String get total_reward_amount;
+
+  /// No description provided for @referral_code.
+  ///
+  /// In en, this message translates to:
+  /// **'Referral Code'**
+  String get referral_code;
+
+  /// No description provided for @enter_referral_code.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter Referral Code (optional)'**
+  String get enter_referral_code;
+
+  /// No description provided for @transferred_from_wallet.
+  ///
+  /// In en, this message translates to:
+  /// **'Transferred form wallet'**
+  String get transferred_from_wallet;
+
+  /// No description provided for @transferred_from_due.
+  ///
+  /// In en, this message translates to:
+  /// **'Transferred from Due wallet'**
+  String get transferred_from_due;
+
+  /// No description provided for @transfer_reward.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer Rewards'**
+  String get transfer_reward;
+
+  /// No description provided for @reward_wallet.
+  ///
+  /// In en, this message translates to:
+  /// **'Reward Wallet'**
+  String get reward_wallet;
+
+  /// No description provided for @transfer_to.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer To'**
+  String get transfer_to;
+
+  /// No description provided for @transfer_amount.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer Amount'**
+  String get transfer_amount;
+
+  /// No description provided for @to.
+  ///
+  /// In en, this message translates to:
+  /// **'To'**
+  String get to;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

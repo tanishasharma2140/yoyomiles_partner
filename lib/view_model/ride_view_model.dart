@@ -51,7 +51,7 @@ class RideViewModel extends ChangeNotifier {
 
   void stopRideRingtone() {
     FlutterBackgroundService().invoke('STOP_RINGTONE');
-    RideNotificationHelper.clear();
+    // RideNotificationHelper.clear();
     print("🔕 Ringtone stopped from RideViewModel");
   }
 
@@ -83,7 +83,7 @@ class RideViewModel extends ChangeNotifier {
 
       if (isActiveRideForMe) {
         FlutterBackgroundService().invoke('STOP_RINGTONE');
-        RideNotificationHelper.clear();
+        // RideNotificationHelper.clear();
         
         final activeRide = bookings
             .where(
@@ -112,7 +112,7 @@ class RideViewModel extends ChangeNotifier {
           // RideNotificationHelper.showIncomingRide(reqBookings.first);
         } else {
           FlutterBackgroundService().invoke('STOP_RINGTONE');
-          RideNotificationHelper.clear();
+          // RideNotificationHelper.clear();
         }
 
         setAllRideData(reqBookings);
@@ -285,7 +285,7 @@ class RideViewModel extends ChangeNotifier {
       if (rideStatus == 7 || rideStatus == 8) {
         if (activeId == null || activeId == mappedId) {
           FlutterBackgroundService().invoke('STOP_RINGTONE');
-          RideNotificationHelper.clear();
+          // RideNotificationHelper.clear();
           _showRideCancelledDialogMethod(mapped['sender_name']?.toString() ?? 'User', context);
           if (_isPopupShowing) {
             final ctx = navigatorKey.currentContext;
@@ -371,7 +371,7 @@ class RideViewModel extends ChangeNotifier {
       if (activeId == null || activeId == ride['id']?.toString()) {
         if (status == 7 || status == 8) {
           FlutterBackgroundService().invoke('STOP_RINGTONE');
-          RideNotificationHelper.clear();
+          // RideNotificationHelper.clear();
           _showRideCancelledDialogMethod(ride['sender_name']?.toString() ?? 'User', context);
           if (_isPopupShowing) {
              final ctx = navigatorKey.currentContext;

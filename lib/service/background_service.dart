@@ -17,7 +17,9 @@ void backgroundServiceOnStart(ServiceInstance service) async {
     );
   }
 
-  await RideNotificationHelper.init();
+
+
+  // await RideNotificationHelper.init();
 
   service.on('START_RINGTONE').listen((data) async {
     print("🔔 START_RINGTONE");
@@ -31,7 +33,7 @@ void backgroundServiceOnStart(ServiceInstance service) async {
     print("🔕 STOP_RINGTONE");
 
     RingtoneHelper().stop();
-    RideNotificationHelper.clear();
+    // RideNotificationHelper.clear();
   });
 
   service.on('stopService').listen((_) {
@@ -39,6 +41,8 @@ void backgroundServiceOnStart(ServiceInstance service) async {
     service.stopSelf();
   });
 }
+
+
 
 Future<void> initializeBackgroundService() async {
   final service = FlutterBackgroundService();

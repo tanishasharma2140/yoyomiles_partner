@@ -474,10 +474,10 @@ class AppLocalizationsHi extends AppLocalizations {
   String get available_balance => 'उपलब्ध बैलेंस';
 
   @override
-  String get main_wallet => 'मुख्य वॉलेट';
+  String get main_wallet => 'मेन वॉलेट';
 
   @override
-  String get due_wallet => 'बकाया वॉलेट';
+  String get due_wallet => 'ड्यू वॉलेट';
 
   @override
   String get withdraw => 'निकालें';
@@ -531,7 +531,7 @@ class AppLocalizationsHi extends AppLocalizations {
   String get offline => 'ऑफलाइन';
 
   @override
-  String get wallet => 'वॉलेट';
+  String get wallet => 'वॉलेट:';
 
   @override
   String get withdraw_funds => 'राशि निकालें';
@@ -790,4 +790,127 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get pickup_drop => 'पिकअप से ड्रॉप';
+
+  @override
+  String get navigate_to_pickup => 'Navigate to Pickup Location';
+
+  @override
+  String get navigate_to_drop => 'Navigate to Drop Location';
+
+  @override
+  String get refer_n_earn => 'रेफर करें और कमाएं';
+
+  @override
+  String get invite_your_friend => 'अपने दोस्तों को आमंत्रित करें और इनाम कमाना शुरू करें!';
+
+  @override
+  String get refer => 'रेफर करें';
+
+  @override
+  String get your_referral_code => 'आपका रेफरल कोड';
+
+  @override
+  String get copied => 'कॉपी हो गया!';
+
+  @override
+  String get copy => 'कॉपी करें';
+
+  @override
+  String get how_it_work => 'यह कैसे काम करता है';
+
+  @override
+  String get share_your_code => 'अपना कोड साझा करें';
+
+  @override
+  String get sent_your_unique => 'अपना यूनिक कोड दोस्तों और परिवार के साथ साझा करें';
+
+  @override
+  String get friend_sign_up => 'दोस्त साइन अप करता है';
+
+  @override
+  String get they_register_using_your => 'वे आपके रेफरल कोड से रजिस्टर करते हैं';
+
+  @override
+  String get both_earn_rewards => 'दोनों इनाम कमाते हैं';
+
+  @override
+  String get you_get => 'आपको मिलता है';
+
+  @override
+  String get share_and_invite_friends => 'शेयर करें और दोस्तों को आमंत्रित करें';
+
+  @override
+  String get invite_friend_n_earn => 'दोस्तों को आमंत्रित करें और कमाएं';
+
+  @override
+  String get refer_friend_and_unlock => 'दोस्तों को रेफर करें और शानदार इनाम पाएं!';
+
+  @override
+  String get you_earn => 'आप कमाते हैं';
+
+  @override
+  String get driver_referral_hist => 'ड्राइवर रेफरल इतिहास';
+
+  @override
+  String get referral_history => 'रेफरल इतिहास';
+
+  @override
+  String get transaction => 'लेन-देन';
+
+  @override
+  String get no_referral_yet => 'अभी तक कोई रेफरल नहीं है';
+
+  @override
+  String get referrals => 'रेफरल्स';
+
+  @override
+  String get unknown_driver => 'अज्ञात ड्राइवर';
+
+  @override
+  String get total_transferred => 'कुल ट्रांसफर';
+
+  @override
+  String get total_bonus => 'कुल बोनस';
+
+  @override
+  String get no_transaction_history => 'अभी तक कोई लेन-देन नहीं है';
+
+  @override
+  String get all_transaction => 'सभी लेन-देन';
+
+  @override
+  String get referral_bonus => 'रेफरल बोनस';
+
+  @override
+  String get transfer => 'ट्रांसफर';
+
+  @override
+  String get total_reward_amount => 'कुल इनाम राशि';
+
+  @override
+  String get referral_code => 'रेफरल कोड';
+
+  @override
+  String get enter_referral_code => 'रेफरल कोड दर्ज करें (वैकल्पिक)';
+
+  @override
+  String get transferred_from_wallet => 'वॉलेट से स्थानांतरित';
+
+  @override
+  String get transferred_from_due => 'ड्यू वॉलेट से स्थानांतरित';
+
+  @override
+  String get transfer_reward => 'रिवॉर्ड ट्रांसफर करें';
+
+  @override
+  String get reward_wallet => 'रिवॉर्ड वॉलेट';
+
+  @override
+  String get transfer_to => 'किसमें ट्रांसफर करें';
+
+  @override
+  String get transfer_amount => 'ट्रांसफर राशि';
+
+  @override
+  String get to => 'में';
 }

@@ -141,41 +141,45 @@ class _OtpPageState extends State<OtpPage> {
                 ),
               ),
               SizedBox(height: Sizes.screenHeight * 0.04),
-              GestureDetector(
-                onTap: _otpController.text.trim().length == 4 &&
-                    int.tryParse(_otpController.text.trim()) != null
-                    ? () {
-                  final enteredOtp = _otpController.text.trim();
-                  loginViewModel.verifyOtpApi(
-                    widget.mobile,  // ✔ safe
-                    enteredOtp,
-                    context,
-                  );;
-                }
-                    : null,
-                child: Container(
-                  height: Sizes.screenHeight * 0.06,
-                  decoration: BoxDecoration(
-                    color: (_otpController.text.trim().length == 4 &&
-                        int.tryParse(_otpController.text.trim()) != null)
-                        ? PortColor.gold
-                        : PortColor.grey,
-                    borderRadius: BorderRadius.circular(25),
-                  ),
-                  alignment: Alignment.center,
-                  child: !loginViewModel.verifyingOtp ?TextConst(
-                    title:
-                    loc.verify,
-                    fontFamily: AppFonts.kanitReg,
-                    color: (_otpController.text.trim().length == 4 &&
-                        int.tryParse(_otpController.text.trim()) != null)
-                        ? PortColor.black
-                        : Colors.black,
-                    size: Sizes.fontSizeSeven,
-                    fontWeight: FontWeight.w400,
-                  ):  CupertinoActivityIndicator(color: PortColor.white, radius: 12),
+            GestureDetector(
+              onTap: (_otpController.text.trim().length == 4 &&
+                  int.tryParse(_otpController.text.trim()) != null &&
+                  !loginViewModel.verifyingOtp) // ✅ yaha add kiya
+                  ? () {
+                final enteredOtp = _otpController.text.trim();
+
+                loginViewModel.verifyOtpApi(
+                  widget.mobile,
+                  enteredOtp,
+                  context,
+                );
+              }
+                  : null,
+
+              child: Container(
+                height: Sizes.screenHeight * 0.06,
+                decoration: BoxDecoration(
+                  color: (_otpController.text.trim().length == 4 &&
+                      int.tryParse(_otpController.text.trim()) != null)
+                      ? PortColor.gold
+                      : PortColor.grey,
+                  borderRadius: BorderRadius.circular(25),
+                ),
+                alignment: Alignment.center,
+                child: !loginViewModel.verifyingOtp
+                    ? TextConst(
+                  title: loc.verify,
+                  fontFamily: AppFonts.kanitReg,
+                  color: PortColor.black,
+                  size: Sizes.fontSizeSeven,
+                  fontWeight: FontWeight.w400,
+                )
+                    : CupertinoActivityIndicator(
+                  color: PortColor.white,
+                  radius: 12,
                 ),
               ),
+            ),
 
               SizedBox(height: Sizes.screenHeight * 0.03),
               Center(
