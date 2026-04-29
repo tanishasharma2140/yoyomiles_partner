@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:yoyomiles_partner/service/ride_notification_helper.dart';
-import 'package:yoyomiles_partner/view/auth/register.dart';
 import 'package:yoyomiles_partner/view_model/profile_view_model.dart';
 
 class NotificationService {
@@ -30,7 +29,7 @@ class NotificationService {
     debugPrint("🔔 Permission status: ${settings.authorizationStatus}");
   }
 
-  // ✅ Get Device Token
+
   Future<String> getDeviceToken() async {
     await messaging.requestPermission();
     String? token = await messaging.getToken();
@@ -83,9 +82,6 @@ class NotificationService {
     if (ctx != null) {
       print("✅ Context available → Running Profile API");
       ProfileViewModel().profileApi(ctx);
-      navigatorKey.currentState?.push(
-        MaterialPageRoute(builder: (_) => Register()),
-      );
     } else {
       print("⚠️ No context → Running Profile API without context");
       ProfileViewModel().profileApi(ctx);
@@ -129,7 +125,7 @@ class NotificationService {
     );
   }
 
-  // ✅ Background / Killed State Notifications
+
   Future<void> setupInteractMassage(BuildContext context) async {
     FirebaseMessaging.onMessageOpenedApp.listen((message) {
       handleMassage(message);
@@ -144,28 +140,10 @@ class NotificationService {
 
   // ✅ SAFEST Navigation
   Future<void> handleMassage(RemoteMessage message) async {
-    BuildContext? ctx = navigatorKey.currentContext;
-
-    if (ctx == null) {
-      print("⏳ Waiting for context for navigation...");
-
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        final newCtx = navigatorKey.currentContext;
-        if (newCtx != null) {
-          navigatorKey.currentState?.push(
-            MaterialPageRoute(builder: (_) => Register()),
-          );
-        } else {
-          print("❌ Still no context — navigation failed");
-        }
-      });
-
-      return;
-    }
-
-    navigatorKey.currentState?.push(
-      MaterialPageRoute(builder: (_) => Register()),
-    );
+    // Previously this forced navigation to `Register()` for every notification
+    // (foreground + background open). That is why you were being redirected.
+    // Keep notification handling, but don't hijack navigation.
+    print("✅ Notification tapped/opened. data=${message.data}");
   }
 }
 

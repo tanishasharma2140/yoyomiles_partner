@@ -49,6 +49,7 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
     super.initState();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       final liveRideViewModel = Provider.of<LiveRideViewModel>(
         context,
         listen: false,
@@ -58,6 +59,7 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
       rideViewModel.addListener(_onRideUpdate);
 
       liveRideViewModel.liveRideApi().then((_) {
+        if (!mounted) return;
         if (liveRideViewModel.liveOrderModel?.data != null) {
           final data = liveRideViewModel.liveOrderModel!.data!;
           pickupLat = double.tryParse(data.pickupLatitute.toString()) ?? 0.0;
@@ -84,16 +86,24 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
 
   void _onRideUpdate() {
     if (!mounted) return;
-    final rideVm = Provider.of<RideViewModel>(context, listen: false);
-    final socketStatus = rideVm.activeRideData?['rideStatus'];
+    // Use Provider.of with listen: false only if we are absolutely sure the widget is still in the tree.
+    // However, the error says 'Looking up a deactivated widget\'s ancestor is unsafe'.
+    // This usually happens when the listener is still active but the widget is disposed.
+    
+    try {
+      final rideVm = Provider.of<RideViewModel>(context, listen: false);
+      final socketStatus = rideVm.activeRideData?['rideStatus'];
 
-    if (socketStatus != null && _localRideStatus != null) {
-      setState(() {
-        _localRideStatus = null;
-      });
-      print(
-        "🔄 Local status cleared, Socket Status: $socketStatus took priority",
-      );
+      if (socketStatus != null && _localRideStatus != null) {
+        setState(() {
+          _localRideStatus = null;
+        });
+        print(
+          "🔄 Local status cleared, Socket Status: $socketStatus took priority",
+        );
+      }
+    } catch (e) {
+      debugPrint("Error in _onRideUpdate: $e");
     }
   }
 
@@ -134,6 +144,7 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
   }
 
   void _navigateToWaitingPaymentScreen() {
+    if (!mounted) return;
     final liveRideViewModel = Provider.of<LiveRideViewModel>(
       context,
       listen: false,
@@ -154,7 +165,9 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
       context: context,
       barrierDismissible: false,
       builder: (context) => _buildPaymentSuccessDialog(),
-    ).then((_) => setState(() => _showPaymentSuccessDialog = false));
+    ).then((_) {
+       if(mounted) setState(() => _showPaymentSuccessDialog = false);
+    });
   }
 
   void _showRideCompletedDialogMethod() {
@@ -164,7 +177,9 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
       context: context,
       barrierDismissible: false,
       builder: (context) => _buildRideCompletedDialog(),
-    ).then((_) => setState(() => _showRideCompletedDialog = false));
+    ).then((_) {
+      if(mounted) setState(() => _showRideCompletedDialog = false);
+    });
   }
 
   Widget _buildPaymentSuccessDialog() {
@@ -334,6 +349,7 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
           "6",
           navigateAfter: true,
         );
+        if(!mounted) return;
         Utils.showSuccessMessage(context, loc.ride_completed_wallet);
         Future.delayed(
           const Duration(milliseconds: 300),
@@ -356,6 +372,7 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
         lng,
         "5",
       );
+      if(!mounted) return;
       Utils.showSuccessMessage(
         context,
         (payMode == 1)
@@ -368,80 +385,25 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
         ),
       );
     } catch (e) {
-      Utils.showErrorMessage(context, "${loc.failed_update_ride_status} $e");
+      if(mounted) Utils.showErrorMessage(context, "${loc.failed_update_ride_status} $e");
     }
   }
 
-  // void _showGoToMapDialog() {
-  //   final loc = AppLocalizations.of(context)!;
-  //   showDialog(
-  //     context: context,
-  //     barrierDismissible: false,
-  //     builder: (_) => Dialog(
-  //       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-  //       child: Padding(
-  //         padding: const EdgeInsets.all(18),
-  //         child: Column(
-  //           mainAxisSize: MainAxisSize.min,
-  //           children: [
-  //             const Icon(Icons.check_circle, color: Colors.green, size: 40),
-  //             const SizedBox(height: 12),
-  //             TextConst(
-  //               title: loc.otp_verified,
-  //               size: 16,
-  //               fontWeight: FontWeight.w700,
-  //             ),
-  //             const SizedBox(height: 8),
-  //             TextConst(
-  //               title: loc.open_google_maps_navigation,
-  //               textAlign: TextAlign.center,
-  //               size: 13,
-  //               color: Colors.black54,
-  //             ),
-  //             const SizedBox(height: 18),
-  //             InkWell(
-  //               onTap: () async {
-  //                 Navigator.pop(context);
-  //                 await _openGoogleMapsDirections();
-  //               },
-  //               borderRadius: BorderRadius.circular(8),
-  //               child: Container(
-  //                 width: double.infinity,
-  //                 padding: const EdgeInsets.symmetric(vertical: 12),
-  //                 decoration: BoxDecoration(
-  //                   color: PortColor.gold,
-  //                   borderRadius: BorderRadius.circular(8),
-  //                 ),
-  //                 child: Center(
-  //                   child: Text(
-  //                     loc.go_to_map,
-  //                     style: const TextStyle(
-  //                       color: Colors.white,
-  //                       fontSize: 15,
-  //                       fontWeight: FontWeight.w600,
-  //                     ),
-  //                   ),
-  //                 ),
-  //               ),
-  //             ),
-  //           ],
-  //         ),
-  //       ),
-  //     ),
-  //   );
-  // }
-
   @override
   void dispose() {
-    Provider.of<RideViewModel>(
-      context,
-      listen: false,
-    ).removeListener(_onRideUpdate);
+    // Correctly remove the listener before disposing the state.
+    try {
+      Provider.of<RideViewModel>(
+        context,
+        listen: false,
+      ).removeListener(_onRideUpdate);
+    } catch (e) {
+      debugPrint("Error removing listener in dispose: $e");
+    }
     super.dispose();
   }
 
   Future<void> _openGoogleMapsFromCurrentLocation() async {
-    final loc = AppLocalizations.of(context)!;
     final pickupLatLng = "$pickupLat,$pickupLng";
     try {
       Position position = await Geolocator.getCurrentPosition(
@@ -472,8 +434,8 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
         child: Scaffold(
           backgroundColor: PortColor.scaffoldBgGrey,
           appBar: CustomAppBar(
-            name: profileViewModel.profileModel!.data!.driverName!,
-            imageUrl: profileViewModel.profileModel!.data!.ownerSelfie ?? "",
+            name: profileViewModel.profileModel?.data?.driverName ?? "",
+            imageUrl: profileViewModel.profileModel?.data?.ownerSelfie ?? "",
           ),
           body: Consumer<RideViewModel>(
             builder: (context, rideVm, child) {
@@ -487,7 +449,7 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                       rideStatus:
                           liveRideViewModel.liveOrderModel?.data?.rideStatus,
                       onAddressFetched: (address) =>
-                          setState(() => _currentAddress = address),
+                          mounted ? setState(() => _currentAddress = address) : null,
                     ),
                   ),
                   DraggableScrollableSheet(
@@ -680,7 +642,7 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                             return;
                           }
                           if (savedOtp == enteredOtp) {
-                            setState(() {
+                            if(mounted) setState(() {
                               _localRideStatus = 4;
                               isOtpVerified = true;
                             });
@@ -1242,7 +1204,7 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                             int currentStatus = rs;
                             try {
                               if (currentStatus == 1) {
-                                setState(() {
+                                if(mounted) setState(() {
                                   _localRideStatus = 2;
                                 });
                                 await updateRideStatusVm.updateRideApi(
@@ -1254,13 +1216,12 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                                   "2",
                                 );
                                 buildNavigateToMapButton();
-                                // _showGoToMapPopupFromCurrentLocation();
-                                Utils.showSuccessMessage(
+                                if(mounted) Utils.showSuccessMessage(
                                   context,
                                   loc.ride_status_start_pickup,
                                 );
                               } else if (currentStatus == 2) {
-                                setState(() {
+                                if(mounted) setState(() {
                                   _localRideStatus = 3;
                                 });
                                 await updateRideStatusVm.updateRideApi(
@@ -1271,7 +1232,7 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                                   "",
                                   "3",
                                 );
-                                Utils.showSuccessMessage(
+                                if(mounted) Utils.showSuccessMessage(
                                   context,
                                   loc.ride_status_arrived_pickup,
                                 );
@@ -1281,8 +1242,8 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                                 _handleReachedButtonClick();
                               }
                             } catch (e) {
-                              setState(() => _localRideStatus = currentStatus);
-                              Utils.showErrorMessage(
+                              if(mounted) setState(() => _localRideStatus = currentStatus);
+                              if(mounted) Utils.showErrorMessage(
                                 context,
                                 "${loc.failed_update_ride_status} $e",
                               );
@@ -1385,8 +1346,8 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
           child:  Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.navigation, color: Colors.black),
-              SizedBox(width: 8),
+              const Icon(Icons.navigation, color: Colors.black),
+              const SizedBox(width: 8),
               TextConst(
                 title:
                 loc.navigate_to_pickup,
@@ -1420,8 +1381,8 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
           child:  Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.navigation, color: Colors.black),
-              SizedBox(width: 8),
+              const Icon(Icons.navigation, color: Colors.black),
+              const SizedBox(width: 8),
               TextConst(
                 title:
                 loc.navigate_to_drop,

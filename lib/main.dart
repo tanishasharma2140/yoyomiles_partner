@@ -3,7 +3,6 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -13,7 +12,6 @@ import 'package:yoyomiles_partner/l10n/app_localizations.dart';
 import 'package:yoyomiles_partner/res/const_without_polyline_map.dart';
 import 'package:yoyomiles_partner/res/notification_service.dart';
 import 'package:yoyomiles_partner/res/sizing_const.dart';
-import 'package:yoyomiles_partner/service/background_service.dart';
 import 'package:yoyomiles_partner/service/internet_checker_service.dart';
 import 'package:yoyomiles_partner/utils/routes/routes.dart';
 import 'package:yoyomiles_partner/utils/routes/routes_name.dart';
@@ -53,65 +51,74 @@ import 'package:provider/provider.dart';
 import 'package:yoyomiles_partner/view_model/video_view_model.dart';
 import 'package:yoyomiles_partner/view_model/withdraw_history_view_model.dart';
 import 'package:yoyomiles_partner/view_model/withdraw_view_model.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
-const MethodChannel nativeChannel = MethodChannel(
-  'yoyomiles_partner/native_callback',
-);
+// const MethodChannel nativeChannel = MethodChannel(
+//   'yoyomiles_partner/native_callback',
+// );
+
+@pragma('vm:entry-point')
+Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp();
+
+  print("🔥 Background Message: ${message.data}");
+}
 
 
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
 FlutterLocalNotificationsPlugin();
+//
+// Future<void> createNotificationChannel() async {
+//   const AndroidNotificationChannel channel = AndroidNotificationChannel(
+//     'SERVICE_CHANNEL',
+//     'Background Service',
+//     description: 'This channel is used for background service',
+//     importance: Importance.low,
+//   );
+//
+//   await flutterLocalNotificationsPlugin
+//       .resolvePlatformSpecificImplementation<
+//       AndroidFlutterLocalNotificationsPlugin>()
+//       ?.createNotificationChannel(channel);
+// }
 
-Future<void> createNotificationChannel() async {
-  const AndroidNotificationChannel channel = AndroidNotificationChannel(
-    'SERVICE_CHANNEL',
-    'Background Service',
-    description: 'This channel is used for background service',
-    importance: Importance.low,
-  );
-
-  await flutterLocalNotificationsPlugin
-      .resolvePlatformSpecificImplementation<
-      AndroidFlutterLocalNotificationsPlugin>()
-      ?.createNotificationChannel(channel);
-}
-
-@pragma('vm:entry-point')
-Future<void> handleNativeCallback(MethodCall call) async {
-  WidgetsFlutterBinding.ensureInitialized();
-  switch (call.method) {
-    case 'onRideEvent':
-      final Map<String, dynamic> data = Map<String, dynamic>.from(call.arguments);
-      debugPrint("🚖 Ride Event from Native: $data");
-      break;
-    default:
-      debugPrint("⚠️ Unknown native callback");
-  }
-}
+// @pragma('vm:entry-point')
+// Future<void> handleNativeCallback(MethodCall call) async {
+//   WidgetsFlutterBinding.ensureInitialized();
+//   switch (call.method) {
+//     case 'onRideEvent':
+//       final Map<String, dynamic> data = Map<String, dynamic>.from(call.arguments);
+//       debugPrint("🚖 Ride Event from Native: $data");
+//       break;
+//     default:
+//       debugPrint("⚠️ Unknown native callback");
+//   }
+// }
 
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await createNotificationChannel();
+  // await createNotificationChannel();
 
   // 🔥 Step 1: Initialize Notifications FIRST (Creates Channels)
   // await RideNotificationHelper.init();
 
   await Firebase.initializeApp();
+  FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
   SharedPreferences sp = await SharedPreferences.getInstance();
   final String languageCode = sp.getString('language_code') ?? '';
 
   // 🔥 Step 2: Initialize Background Service AFTER Channels are ready
-  await initializeBackgroundService();
+  // await initializeBackgroundService();
 
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
 
-  nativeChannel.setMethodCallHandler(handleNativeCallback);
+  // nativeChannel.setMethodCallHandler(handleNativeCallback);
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(MyApp(locale: languageCode));
 }
@@ -129,7 +136,7 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> with WidgetsBindingObserver{
   final InternetCheckerService _internetCheckerService = InternetCheckerService();
   final notificationService = NotificationService(navigatorKey: navigatorKey);
-  late final StreamSubscription rideActionSub;
+  // late final StreamSubscription rideActionSub;
   static const _channel = MethodChannel('rapido_background_button');
 
 
@@ -201,11 +208,29 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver{
         final context = navigatorKey.currentContext;
         if (context == null) return;
 
-        FlutterBackgroundService().invoke('STOP_RINGTONE');
+        // FlutterBackgroundService().invoke('STOP_RINGTONE');
 
         final assignVm = Provider.of<AssignRideViewModel>(context, listen: false);
 
         await assignVm.assignRideApi(context, 1, orderId, data);
+      }
+
+      if (call.method == 'onOverlayIgnoreRide') {
+        final data = Map<String, dynamic>.from(call.arguments);
+        final String orderId = data['id']?.toString() ?? "";
+        if (orderId.isEmpty) return;
+
+        final context = navigatorKey.currentContext;
+        if (context == null) return;
+
+        final ignoredRideVm = Provider.of<DriverIgnoredRideViewModel>(
+          context,
+          listen: false,
+        );
+        await ignoredRideVm.driverIgnoredRideApi(
+          context: context,
+          orderId: orderId,
+        );
       }
     });
 

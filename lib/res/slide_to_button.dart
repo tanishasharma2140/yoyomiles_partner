@@ -41,6 +41,7 @@ class SlideToButtonState extends State<SlideToButton> {
               _dragPosition = 0;
               _accepted = false;
             });
+
           });
         } else {
           setState(() => _dragPosition = 0);

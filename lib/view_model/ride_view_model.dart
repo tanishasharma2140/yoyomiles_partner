@@ -1,8 +1,9 @@
+
 import 'dart:convert';
 import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_background_service/flutter_background_service.dart';
+// import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:provider/provider.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'package:yoyomiles_partner/main.dart';
@@ -50,7 +51,7 @@ class RideViewModel extends ChangeNotifier {
   bool get is78Enabled => _handle78Enabled;
 
   void stopRideRingtone() {
-    FlutterBackgroundService().invoke('STOP_RINGTONE');
+    // FlutterBackgroundService().invoke('STOP_RINGTONE');
     // RideNotificationHelper.clear();
     print("🔕 Ringtone stopped from RideViewModel");
   }
@@ -74,7 +75,7 @@ class RideViewModel extends ChangeNotifier {
 
     listenBookings(driverVehicleType, context, (bookings) {
       final isActiveRideForMe = bookings.any(
-        (e) {
+            (e) {
           bool idMatch = e['accepted_driver_id'].toString() == driverId.toString();
           bool statusMatch = e['rideStatus'] > 0 && e['rideStatus'] <= 6;
           return idMatch && statusMatch;
@@ -82,15 +83,15 @@ class RideViewModel extends ChangeNotifier {
       );
 
       if (isActiveRideForMe) {
-        FlutterBackgroundService().invoke('STOP_RINGTONE');
+        // FlutterBackgroundService().invoke('STOP_RINGTONE');
         // RideNotificationHelper.clear();
-        
+
         final activeRide = bookings
             .where(
               (e) =>
-                  e['accepted_driver_id'].toString() == driverId.toString() &&
-                  (e['rideStatus'] > 0 && e['rideStatus'] <= 6),
-            ).firstOrNull;
+          e['accepted_driver_id'].toString() == driverId.toString() &&
+              (e['rideStatus'] > 0 && e['rideStatus'] <= 6),
+        ).firstOrNull;
 
         if (activeRide != null) {
           setActiveRideData(activeRide);
@@ -100,18 +101,18 @@ class RideViewModel extends ChangeNotifier {
         final reqBookings = bookings
             .where(
               (e) =>
-                  (e['accepted_driver_id'] == null ||
-                      e['accepted_driver_id'] == 0 ||
-                      e['accepted_driver_id'].toString() == "0") &&
-                  e['rideStatus'] == 0,
-            )
+          (e['accepted_driver_id'] == null ||
+              e['accepted_driver_id'] == 0 ||
+              e['accepted_driver_id'].toString() == "0") &&
+              e['rideStatus'] == 0,
+        )
             .toList();
-        
+
         if (reqBookings.isNotEmpty) {
-          FlutterBackgroundService().invoke('START_RINGTONE');
+          // FlutterBackgroundService().invoke('START_RINGTONE');
           // RideNotificationHelper.showIncomingRide(reqBookings.first);
         } else {
-          FlutterBackgroundService().invoke('STOP_RINGTONE');
+          // FlutterBackgroundService().invoke('STOP_RINGTONE');
           // RideNotificationHelper.clear();
         }
 
@@ -121,10 +122,10 @@ class RideViewModel extends ChangeNotifier {
   }
 
   void listenBookings(
-    String driverVehicleType,
-    BuildContext context,
-    void Function(List<Map<String, dynamic>>) onUpdate,
-  ) {
+      String driverVehicleType,
+      BuildContext context,
+      void Function(List<Map<String, dynamic>>) onUpdate,
+      ) {
     if (_isListen) return;
 
     final profileViewModel = Provider.of<ProfileViewModel>(
@@ -162,7 +163,7 @@ class RideViewModel extends ChangeNotifier {
 
     _socket!.on('NEW_RIDE', (data) {
       print("🔥 NEW_RIDE received");
-      FlutterBackgroundService().invoke('START_RINGTONE');
+      // FlutterBackgroundService().invoke('START_RINGTONE');
 
       final List<dynamic> incoming = data is List ? data : [data];
       final existing = List<Map<String, dynamic>>.from(_allRideData ?? []);
@@ -172,7 +173,7 @@ class RideViewModel extends ChangeNotifier {
         if (mapped == null) continue;
 
         final alreadyExists = existing.any(
-          (e) => e['id'].toString() == mapped['id'].toString(),
+              (e) => e['id'].toString() == mapped['id'].toString(),
         );
         if (!alreadyExists) {
           existing.add(mapped);
@@ -182,18 +183,18 @@ class RideViewModel extends ChangeNotifier {
       final reqBookings = existing
           .where(
             (e) =>
-                (e['accepted_driver_id'] == null ||
-                    e['accepted_driver_id'] == 0 ||
-                    e['accepted_driver_id'].toString() == "0") &&
-                e['rideStatus'] == 0,
-          )
+        (e['accepted_driver_id'] == null ||
+            e['accepted_driver_id'] == 0 ||
+            e['accepted_driver_id'].toString() == "0") &&
+            e['rideStatus'] == 0,
+      )
           .toList();
 
       if (reqBookings.isNotEmpty) {
         final ride = reqBookings.first;
 
         // ✅ Ringtone start (background service)
-        FlutterBackgroundService().invoke('START_RINGTONE');
+        // FlutterBackgroundService().invoke('START_RINGTONE');
 
         _channel.invokeMethod('scheduleIncomingOrderOverlay', {
           'delayMs': 0,
@@ -217,11 +218,11 @@ class RideViewModel extends ChangeNotifier {
   }
 
   void _processBookings(
-    dynamic data,
-    String driverIdStr,
-    BuildContext context,
-    void Function(List<Map<String, dynamic>>) onUpdate,
-  ) {
+      dynamic data,
+      String driverIdStr,
+      BuildContext context,
+      void Function(List<Map<String, dynamic>>) onUpdate,
+      ) {
     try {
       final List<dynamic> rawList = data is List ? data : [data];
       final activeList = <Map<String, dynamic>>[];
@@ -251,12 +252,24 @@ class RideViewModel extends ChangeNotifier {
   }
 
   void _handleOrderUpdate(
-    dynamic data,
-    String driverIdStr,
-    BuildContext context,
-    void Function(List<Map<String, dynamic>>) onUpdate,
-  ) {
+      dynamic data,
+      String driverIdStr,
+      BuildContext context,
+      void Function(List<Map<String, dynamic>>) onUpdate,
+      ) {
     try {
+      // ✅ Socket remove_ride type: overlay + alerts stop immediately
+      if (data is Map) {
+        final t = data['type']?.toString().toLowerCase();
+        if (t == 'remove_ride') {
+          try {
+            _channel.invokeMethod('cancelIncomingOrderOverlay');
+            _channel.invokeMethod('stopIncomingOrderAlert');
+          } catch (_) {}
+          return;
+        }
+      }
+
       final mapped = _mapRideData(data, driverIdStr);
       if (mapped == null) return;
 
@@ -266,7 +279,7 @@ class RideViewModel extends ChangeNotifier {
 
       bool isMyActiveRide = activeId != null && activeId == mappedId;
       bool belongsToMe = mapped['accepted_driver_id'].toString() == driverIdStr &&
-                         rideStatus > 0 && rideStatus <= 6;
+          rideStatus > 0 && rideStatus <= 6;
 
       if (isMyActiveRide || belongsToMe) {
         if (isMyActiveRide) {
@@ -284,8 +297,12 @@ class RideViewModel extends ChangeNotifier {
 
       if (rideStatus == 7 || rideStatus == 8) {
         if (activeId == null || activeId == mappedId) {
-          FlutterBackgroundService().invoke('STOP_RINGTONE');
+          // FlutterBackgroundService().invoke('STOP_RINGTONE');
           // RideNotificationHelper.clear();
+          try {
+            _channel.invokeMethod('cancelIncomingOrderOverlay');
+            _channel.invokeMethod('stopIncomingOrderAlert');
+          } catch (_) {}
           _showRideCancelledDialogMethod(mapped['sender_name']?.toString() ?? 'User', context);
           if (_isPopupShowing) {
             final ctx = navigatorKey.currentContext;
@@ -370,12 +387,12 @@ class RideViewModel extends ChangeNotifier {
       final activeId = _activeRideData?['id']?.toString();
       if (activeId == null || activeId == ride['id']?.toString()) {
         if (status == 7 || status == 8) {
-          FlutterBackgroundService().invoke('STOP_RINGTONE');
+          // FlutterBackgroundService().invoke('STOP_RINGTONE');
           // RideNotificationHelper.clear();
           _showRideCancelledDialogMethod(ride['sender_name']?.toString() ?? 'User', context);
           if (_isPopupShowing) {
-             final ctx = navigatorKey.currentContext;
-             if (ctx != null) Navigator.pop(ctx);
+            final ctx = navigatorKey.currentContext;
+            if (ctx != null) Navigator.pop(ctx);
           }
         }
       }
@@ -397,7 +414,7 @@ class RideViewModel extends ChangeNotifier {
       if (navCtx != null) {
         Navigator.of(navCtx).pushAndRemoveUntil(
           MaterialPageRoute(builder: (_) => Register()),
-          (route) => false,
+              (route) => false,
         );
       }
     });

@@ -76,7 +76,6 @@ class RingtoneHelper {
 
   bool get isPlaying => _isPlaying;
 
-  // 🔥 Listen to real audio state
   void _listenToPlayerState() {
     _player.playerStateStream.listen((state) {
       if (state.playing) {

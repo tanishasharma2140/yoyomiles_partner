@@ -41,17 +41,17 @@ class RapidoBubbleOverlayService : Service() {
         when (intent?.action) {
             ACTION_SHOW -> show()
             ACTION_HIDE -> {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    try {
-                        startForegroundCompat()
-                    } catch (_: Throwable) {
-                    }
-                }
                 hideAndStop()
             }
             else -> {}
         }
         return START_NOT_STICKY
+    }
+
+    override fun onTaskRemoved(rootIntent: Intent?) {
+        super.onTaskRemoved(rootIntent)
+        Log.d(tag, "onTaskRemoved: App killed from recents → removing bubble")
+        hideAndStop()
     }
 
     override fun onDestroy() {
@@ -68,8 +68,6 @@ class RapidoBubbleOverlayService : Service() {
         }
 
         if (overlayView != null) return
-
-        startForegroundCompat()
 
         val root = FrameLayout(this).apply {
             val size = dp(70)
@@ -148,41 +146,6 @@ class RapidoBubbleOverlayService : Service() {
             )
         }
         startActivity(intent)
-    }
-
-    private fun buildNotification(): Notification {
-        val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
-                NOTIFICATION_CHANNEL_ID,
-                "Background bubble",
-                NotificationManager.IMPORTANCE_MIN
-            )
-            manager.createNotificationChannel(channel)
-        }
-
-        return NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
-            .setSmallIcon(R.mipmap.ic_launcher)
-            .setContentTitle("Rapido")
-            .setContentText("Background bubble is active")
-            .setPriority(NotificationCompat.PRIORITY_MIN)
-            .setOngoing(true)
-            .setCategory(NotificationCompat.CATEGORY_SERVICE)
-            .build()
-    }
-
-    private fun startForegroundCompat() {
-        val notification = buildNotification()
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            startForeground(
-                NOTIFICATION_ID,
-                notification,
-                ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
-            )
-        } else {
-            @Suppress("DEPRECATION")
-            startForeground(NOTIFICATION_ID, notification)
-        }
     }
 
     private fun dp(value: Int): Int {
@@ -266,16 +229,13 @@ class RapidoBubbleOverlayService : Service() {
         const val ACTION_SHOW = "com.fc.rapido_style.action.SHOW_BUBBLE_OVERLAY"
         const val ACTION_HIDE = "com.fc.rapido_style.action.HIDE_BUBBLE_OVERLAY"
 
-        private const val NOTIFICATION_CHANNEL_ID = "rapido_bubble_overlay"
-        private const val NOTIFICATION_ID = 9101
-
         fun start(context: Context, action: String) {
             val intent = Intent(context, RapidoBubbleOverlayService::class.java).apply {
                 this.action = action
             }
 
             if (action == ACTION_SHOW && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                ContextCompat.startForegroundService(context, intent)
+                context.startService(intent)
             } else {
                 context.startService(intent)
             }

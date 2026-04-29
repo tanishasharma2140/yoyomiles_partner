@@ -624,7 +624,7 @@ class _ProfileState extends State<Profile> {
                           final onlineStatusVm =
                           Provider.of<OnlineStatusViewModel>(context, listen: false);
                           await onlineStatusVm.onlineStatusApi(context, 0);
-                          await stopBackgroundService();
+                          // await stopBackgroundService();
 
                           await UserViewModel().remove();
 
