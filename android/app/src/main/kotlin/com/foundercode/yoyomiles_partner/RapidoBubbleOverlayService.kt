@@ -21,31 +21,84 @@ import android.view.WindowManager
 import android.widget.FrameLayout
 import android.widget.ImageView
 import androidx.core.app.NotificationCompat
-import androidx.core.content.ContextCompat
 
 class RapidoBubbleOverlayService : Service() {
     private var windowManager: WindowManager? = null
     private var overlayView: View? = null
     private var layoutParams: WindowManager.LayoutParams? = null
     private val tag = "RapidoBubbleOverlay"
+    private val CHANNEL_ID = "RapidoBubbleOverlayChannel"
+    private val NOTIFICATION_ID = 1001
 
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onCreate() {
         super.onCreate()
         windowManager = getSystemService(Context.WINDOW_SERVICE) as WindowManager
+        createNotificationChannel()
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Log.d(tag, "onStartCommand action=${intent?.action}")
-        when (intent?.action) {
-            ACTION_SHOW -> show()
+        
+        // If system restarts service after it was killed
+        if (intent == null || intent.action == null) {
+            val isOnline = getSharedPreferences("rapido_online_prefs", Context.MODE_PRIVATE)
+                .getBoolean("is_online", false)
+            if (isOnline) {
+                startForegroundService()
+                show()
+            } else {
+                stopSelf()
+            }
+            return START_STICKY
+        }
+
+        when (intent.action) {
+            ACTION_SHOW -> {
+                startForegroundService()
+                show()
+            }
             ACTION_HIDE -> {
                 hideAndStop()
             }
-            else -> {}
         }
-        return START_NOT_STICKY
+        return START_STICKY
+    }
+
+    private fun createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                CHANNEL_ID,
+                "Bubble Overlay Service",
+                NotificationManager.IMPORTANCE_LOW
+            ).apply {
+                description = "Running in background to show bubble overlay"
+                setShowBadge(false)
+            }
+            val manager = getSystemService(NotificationManager::class.java)
+            manager?.createNotificationChannel(channel)
+        }
+    }
+
+    private fun startForegroundService() {
+        val notification = NotificationCompat.Builder(this, CHANNEL_ID)
+            .setContentTitle("Yoyomiles Partner")
+            .setContentText("Online - Bubble Overlay Active")
+            .setSmallIcon(R.mipmap.ic_launcher)
+            .setPriority(NotificationCompat.PRIORITY_LOW)
+            .setOngoing(true)
+            .build()
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            startForeground(
+                NOTIFICATION_ID,
+                notification,
+                ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
+            )
+        } else {
+            startForeground(NOTIFICATION_ID, notification)
+        }
     }
 
     override fun onTaskRemoved(rootIntent: Intent?) {
@@ -63,7 +116,6 @@ class RapidoBubbleOverlayService : Service() {
         val canDraw = Build.VERSION.SDK_INT < Build.VERSION_CODES.M || Settings.canDrawOverlays(this)
         if (!canDraw) {
             Log.d(tag, "show: missing overlay permission")
-            hideAndStop()
             return
         }
 
@@ -96,11 +148,14 @@ class RapidoBubbleOverlayService : Service() {
             WindowManager.LayoutParams.TYPE_PHONE
         }
 
+        // FLAG_SHOW_WHEN_LOCKED ensures it shows on the lock screen
         layoutParams = WindowManager.LayoutParams(
             dp(70),
             dp(70),
             type,
-            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
+            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
+                    WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED or
+                    WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
             PixelFormat.TRANSLUCENT
         ).apply {
             gravity = Gravity.TOP or Gravity.START
@@ -112,18 +167,17 @@ class RapidoBubbleOverlayService : Service() {
         root.setOnClickListener { openApp() }
 
         overlayView = root
-        windowManager?.addView(overlayView, layoutParams)
-        Log.d(tag, "show: overlay added")
+        try {
+            windowManager?.addView(overlayView, layoutParams)
+            Log.d(tag, "show: overlay added successfully")
+        } catch (e: Exception) {
+            Log.e(tag, "Error adding window: ${e.message}")
+        }
     }
 
     private fun hideAndStop() {
         removeOverlayIfPresent()
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            stopForeground(STOP_FOREGROUND_REMOVE)
-        } else {
-            @Suppress("DEPRECATION")
-            stopForeground(true)
-        }
+        stopForeground(true)
         stopSelf()
     }
 
@@ -195,32 +249,35 @@ class RapidoBubbleOverlayService : Service() {
                 MotionEvent.ACTION_MOVE -> {
                     val dx = (event.rawX - initialTouchX).toInt()
                     val dy = (event.rawY - initialTouchY).toInt()
-                    if (kotlin.math.abs(dx) > dp(3) || kotlin.math.abs(dy) > dp(3)) {
+                    if (kotlin.math.abs(dx) > dp(5) || kotlin.math.abs(dy) > dp(5)) {
                         isDragging = true
                     }
 
-                    val (screenW, screenH) = getScreenSizePx()
-                    val viewW = params.width
-                    val viewH = params.height
-                    val margin = dp(4)
+                    if (isDragging) {
+                        val (screenW, screenH) = getScreenSizePx()
+                        val viewW = params.width
+                        val viewH = params.height
+                        val margin = dp(4)
 
-                    val minX = margin
-                    val minY = margin
-                    val maxX = (screenW - viewW - margin).coerceAtLeast(minX)
-                    val maxY = (screenH - viewH - margin).coerceAtLeast(minY)
+                        val minX = margin
+                        val minY = margin
+                        val maxX = (screenW - viewW - margin).coerceAtLeast(minX)
+                        val maxY = (screenH - viewH - margin).coerceAtLeast(minY)
 
-                    params.x = (initialX + dx).coerceIn(minX, maxX)
-                    params.y = (initialY + dy).coerceIn(minY, maxY)
-                    windowManager?.updateViewLayout(overlayView, params)
+                        params.x = (initialX + dx).coerceIn(minX, maxX)
+                        params.y = (initialY + dy).coerceIn(minY, maxY)
+                        windowManager?.updateViewLayout(overlayView, params)
+                    }
                     return true
                 }
 
                 MotionEvent.ACTION_UP -> {
-                    if (!isDragging) v.performClick()
+                    if (!isDragging) {
+                        v.performClick()
+                    }
                     return true
                 }
             }
-
             return false
         }
     }
@@ -235,7 +292,7 @@ class RapidoBubbleOverlayService : Service() {
             }
 
             if (action == ACTION_SHOW && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                context.startService(intent)
+                context.startForegroundService(intent)
             } else {
                 context.startService(intent)
             }

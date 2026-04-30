@@ -51,9 +51,9 @@ class RapidoIncomingOrderOverlayService : Service() {
             ACTION_SCHEDULE_SHOW -> {
                 pickup   = intent.getStringExtra("pickup")   ?: ""
                 drop     = intent.getStringExtra("drop")     ?: ""
-                // Checking both common distance keys for consistency
-                distance = intent.getStringExtra("distance") 
-                           ?: intent.getStringExtra("pickup_distance_km") 
+                // Priority to pickup_distance_km for overlay
+                distance = intent.getStringExtra("pickup_distance_km") 
+                           ?: intent.getStringExtra("distance") 
                            ?: ""
                 id       = intent.getStringExtra("id")       ?: ""
                 amount   = intent.getStringExtra("amount")   ?: ""
@@ -171,9 +171,9 @@ class RapidoIncomingOrderOverlayService : Service() {
         }
         card.addView(amountTv)
 
-        // Distance Badge
+        // Distance Badge (Pickup Distance)
         val distanceBadge = TextView(this).apply {
-            text = "● Distance $distance km away"
+            text = "● Pickup $distance km away"
             textSize = 14f
             setTextColor(Color.parseColor("#2E7D32"))
             setPadding(dp(14), dp(6), dp(14), dp(6))

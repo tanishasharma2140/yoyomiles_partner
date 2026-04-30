@@ -67,7 +67,9 @@ class IncomingOrderLockScreenActivity : Activity() {
         val orderId = intent.getStringExtra(RapidoIncomingOrderOverlayService.EXTRA_ORDER_ID) ?: ""
         val pickupAddress = intent.getStringExtra("pickup_address") ?: "N/A"
         val dropAddress = intent.getStringExtra("drop_address") ?: "N/A"
-        val pickupDistanceKm = intent.getStringExtra("pickup_distance_km") ?: "N/A"
+        val pickupDistanceKm = intent.getStringExtra("pickup_distance_km") 
+                                ?: intent.getStringExtra("distance") 
+                                ?: "N/A"
         val amount = intent.getStringExtra("amount") ?: ""
 
         // Root View with Dimmed Background
@@ -220,7 +222,7 @@ class IncomingOrderLockScreenActivity : Activity() {
                                 putExtra(RapidoIncomingOrderOverlayService.EXTRA_ORDER_ID, orderId)
                                 putExtra("pickup_address", pickupAddress)
                                 putExtra("drop_address", dropAddress)
-                                putExtra("pickup_distance_km", pickupDistanceKm)
+                                putExtra("distance", pickupDistanceKm)
                                 putExtra("amount", amount)
                             }
                             startActivity(mainIntent); finish()
@@ -247,6 +249,12 @@ class IncomingOrderLockScreenActivity : Activity() {
             }
             setOnClickListener {
                 IncomingOrderFirebaseService.stopIncomingOrderAlert(this@IncomingOrderLockScreenActivity)
+                val ignoreIntent = Intent(this@IncomingOrderLockScreenActivity, MainActivity::class.java).apply {
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+                    putExtra(RapidoIncomingOrderOverlayService.EXTRA_NAV_ROUTE, RapidoIncomingOrderOverlayService.ROUTE_IGNORE_RIDE)
+                    putExtra(RapidoIncomingOrderOverlayService.EXTRA_ORDER_ID, orderId)
+                }
+                startActivity(ignoreIntent)
                 finish()
             }
         }

@@ -58,9 +58,15 @@ class NotificationService {
   // ✅ Firebase foreground listener
   void firebaseInit(BuildContext context) {
     FirebaseMessaging.onMessage.listen((message) {
-      print("🔔 Notification Received:");
-      print("Title: ${message.notification?.title}");
-      print("Body: ${message.notification?.body}");
+      print("🔔 Notification Received: ${message.data}");
+      
+      // If it's an incoming order, we handle it via native overlay/lockscreen.
+      // We don't want to show a duplicate "empty" local notification here.
+      if (message.data['type'] == 'incoming_order') {
+        print("Skipping local notification for incoming_order (handled by native)");
+        _runProfileApiSafe();
+        return;
+      }
 
       if (Platform.isAndroid) {
         initLocalNotification(context, message);
@@ -89,6 +95,9 @@ class NotificationService {
   }
 
   Future<void> showNotification(RemoteMessage message) async {
+    // Don't show if there's no content and it's an order (already handled above but as a safeguard)
+    if (message.notification == null && message.data['type'] == 'incoming_order') return;
+
     final androidData = message.notification?.android;
 
     AndroidNotificationChannel channel = AndroidNotificationChannel(
@@ -119,8 +128,8 @@ class NotificationService {
 
     _flutterLocalNotificationsPlugin.show(
       0,
-      message.notification?.title,
-      message.notification?.body,
+      message.notification?.title ?? "New Message",
+      message.notification?.body ?? "",
       settings,
     );
   }
@@ -140,10 +149,6 @@ class NotificationService {
 
   // ✅ SAFEST Navigation
   Future<void> handleMassage(RemoteMessage message) async {
-    // Previously this forced navigation to `Register()` for every notification
-    // (foreground + background open). That is why you were being redirected.
-    // Keep notification handling, but don't hijack navigation.
     print("✅ Notification tapped/opened. data=${message.data}");
   }
 }
-

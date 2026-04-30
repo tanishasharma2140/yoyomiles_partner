@@ -58,7 +58,10 @@ class MainActivity : FlutterActivity() {
 
                     val pickup = call.argument<String>("pickup") ?: ""
                     val drop = call.argument<String>("drop") ?: ""
-                    val distance = call.argument<String>("distance") ?: ""
+                    // Check for both keys
+                    val distance = call.argument<String>("pickup_distance_km") 
+                                   ?: call.argument<String>("distance") 
+                                   ?: ""
                     val id = call.argument<String>("id")
                         ?: call.argument<String>("orderId")
                         ?: ""
@@ -68,6 +71,7 @@ class MainActivity : FlutterActivity() {
                         action = RapidoIncomingOrderOverlayService.ACTION_SCHEDULE_SHOW
                         putExtra("pickup", pickup)
                         putExtra("drop", drop)
+                        putExtra("pickup_distance_km", distance)
                         putExtra("distance", distance)
                         putExtra("id", id)
                         putExtra("amount", amount)
@@ -181,36 +185,6 @@ class MainActivity : FlutterActivity() {
             .putBoolean(prefsKeyIsOnline, online)
             .apply()
     }
-
-    @UiThread
-//    override fun onNewIntent(intent: Intent) {
-//        super.onNewIntent(intent)
-//        setIntent(intent)
-//
-//        val route = intent.getStringExtra(RapidoIncomingOrderOverlayService.EXTRA_NAV_ROUTE)
-//        if (route.isNullOrBlank()) return
-//
-//        // Accept ride special case
-//        if (route == RapidoIncomingOrderOverlayService.ROUTE_ACCEPT_RIDE) {
-//            val orderId = intent.getStringExtra(RapidoIncomingOrderOverlayService.EXTRA_ORDER_ID) ?: ""
-//            intent.removeExtra(RapidoIncomingOrderOverlayService.EXTRA_NAV_ROUTE)
-//            intent.removeExtra(RapidoIncomingOrderOverlayService.EXTRA_ORDER_ID)
-//            try {
-//                channel?.invokeMethod("onOverlayAcceptRide", mapOf("orderId" to orderId))
-//            } catch (t: Throwable) {
-//                Log.w(tag, "Failed to invoke onOverlayAcceptRide", t)
-//            }
-//            return
-//        }
-//
-//        // Normal navigation
-//        intent.removeExtra(RapidoIncomingOrderOverlayService.EXTRA_NAV_ROUTE)
-//        try {
-//            channel?.invokeMethod("navigateTo", route)
-//        } catch (t: Throwable) {
-//            Log.w(tag, "Failed to invoke navigateTo($route)", t)
-//        }
-//    }
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)

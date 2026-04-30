@@ -9,6 +9,7 @@ import android.os.PowerManager
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.util.Log
+import android.view.WindowManager
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import java.util.Locale
@@ -42,27 +43,54 @@ class IncomingOrderFirebaseService : FirebaseMessagingService() {
 
         startIncomingOrderAlert(this)
 
-        if (shouldWakeScreen()) {
+        val pickup = data["pickup_address"]?.toString().orEmpty()
+        val drop = data["drop_address"]?.toString().orEmpty()
+        val distance = data["pickup_distance_km"]?.toString() 
+                       ?: data["distance"]?.toString() 
+                       ?: ""
+        val amount = data["amount"]?.toString().orEmpty()
+
+        val isScreenOn = isScreenOn(this)
+
+        if (!isScreenOn) {
+            // Screen is OFF: Wake up and show Lock Screen Activity
             wakeScreenBriefly()
+            val lockIntent = Intent(this, IncomingOrderLockScreenActivity::class.java).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or 
+                        Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or
+                        Intent.FLAG_ACTIVITY_SINGLE_TOP)
+                putExtra(RapidoIncomingOrderOverlayService.EXTRA_ORDER_ID, orderId)
+                putExtra("pickup_address", pickup)
+                putExtra("drop_address", drop)
+                putExtra("pickup_distance_km", distance)
+                putExtra("amount", amount)
+            }
+            startActivity(lockIntent)
+        } else {
+            // Screen is ON: Show Overlay
+            val overlayIntent = Intent(this, RapidoIncomingOrderOverlayService::class.java).apply {
+                action = RapidoIncomingOrderOverlayService.ACTION_SCHEDULE_SHOW
+                putExtra("pickup", pickup)
+                putExtra("drop", drop)
+                putExtra("pickup_distance_km", distance)
+                putExtra("distance", distance)
+                putExtra("id", orderId)
+                putExtra("amount", amount)
+            }
+            startService(overlayIntent)
         }
 
-        IncomingOrderNotification.show(
-            this,
-            orderId = orderId,
-            pickupAddress = data["pickup_address"]?.toString().orEmpty(),
-            dropAddress = data["drop_address"]?.toString().orEmpty(),
-            distance = data["distance"]?.toString().orEmpty(),
-            amount = data["amount"]?.toString().orEmpty()
-        )
+        // We are NOT calling IncomingOrderNotification.show() anymore 
+        // because the user wants NO status bar notification.
     }
 
-    private fun shouldWakeScreen(): Boolean {
-        val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
+    private fun isScreenOn(context: Context): Boolean {
+        val pm = context.getSystemService(Context.POWER_SERVICE) as PowerManager
         return if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.KITKAT_WATCH) {
-            !pm.isInteractive
+            pm.isInteractive
         } else {
             @Suppress("DEPRECATION")
-            !pm.isScreenOn
+            pm.isScreenOn
         }
     }
 

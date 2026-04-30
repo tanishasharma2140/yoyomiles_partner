@@ -155,6 +155,7 @@
 // }
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -223,9 +224,6 @@ class OnlineStatusViewModel with ChangeNotifier {
           return true;
 
         } else {
-          // offline case
-          // ❌ REMOVED: FirebaseServices().saveOrUpdateDocument()
-          // ✅ Socket se driver disconnect karo
           final rideViewModel = Provider.of<RideViewModel>(
             context,
             listen: false,
@@ -277,20 +275,51 @@ class OnlineStatusViewModel with ChangeNotifier {
       rideViewModel.joinDriverWithProfile(driverPayload);
 
       /// Start live location tracking
-      _startLocationTracking(driverId, rideViewModel);
+      await _startLocationTracking(driverId, rideViewModel);
 
     } catch (e) {
       print("❌ _joinDriverWithProfile error: $e");
     }
   }
-  void _startLocationTracking(String driverId, RideViewModel rideViewModel) {
-
+  Future<void> _startLocationTracking(
+    String driverId,
+    RideViewModel rideViewModel,
+  ) async {
+    _positionStream?.cancel();
     print("🛰 Starting live location tracking...");
 
-    const LocationSettings locationSettings = LocationSettings(
-      accuracy: LocationAccuracy.high,
-      distanceFilter: 10, // 👈 20 meter move hone par update
-    );
+    final permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      final requestedPermission = await Geolocator.requestPermission();
+      if (requestedPermission == LocationPermission.denied ||
+          requestedPermission == LocationPermission.deniedForever) {
+        print("❌ Location permission denied. Tracking not started.");
+        return;
+      }
+    } else if (permission == LocationPermission.deniedForever) {
+      print("❌ Location permission denied forever. Tracking not started.");
+      return;
+    }
+
+    final LocationSettings locationSettings;
+    if (Platform.isAndroid) {
+      locationSettings = AndroidSettings(
+        accuracy: LocationAccuracy.bestForNavigation,
+        distanceFilter: 5,
+        intervalDuration: const Duration(seconds: 4),
+        forceLocationManager: false,
+        foregroundNotificationConfig: const ForegroundNotificationConfig(
+          notificationTitle: 'Yoyomiles location tracking',
+          notificationText: 'Location is updating for active rides',
+          enableWakeLock: true,
+        ),
+      );
+    } else {
+      locationSettings = const LocationSettings(
+        accuracy: LocationAccuracy.high,
+        distanceFilter: 5,
+      );
+    }
 
     _positionStream =
         Geolocator.getPositionStream(locationSettings: locationSettings)

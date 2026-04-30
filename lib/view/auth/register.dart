@@ -1147,17 +1147,17 @@ class _RegisterState extends State<Register> {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final userViewModel = UserViewModel();
       final driverId = await userViewModel.getUser();
-
+       print("aa gya maia ");
       final profileViewModel = Provider.of<ProfileViewModel>(
         context,
         listen: false,
       );
-
+      print("ka ho kh ho ");
       final activeRideVm = Provider.of<ActiveRideViewModel>(
         context,
         listen: false,
       );
-
+      print("heelo ji jinij");
       // 🔥 1️⃣ LOAD PROFILE
       await profileViewModel.profileApi(context);
 

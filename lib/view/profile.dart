@@ -628,7 +628,6 @@ class _ProfileState extends State<Profile> {
 
                           await UserViewModel().remove();
 
-                          // 🔥 Navigate to splash
                           Navigator.pushAndRemoveUntil(
                             context,
                             MaterialPageRoute(

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
@@ -24,6 +25,7 @@ import 'package:provider/provider.dart';
 import 'package:yoyomiles_partner/view_model/ride_view_model.dart';
 import 'package:yoyomiles_partner/view_model/update_ride_status_view_model.dart';
 import 'package:yoyomiles_partner/view_model/update_stop_status_view_model.dart';
+import 'package:yoyomiles_partner/view_model/user_view_model.dart';
 import 'package:yoyomiles_partner/model/live_ride_model.dart';
 
 class LiveRideScreen extends StatefulWidget {
@@ -43,6 +45,9 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
   bool isOtpVerified = false;
   int? _localRideStatus;
   bool _paymentScreenOpened = false;
+  StreamSubscription<Position>? _positionSubscription;
+  String? _driverId;
+  Position? _lastEmittedPosition;
 
   @override
   void initState() {
@@ -82,6 +87,74 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
         }
       });
     });
+
+    _initLocationUpdates();
+  }
+
+  Future<void> _initLocationUpdates() async {
+    try {
+      final profileId = Provider.of<ProfileViewModel>(
+        context,
+        listen: false,
+      ).profileModel?.data?.id?.toString();
+      _driverId = profileId;
+      if (_driverId == null || _driverId!.isEmpty) {
+        final fallbackId = await UserViewModel().getUser();
+        _driverId = fallbackId?.toString();
+      }
+      if (_driverId == null || _driverId!.isEmpty) return;
+
+      final LocationSettings locationSettings;
+      if (Platform.isAndroid) {
+        locationSettings = AndroidSettings(
+          accuracy: LocationAccuracy.bestForNavigation,
+          distanceFilter: 5,
+          intervalDuration: const Duration(seconds: 4),
+          forceLocationManager: false,
+          foregroundNotificationConfig: const ForegroundNotificationConfig(
+            notificationTitle: 'Yoyomiles location tracking',
+            notificationText: 'Location is updating for active rides',
+            enableWakeLock: true,
+          ),
+        );
+      } else {
+        locationSettings = const LocationSettings(
+          accuracy: LocationAccuracy.high,
+          distanceFilter: 5,
+        );
+      }
+
+      _positionSubscription = Geolocator.getPositionStream(
+        locationSettings: locationSettings,
+      ).listen((position) {
+        if (!mounted) return;
+        _emitDriverLocationIfChanged(position);
+      });
+    } catch (e) {
+      debugPrint("Location stream init failed: $e");
+    }
+  }
+
+  void _emitDriverLocationIfChanged(Position position) {
+    final driverId = _driverId;
+    if (driverId == null || driverId.isEmpty) return;
+
+    final last = _lastEmittedPosition;
+    if (last != null) {
+      final movedMeters = Geolocator.distanceBetween(
+        last.latitude,
+        last.longitude,
+        position.latitude,
+        position.longitude,
+      );
+      if (movedMeters < 5) return;
+    }
+
+    Provider.of<RideViewModel>(
+      context,
+      listen: false,
+    ).updateDriverLocation(driverId, position.latitude, position.longitude);
+    _lastEmittedPosition = position;
   }
 
   void _onRideUpdate() {
@@ -391,6 +464,7 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
 
   @override
   void dispose() {
+    _positionSubscription?.cancel();
     // Correctly remove the listener before disposing the state.
     try {
       Provider.of<RideViewModel>(
