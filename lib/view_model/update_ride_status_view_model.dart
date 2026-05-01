@@ -27,6 +27,7 @@ class UpdateRideStatusViewModel with ChangeNotifier {
       dynamic currentLongitude,
       String rideStatus, {
         bool navigateAfter = false,
+        dynamic cancelReason,
       }) async {
     setLoading(true);
 
@@ -39,6 +40,8 @@ class UpdateRideStatusViewModel with ChangeNotifier {
       // ✅ OTP ko int mein convert karo, empty string exclude karo
       if (otp != null && otp.toString().isNotEmpty)
         'otp': int.tryParse(otp.toString()) ?? otp,
+      if (cancelReason != null)
+        "cancel_reason": cancelReason,
     };
 
     print("lololololkkih");

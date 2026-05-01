@@ -35,6 +35,9 @@ class ApiUrl{
   static const String updateStopStatusUrl ="${baseUrl}update_stop_status";
   static const String driverReferralHistoryUrl ="${baseUrl}driver-referral-history";
   static const String driverTransferUrl ="${baseUrl}driver-transfer";
+  static const String cancelReasonUrl ="${baseUrl}cancel-reasons?";
+  static const String driverOnlineStatusUrl ="${baseUrl}driver-online-status";
+
 
 
 

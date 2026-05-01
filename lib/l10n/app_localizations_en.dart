@@ -913,4 +913,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get to => 'To';
+
+  @override
+  String get overlay_permission => 'Overlay Permission';
+
+  @override
+  String get enable_display_overlay => 'Enable Display over other apps to continue.';
+
+  @override
+  String get later => 'Later';
+
+  @override
+  String get allow => 'Allow';
 }

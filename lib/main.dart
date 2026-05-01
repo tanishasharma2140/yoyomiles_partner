@@ -23,12 +23,14 @@ import 'package:yoyomiles_partner/view_model/bank_detail_view_model.dart';
 import 'package:yoyomiles_partner/view_model/bank_view_model.dart';
 import 'package:yoyomiles_partner/view_model/body_type_view_model.dart';
 import 'package:yoyomiles_partner/view_model/call_back_view_model.dart';
+import 'package:yoyomiles_partner/view_model/cancel_reason_view_model.dart';
 import 'package:yoyomiles_partner/view_model/change_pay_mode_view_model.dart';
 import 'package:yoyomiles_partner/view_model/cities_view_model.dart';
 import 'package:yoyomiles_partner/view_model/contact_list_view_model.dart';
 import 'package:yoyomiles_partner/view_model/daily_weekly_view_model.dart';
 import 'package:yoyomiles_partner/view_model/delete_bank_detail_view_model.dart';
 import 'package:yoyomiles_partner/view_model/driver_ignored_ride_view_model.dart';
+import 'package:yoyomiles_partner/view_model/driver_online_status_view_model.dart';
 import 'package:yoyomiles_partner/view_model/driver_referral_history_view_model.dart';
 import 'package:yoyomiles_partner/view_model/driver_transfer_view_model.dart';
 import 'package:yoyomiles_partner/view_model/driver_vehicle_view_model.dart';
@@ -316,6 +318,8 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver{
           ChangeNotifierProvider(create: (context) => UpdateStopStatusViewModel()),
           ChangeNotifierProvider(create: (context) => DriverReferralHistoryViewModel()),
           ChangeNotifierProvider(create: (context) => DriverTransferViewModel()),
+          ChangeNotifierProvider(create: (context) => CancelReasonViewModel()),
+          ChangeNotifierProvider(create: (context) => DriverOnlineStatusViewModel()),
           Provider<NotificationService>(create: (_) => NotificationService(navigatorKey: navigatorKey)),
         ],
         child: Consumer<LanguageController>(

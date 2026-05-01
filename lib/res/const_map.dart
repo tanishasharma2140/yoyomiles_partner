@@ -377,9 +377,9 @@ class _ConstMapState extends State<ConstMap> {
     }
 
     // ✅ PICKUP SE DROP TAK POLYLINE (Status 5+)
-    if (widget.rideStatus! >= 5 && pickupLatLng != null && dropLatLng != null) {
+    if (widget.rideStatus! >= 4 && pickupLatLng != null && dropLatLng != null) {
       if (kDebugMode) {
-        print("🔄 Drawing Pickup → Drop Polyline (Status 5+)");
+        print("🔄 Drawing Pickup → Drop Polyline (Status 4+)");
       }
 
       List<LatLng> routeToDrop = await _getRoutePoints(pickupLatLng, dropLatLng);

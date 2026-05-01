@@ -3,13 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:yoyomiles_partner/controller/language_controller.dart';
 import 'package:yoyomiles_partner/l10n/app_localizations.dart';
 import 'package:yoyomiles_partner/res/constant_color.dart';
-import 'package:yoyomiles_partner/res/custom_text_field.dart';
 import 'package:yoyomiles_partner/res/image_preview_screen.dart';
 import 'package:yoyomiles_partner/res/sizing_const.dart';
 import 'package:yoyomiles_partner/res/text_const.dart';
-import 'package:yoyomiles_partner/service/background_service.dart';
 import 'package:yoyomiles_partner/view/splash_screen.dart';
-import 'package:yoyomiles_partner/view_model/online_status_view_model.dart';
+import 'package:yoyomiles_partner/view_model/driver_online_status_view_model.dart';
 import 'package:yoyomiles_partner/view_model/profile_view_model.dart';
 import 'package:yoyomiles_partner/view_model/user_view_model.dart';
 import 'package:provider/provider.dart';
@@ -65,7 +63,9 @@ class _ProfileState extends State<Profile> {
                               Navigator.push(
                                 context,
                                 CupertinoPageRoute(
-                                  builder: (_) => ImagePreviewScreen(imageUrl: profileData.ownerSelfie! ),
+                                  builder: (_) => ImagePreviewScreen(
+                                    imageUrl: profileData.ownerSelfie!,
+                                  ),
                                 ),
                               );
                             }
@@ -81,7 +81,8 @@ class _ProfileState extends State<Profile> {
                               ),
                               image: DecorationImage(
                                 image: NetworkImage(
-                                    profileData.ownerSelfie ?? ""),
+                                  profileData.ownerSelfie ?? "",
+                                ),
                                 fit: BoxFit.cover,
                               ),
                             ),
@@ -113,10 +114,7 @@ class _ProfileState extends State<Profile> {
                     color: PortColor.white.withOpacity(0.2),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(
-                    Icons.arrow_back,
-                    color: PortColor.white,
-                  ),
+                  child: const Icon(Icons.arrow_back, color: PortColor.white),
                 ),
               ),
               actions: [
@@ -128,10 +126,7 @@ class _ProfileState extends State<Profile> {
                       color: PortColor.white.withOpacity(0.2),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(
-                      Icons.logout,
-                      color: PortColor.white,
-                    ),
+                    child: const Icon(Icons.logout, color: PortColor.white),
                   ),
                 ),
               ],
@@ -165,8 +160,8 @@ class _ProfileState extends State<Profile> {
                       label: loc.vehicle_number,
                       value: profileData.vehicleNo ?? "N/A",
                     ),
-                    // Vehicle Information Section
 
+                    // Vehicle Information Section
                   ],
                 ),
 
@@ -176,7 +171,6 @@ class _ProfileState extends State<Profile> {
                   title: loc.vehicle_information,
                   icon: Icons.local_shipping_outlined,
                   children: [
-
                     // 🚘 VEHICLE IMAGE
                     GestureDetector(
                       child: Center(
@@ -186,23 +180,27 @@ class _ProfileState extends State<Profile> {
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(12),
                             color: PortColor.scaffoldBgGrey,
-                            image: (profileData.vehicleTypeImage != null &&
-                                profileData.vehicleTypeImage!.isNotEmpty)
+                            image:
+                                (profileData.vehicleTypeImage != null &&
+                                    profileData.vehicleTypeImage!.isNotEmpty)
                                 ? DecorationImage(
-                              image: NetworkImage(profileData.vehicleTypeImage!),
-                              fit: BoxFit.contain,
-                            )
+                                    image: NetworkImage(
+                                      profileData.vehicleTypeImage!,
+                                    ),
+                                    fit: BoxFit.contain,
+                                  )
                                 : null,
                           ),
-                          child: (profileData.vehicleTypeImage == null ||
-                              profileData.vehicleTypeImage!.isEmpty)
+                          child:
+                              (profileData.vehicleTypeImage == null ||
+                                  profileData.vehicleTypeImage!.isEmpty)
                               ? const Center(
-                            child: Icon(
-                              Icons.local_shipping_rounded,
-                              color: Colors.grey,
-                              size: 60,
-                            ),
-                          )
+                                  child: Icon(
+                                    Icons.local_shipping_rounded,
+                                    color: Colors.grey,
+                                    size: 60,
+                                  ),
+                                )
                               : null,
                         ),
                       ),
@@ -222,7 +220,6 @@ class _ProfileState extends State<Profile> {
                     ),
                   ],
                 ),
-
 
                 // Document Section - Aadhaar Card
                 _buildDocumentSection(
@@ -284,15 +281,10 @@ class _ProfileState extends State<Profile> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-
           // 🌍 Title Row
           Row(
             children: [
-              const Icon(
-                Icons.language,
-                color: PortColor.blue,
-                size: 20,
-              ),
+              const Icon(Icons.language, color: PortColor.blue, size: 20),
               SizedBox(width: Sizes.screenWidth * 0.02),
               TextConst(
                 title: loc.change_language,
@@ -329,14 +321,8 @@ class _ProfileState extends State<Profile> {
                       fontSize: 14,
                     ),
                     items: const [
-                      DropdownMenuItem(
-                        value: 'en',
-                        child: Text("English"),
-                      ),
-                      DropdownMenuItem(
-                        value: 'hi',
-                        child: Text("Hindi"),
-                      ),
+                      DropdownMenuItem(value: 'en', child: Text("English")),
+                      DropdownMenuItem(value: 'hi', child: Text("Hindi")),
                     ],
                     onChanged: (value) {
                       if (value == 'en') {
@@ -354,9 +340,6 @@ class _ProfileState extends State<Profile> {
       ),
     );
   }
-
-
-
 
   Widget _buildInfoCard({
     required String title,
@@ -382,11 +365,7 @@ class _ProfileState extends State<Profile> {
         children: [
           Row(
             children: [
-              Icon(
-                icon,
-                color: PortColor.blue,
-                size: 20,
-              ),
+              Icon(icon, color: PortColor.blue, size: 20),
               SizedBox(width: Sizes.screenWidth * 0.02),
               TextConst(
                 title: title,
@@ -412,11 +391,7 @@ class _ProfileState extends State<Profile> {
       padding: EdgeInsets.symmetric(vertical: Sizes.screenHeight * 0.008),
       child: Row(
         children: [
-          Icon(
-            icon,
-            color: PortColor.gray,
-            size: 18,
-          ),
+          Icon(icon, color: PortColor.gray, size: 18),
           SizedBox(width: Sizes.screenWidth * 0.03),
           SizedBox(
             width: 140,
@@ -465,11 +440,7 @@ class _ProfileState extends State<Profile> {
         children: [
           Row(
             children: [
-              Icon(
-                Icons.description_outlined,
-                color: PortColor.blue,
-                size: 20,
-              ),
+              Icon(Icons.description_outlined, color: PortColor.blue, size: 20),
               SizedBox(width: Sizes.screenWidth * 0.02),
               TextConst(
                 title: title,
@@ -526,28 +497,24 @@ class _ProfileState extends State<Profile> {
               color: PortColor.scaffoldBgGrey,
               image: imageUrl.isNotEmpty
                   ? DecorationImage(
-                image: NetworkImage(imageUrl),
-                fit: BoxFit.cover,
-              )
+                      image: NetworkImage(imageUrl),
+                      fit: BoxFit.cover,
+                    )
                   : null,
             ),
             child: imageUrl.isEmpty
                 ? Center(
-              child: Icon(
-                Icons.document_scanner_outlined,
-                color: PortColor.gray,
-                size: 40,
-              ),
-            )
+                    child: Icon(
+                      Icons.document_scanner_outlined,
+                      color: PortColor.gray,
+                      size: 40,
+                    ),
+                  )
                 : null,
           ),
         ),
         SizedBox(height: Sizes.screenHeight * 0.008),
-        TextConst(
-          title: label,
-          size: Sizes.fontSizeSix,
-          color: PortColor.gray,
-        ),
+        TextConst(title: label, size: Sizes.fontSizeSix, color: PortColor.gray),
       ],
     );
   }
@@ -557,9 +524,7 @@ class _ProfileState extends State<Profile> {
       backgroundColor: PortColor.scaffoldBgGrey,
       context: context,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(20),
-        ),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (BuildContext context) {
         final loc = AppLocalizations.of(context)!;
@@ -582,7 +547,7 @@ class _ProfileState extends State<Profile> {
                   ),
                 ),
                 SizedBox(height: Sizes.screenHeight * 0.02),
-                 TextConst(
+                TextConst(
                   title: loc.are_you_sure_you_want,
                   fontWeight: FontWeight.bold,
                   size: Sizes.fontSizeSeven,
@@ -601,13 +566,14 @@ class _ProfileState extends State<Profile> {
                         onPressed: () => Navigator.pop(context),
                         style: OutlinedButton.styleFrom(
                           padding: EdgeInsets.symmetric(
-                              vertical: Sizes.screenHeight * 0.02),
+                            vertical: Sizes.screenHeight * 0.02,
+                          ),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(15),
                           ),
                           side: const BorderSide(color: PortColor.blue),
                         ),
-                        child:  TextConst(
+                        child: TextConst(
                           title: loc.cancel,
                           fontWeight: FontWeight.bold,
                           color: PortColor.blue,
@@ -618,33 +584,36 @@ class _ProfileState extends State<Profile> {
                     Expanded(
                       child: ElevatedButton(
                         onPressed: () async {
+                          final onlineStatus =
+                              Provider.of<DriverOnlineStatusViewModel>(
+                                context,
+                                listen: false,
+                              );
 
-                          // Navigator.pop(context); // Close bottom sheet
-
-                          final onlineStatusVm =
-                          Provider.of<OnlineStatusViewModel>(context, listen: false);
-                          await onlineStatusVm.onlineStatusApi(context, 0);
-                          // await stopBackgroundService();
+                          await onlineStatus.driverOnlineStatusApi(0, context);
 
                           await UserViewModel().remove();
 
-                          Navigator.pushAndRemoveUntil(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const SplashScreen(),
-                            ),
-                                (route) => false,
-                          );
+                          if (context.mounted) {
+                            Navigator.pushAndRemoveUntil(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const SplashScreen(),
+                              ),
+                              (route) => false,
+                            );
+                          }
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: PortColor.blue,
                           padding: EdgeInsets.symmetric(
-                              vertical: Sizes.screenHeight * 0.02),
+                            vertical: Sizes.screenHeight * 0.02,
+                          ),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(15),
                           ),
                         ),
-                        child:  TextConst(
+                        child: TextConst(
                           title: loc.log_out,
                           fontWeight: FontWeight.bold,
                           color: PortColor.black,

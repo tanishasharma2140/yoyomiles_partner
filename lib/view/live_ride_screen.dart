@@ -17,6 +17,7 @@ import 'package:yoyomiles_partner/res/text_const.dart';
 import 'package:yoyomiles_partner/utils/routes/routes_name.dart';
 import 'package:yoyomiles_partner/utils/utils.dart';
 import 'package:yoyomiles_partner/view/auth/register.dart';
+import 'package:yoyomiles_partner/view_model/cancel_reason_view_model.dart';
 import 'package:yoyomiles_partner/view_model/change_pay_mode_view_model.dart';
 import 'package:yoyomiles_partner/view_model/contact_list_view_model.dart';
 import 'package:yoyomiles_partner/view_model/live_ride_view_model.dart';
@@ -59,6 +60,11 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
         context,
         listen: false,
       );
+      final cabCancelReasonVm = Provider.of<CancelReasonViewModel>(
+        context,
+        listen: false,
+      );
+      cabCancelReasonVm.cancelReasonApi("2");
       final rideViewModel = Provider.of<RideViewModel>(context, listen: false);
 
       rideViewModel.addListener(_onRideUpdate);
@@ -124,12 +130,13 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
         );
       }
 
-      _positionSubscription = Geolocator.getPositionStream(
-        locationSettings: locationSettings,
-      ).listen((position) {
-        if (!mounted) return;
-        _emitDriverLocationIfChanged(position);
-      });
+      _positionSubscription =
+          Geolocator.getPositionStream(
+            locationSettings: locationSettings,
+          ).listen((position) {
+            if (!mounted) return;
+            _emitDriverLocationIfChanged(position);
+          });
     } catch (e) {
       debugPrint("Location stream init failed: $e");
     }
@@ -162,7 +169,7 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
     // Use Provider.of with listen: false only if we are absolutely sure the widget is still in the tree.
     // However, the error says 'Looking up a deactivated widget\'s ancestor is unsafe'.
     // This usually happens when the listener is still active but the widget is disposed.
-    
+
     try {
       final rideVm = Provider.of<RideViewModel>(context, listen: false);
       final socketStatus = rideVm.activeRideData?['rideStatus'];
@@ -184,6 +191,7 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
   String? _currentAddress;
   bool _showPaymentSuccessDialog = false;
   bool _showRideCompletedDialog = false;
+  int? _selectedIndex;
 
   Future<void> _openGoogleMapsDirections() async {
     final liveRideVm = Provider.of<LiveRideViewModel>(context, listen: false);
@@ -195,7 +203,9 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
 
     // Check for stops
     if (liveData.stops != null && liveData.stops!.isNotEmpty) {
-      final pendingStop = liveData.stops!.indexWhere((s) => s.status.toString() == "0");
+      final pendingStop = liveData.stops!.indexWhere(
+        (s) => s.status.toString() == "0",
+      );
       if (pendingStop != -1) {
         destinationLat = liveData.stops![pendingStop].lat.toString();
         destinationLng = liveData.stops![pendingStop].lng.toString();
@@ -239,7 +249,7 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
       barrierDismissible: false,
       builder: (context) => _buildPaymentSuccessDialog(),
     ).then((_) {
-       if(mounted) setState(() => _showPaymentSuccessDialog = false);
+      if (mounted) setState(() => _showPaymentSuccessDialog = false);
     });
   }
 
@@ -251,7 +261,7 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
       barrierDismissible: false,
       builder: (context) => _buildRideCompletedDialog(),
     ).then((_) {
-      if(mounted) setState(() => _showRideCompletedDialog = false);
+      if (mounted) setState(() => _showRideCompletedDialog = false);
     });
   }
 
@@ -392,7 +402,9 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
     final liveData = liveRideVm.liveOrderModel!.data!;
 
     if (liveData.stops != null && liveData.stops!.isNotEmpty) {
-      final pendingStopIndex = liveData.stops!.indexWhere((s) => s.status.toString() == "0");
+      final pendingStopIndex = liveData.stops!.indexWhere(
+        (s) => s.status.toString() == "0",
+      );
       if (pendingStopIndex != -1) {
         await updateStopStatusVm.updateStopStatusApi(
           context: context,
@@ -422,7 +434,7 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
           "6",
           navigateAfter: true,
         );
-        if(!mounted) return;
+        if (!mounted) return;
         Utils.showSuccessMessage(context, loc.ride_completed_wallet);
         Future.delayed(
           const Duration(milliseconds: 300),
@@ -445,7 +457,7 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
         lng,
         "5",
       );
-      if(!mounted) return;
+      if (!mounted) return;
       Utils.showSuccessMessage(
         context,
         (payMode == 1)
@@ -458,7 +470,8 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
         ),
       );
     } catch (e) {
-      if(mounted) Utils.showErrorMessage(context, "${loc.failed_update_ride_status} $e");
+      if (mounted)
+        Utils.showErrorMessage(context, "${loc.failed_update_ride_status} $e");
     }
   }
 
@@ -493,6 +506,155 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
     }
   }
 
+  void _showCancelBottomSheet() {
+    final updateRideStatusVm = Provider.of<UpdateRideStatusViewModel>(
+      context,
+      listen: false,
+    );
+    final cancelReasonVm = Provider.of<CancelReasonViewModel>(context,listen: false);
+    final loc = AppLocalizations.of(context)!;
+    final liveRideViewModel = Provider.of<LiveRideViewModel>(context,listen: false);
+    final liveData = liveRideViewModel.liveOrderModel!.data!;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return Padding(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom,
+              ),
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 16,
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Center(
+                      child: Container(
+                        width: 40,
+                        height: 5,
+                        margin: const EdgeInsets.only(bottom: 12),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[400],
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                    ),
+                    TextConst(
+                      title: loc.cancel,
+                      color: PortColor.black,
+                      fontWeight: FontWeight.w600,
+                      size: 18,
+                    ),
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      height:
+                          ((cancelReasonVm.cancelReasonModel?.data?.length ??
+                                      0) *
+                                  50)
+                              .toDouble()
+                              .clamp(150, 300),
+                      child: ListView.builder(
+                        itemCount:
+                            cancelReasonVm.cancelReasonModel?.data?.length ?? 0,
+                        itemBuilder: (context, index) {
+                          final reason =
+                              cancelReasonVm.cancelReasonModel?.data?[index];
+
+                          return GestureDetector(
+                            onTap: () => setState(() => _selectedIndex = index),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 4),
+                              child: Row(
+                                children: [
+                                  Radio<int>(
+                                    value: index,
+                                    groupValue: _selectedIndex,
+                                    onChanged: (value) =>
+                                        setState(() => _selectedIndex = value),
+                                  ),
+                                  Expanded(
+                                    child: Text(reason?.reasonText ?? ""),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: () => Navigator.pop(context),
+                            child: Text(
+                              loc.ignore,
+                              style: TextStyle(
+                                fontFamily: AppFonts.kanitReg,
+                                color: Colors.black,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: _selectedIndex == null
+                                ? null
+                                : () {
+                              final selectedReason = cancelReasonVm
+                                  .cancelReasonModel
+                                  ?.data?[_selectedIndex!];
+
+                              Provider.of<UpdateRideStatusViewModel>(
+                                context,
+                                listen: false,
+                              ).updateRideApi(
+                                context,
+                                liveData.id.toString(),
+                                "",
+                                "",
+                                "",
+                                "8",
+                                cancelReason: selectedReason?.reasonText,
+                                navigateAfter: true,
+                              );
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.red,
+                            ),
+                            child: Text(
+                              loc.reject,
+                              style: TextStyle(
+                                fontFamily: AppFonts.kanitReg,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        )
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final profileViewModel = Provider.of<ProfileViewModel>(context);
@@ -522,8 +684,9 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                       data: [widget.booking],
                       rideStatus:
                           liveRideViewModel.liveOrderModel?.data?.rideStatus,
-                      onAddressFetched: (address) =>
-                          mounted ? setState(() => _currentAddress = address) : null,
+                      onAddressFetched: (address) => mounted
+                          ? setState(() => _currentAddress = address)
+                          : null,
                     ),
                   ),
                   DraggableScrollableSheet(
@@ -563,8 +726,12 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
   }
 
   Color _getButtonColor(int? rideStatus, Data? liveData) {
-    if (rideStatus == 4 && liveData?.stops != null && liveData!.stops!.isNotEmpty) {
-      final pendingStop = liveData.stops!.indexWhere((s) => s.status.toString() == "0");
+    if (rideStatus == 4 &&
+        liveData?.stops != null &&
+        liveData!.stops!.isNotEmpty) {
+      final pendingStop = liveData.stops!.indexWhere(
+        (s) => s.status.toString() == "0",
+      );
       if (pendingStop != -1) {
         return Colors.orangeAccent;
       }
@@ -588,7 +755,9 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
   String _getButtonText(int? status, Data? liveData) {
     final loc = AppLocalizations.of(context)!;
     if (status == 4 && liveData?.stops != null && liveData!.stops!.isNotEmpty) {
-      final pendingStop = liveData.stops!.indexWhere((s) => s.status.toString() == "0");
+      final pendingStop = liveData.stops!.indexWhere(
+        (s) => s.status.toString() == "0",
+      );
       if (pendingStop != -1) {
         return "Reached Stop ${pendingStop + 1}";
       }
@@ -716,10 +885,11 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                             return;
                           }
                           if (savedOtp == enteredOtp) {
-                            if(mounted) setState(() {
-                              _localRideStatus = 4;
-                              isOtpVerified = true;
-                            });
+                            if (mounted)
+                              setState(() {
+                                _localRideStatus = 4;
+                                isOtpVerified = true;
+                              });
                             Navigator.of(context).pop();
 
                             await updateRideStatusVm.updateRideApi(
@@ -1192,10 +1362,13 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                           ),
                           _buildDetailRow(
                             title: "Status",
-                            content: stop.status.toString() == "1" ? "Reached" : "Pending",
+                            content: stop.status.toString() == "1"
+                                ? "Reached"
+                                : "Pending",
                             bold: true,
                           ),
-                          if (idx != liveData.stops!.length - 1) const Divider(height: 16),
+                          if (idx != liveData.stops!.length - 1)
+                            const Divider(height: 16),
                         ],
                       );
                     }).toList(),
@@ -1237,7 +1410,7 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                   _buildEmergencySection(),
                   SizedBox(height: Sizes.screenHeight * 0.012),
                   if (rs == 2) buildNavigateToMapButton(),
-                  if (rs == 4)  buildNavigateFromMapButton(),
+                  if (rs == 4) buildNavigateFromMapButton(),
                   SizedBox(height: Sizes.screenHeight * 0.012),
                   Container(
                     width: double.infinity,
@@ -1278,9 +1451,10 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                             int currentStatus = rs;
                             try {
                               if (currentStatus == 1) {
-                                if(mounted) setState(() {
-                                  _localRideStatus = 2;
-                                });
+                                if (mounted)
+                                  setState(() {
+                                    _localRideStatus = 2;
+                                  });
                                 await updateRideStatusVm.updateRideApi(
                                   context,
                                   orderId,
@@ -1290,14 +1464,16 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                                   "2",
                                 );
                                 buildNavigateToMapButton();
-                                if(mounted) Utils.showSuccessMessage(
-                                  context,
-                                  loc.ride_status_start_pickup,
-                                );
+                                if (mounted)
+                                  Utils.showSuccessMessage(
+                                    context,
+                                    loc.ride_status_start_pickup,
+                                  );
                               } else if (currentStatus == 2) {
-                                if(mounted) setState(() {
-                                  _localRideStatus = 3;
-                                });
+                                if (mounted)
+                                  setState(() {
+                                    _localRideStatus = 3;
+                                  });
                                 await updateRideStatusVm.updateRideApi(
                                   context,
                                   orderId,
@@ -1306,21 +1482,26 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                                   "",
                                   "3",
                                 );
-                                if(mounted) Utils.showSuccessMessage(
-                                  context,
-                                  loc.ride_status_arrived_pickup,
-                                );
+                                if (mounted)
+                                  Utils.showSuccessMessage(
+                                    context,
+                                    loc.ride_status_arrived_pickup,
+                                  );
                               } else if (currentStatus == 3) {
                                 _showOtpDialog(orderId);
                               } else if (currentStatus == 4) {
                                 _handleReachedButtonClick();
                               }
                             } catch (e) {
-                              if(mounted) setState(() => _localRideStatus = currentStatus);
-                              if(mounted) Utils.showErrorMessage(
-                                context,
-                                "${loc.failed_update_ride_status} $e",
-                              );
+                              if (mounted)
+                                setState(
+                                  () => _localRideStatus = currentStatus,
+                                );
+                              if (mounted)
+                                Utils.showErrorMessage(
+                                  context,
+                                  "${loc.failed_update_ride_status} $e",
+                                );
                             }
                           },
                           borderRadius: BorderRadius.circular(8),
@@ -1347,19 +1528,7 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
                         SizedBox(width: Sizes.screenWidth * 0.03),
                         Expanded(
                           child: GestureDetector(
-                            onTap: () =>
-                                Provider.of<UpdateRideStatusViewModel>(
-                                  context,
-                                  listen: false,
-                                ).updateRideApi(
-                                  context,
-                                  liveData.id.toString(),
-                                  "",
-                                  "",
-                                  "",
-                                  "8",
-                                  navigateAfter: true,
-                                ),
+                            onTap: _showCancelBottomSheet,
                             child: Container(
                               padding: EdgeInsets.symmetric(
                                 vertical: Sizes.screenHeight * 0.012,
@@ -1401,6 +1570,7 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
       ],
     );
   }
+
   Widget buildNavigateToMapButton() {
     final loc = AppLocalizations.of(context)!;
     return Padding(
@@ -1417,14 +1587,13 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
             color: PortColor.gold,
             borderRadius: BorderRadius.circular(10),
           ),
-          child:  Row(
+          child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const Icon(Icons.navigation, color: Colors.black),
               const SizedBox(width: 8),
               TextConst(
-                title:
-                loc.navigate_to_pickup,
+                title: loc.navigate_to_pickup,
                 color: PortColor.black,
                 size: 14,
                 fontWeight: FontWeight.w600,
@@ -1452,14 +1621,13 @@ class _LiveRideScreenState extends State<LiveRideScreen> {
             color: PortColor.gold,
             borderRadius: BorderRadius.circular(10),
           ),
-          child:  Row(
+          child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const Icon(Icons.navigation, color: Colors.black),
               const SizedBox(width: 8),
               TextConst(
-                title:
-                loc.navigate_to_drop,
+                title: loc.navigate_to_drop,
                 color: PortColor.black,
                 size: 14,
                 fontWeight: FontWeight.w600,
@@ -1540,8 +1708,8 @@ class CollectPaymentScreen extends StatelessWidget {
             );
             final payMode =
                 rideVm.activeRideData?['payMode'] ??
-                    liveRideVm.liveOrderModel?.data?.paymode ??
-                    0;
+                liveRideVm.liveOrderModel?.data?.paymode ??
+                0;
             return AlertDialog(
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
@@ -1549,59 +1717,59 @@ class CollectPaymentScreen extends StatelessWidget {
               title: Text(loc.change_payment_mode),
               content: changePayModeVm.loading
                   ? Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const CircularProgressIndicator(),
-                  const SizedBox(height: 16),
-                  Text(loc.changing_payment_mode),
-                ],
-              )
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const CircularProgressIndicator(),
+                        const SizedBox(height: 16),
+                        Text(loc.changing_payment_mode),
+                      ],
+                    )
                   : Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  ListTile(
-                    leading: Icon(
-                      Icons.money,
-                      color: payMode == 1 ? Colors.green : Colors.grey,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        ListTile(
+                          leading: Icon(
+                            Icons.money,
+                            color: payMode == 1 ? Colors.green : Colors.grey,
+                          ),
+                          title: Text(loc.cash_payment),
+                          trailing: payMode == 1
+                              ? const Icon(
+                                  Icons.check_circle,
+                                  color: Colors.green,
+                                )
+                              : null,
+                          onTap: payMode == 1
+                              ? null
+                              : () => _changePaymode(context, 1),
+                        ),
+                        const Divider(),
+                        ListTile(
+                          leading: Icon(
+                            Icons.credit_card,
+                            color: payMode == 2 ? Colors.orange : Colors.grey,
+                          ),
+                          title: Text(loc.online_payment),
+                          trailing: payMode == 2
+                              ? const Icon(
+                                  Icons.check_circle,
+                                  color: Colors.orange,
+                                )
+                              : null,
+                          onTap: payMode == 2
+                              ? null
+                              : () => _changePaymode(context, 2),
+                        ),
+                      ],
                     ),
-                    title: Text(loc.cash_payment),
-                    trailing: payMode == 1
-                        ? const Icon(
-                      Icons.check_circle,
-                      color: Colors.green,
-                    )
-                        : null,
-                    onTap: payMode == 1
-                        ? null
-                        : () => _changePaymode(context, 1),
-                  ),
-                  const Divider(),
-                  ListTile(
-                    leading: Icon(
-                      Icons.credit_card,
-                      color: payMode == 2 ? Colors.orange : Colors.grey,
-                    ),
-                    title: Text(loc.online_payment),
-                    trailing: payMode == 2
-                        ? const Icon(
-                      Icons.check_circle,
-                      color: Colors.orange,
-                    )
-                        : null,
-                    onTap: payMode == 2
-                        ? null
-                        : () => _changePaymode(context, 2),
-                  ),
-                ],
-              ),
               actions: changePayModeVm.loading
                   ? []
                   : [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: Text(loc.cancel),
-                ),
-              ],
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: Text(loc.cancel),
+                      ),
+                    ],
             );
           },
         );
@@ -1652,7 +1820,7 @@ class CollectPaymentScreen extends StatelessWidget {
                   rideStatus.disable78();
                   Navigator.of(context).pushAndRemoveUntil(
                     MaterialPageRoute(builder: (context) => const Register()),
-                        (route) => false,
+                    (route) => false,
                   );
                 },
                 child: Text(
@@ -1679,8 +1847,8 @@ class CollectPaymentScreen extends StatelessWidget {
         final int rideStatus = activeData?['rideStatus'] ?? 0;
         final int payMode =
             activeData?['payMode'] ??
-                liveRideVm.liveOrderModel?.data?.paymode ??
-                0;
+            liveRideVm.liveOrderModel?.data?.paymode ??
+            0;
         final loc = AppLocalizations.of(context)!;
         return WillPopScope(
           onWillPop: () async => false,
@@ -1847,7 +2015,7 @@ class CollectPaymentScreen extends StatelessWidget {
                               MaterialPageRoute(
                                 builder: (context) => const Register(),
                               ),
-                                  (route) => false,
+                              (route) => false,
                             );
                             rideViewModel.setActiveRideData(null);
                             rideViewModel.disable78();

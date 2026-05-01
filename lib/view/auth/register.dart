@@ -1039,7 +1039,6 @@ import 'package:yoyomiles_partner/l10n/app_localizations.dart';
 import 'package:yoyomiles_partner/res/constant_color.dart';
 import 'package:yoyomiles_partner/res/sizing_const.dart';
 import 'package:yoyomiles_partner/res/text_const.dart';
-import 'package:yoyomiles_partner/service/background_service.dart';
 import 'package:yoyomiles_partner/utils/routes/routes_name.dart';
 import 'package:yoyomiles_partner/utils/utils.dart';
 import 'package:yoyomiles_partner/view/auth/login.dart';
@@ -1586,6 +1585,7 @@ class _RegisterState extends State<Register> {
   }
 
   Future<bool> _maybeAskOverlayPermission() async {
+    final loc = AppLocalizations.of(context)!;
     bool hasPermission = true;
 
     try {
@@ -1609,22 +1609,22 @@ class _RegisterState extends State<Register> {
         ),
         title:  TextConst(
             title:
-            'Overlay Permission',
+            loc.overlay_permission,
             fontWeight: FontWeight.w600
         ),
         content: TextConst(title:
-        'Enable "Display over other apps" to continue.',
+        loc.enable_display_overlay,
             size: 13
         ),
         actionsPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child:  TextConst(title: 'Later',color: PortColor.black,),
+            child:  TextConst(title:loc.later,color: PortColor.black,),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child:  TextConst(title: 'Allow',color: PortColor.black,),
+            child:  TextConst(title: loc.allow,color: PortColor.black,),
           ),
         ],
       ),
@@ -1834,8 +1834,8 @@ class _RegisterState extends State<Register> {
                                     bool overlayGranted =
                                     await _maybeAskOverlayPermission();
                                     if (!overlayGranted) {
-                                      Utils.showErrorMessage(context,
-                                          "Overlay permission required to go online");
+                                      // Utils.showErrorMessage(context,
+                                      //     "Overlay permission required to go online");
                                       return;
                                     }
                                     final success = await onlineStatusViewModel

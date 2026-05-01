@@ -1,10 +1,8 @@
 import 'dart:io';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:yoyomiles_partner/service/ride_notification_helper.dart';
 import 'package:yoyomiles_partner/view_model/profile_view_model.dart';
 
 class NotificationService {
@@ -60,10 +58,9 @@ class NotificationService {
     FirebaseMessaging.onMessage.listen((message) {
       print("🔔 Notification Received: ${message.data}");
       
-      // If it's an incoming order, we handle it via native overlay/lockscreen.
-      // We don't want to show a duplicate "empty" local notification here.
-      if (message.data['type'] == 'incoming_order') {
-        print("Skipping local notification for incoming_order (handled by native)");
+      // ✅ Check for incoming_order or remove_ride to skip local notification
+      if (message.data['type'] == 'incoming_order' || message.data['type'] == 'remove_ride') {
+        print("Skipping local notification for ${message.data['type']}");
         _runProfileApiSafe();
         return;
       }
@@ -95,8 +92,8 @@ class NotificationService {
   }
 
   Future<void> showNotification(RemoteMessage message) async {
-    // Don't show if there's no content and it's an order (already handled above but as a safeguard)
-    if (message.notification == null && message.data['type'] == 'incoming_order') return;
+    // ✅ Safeguard: Don't show notification for these types
+    if (message.data['type'] == 'incoming_order' || message.data['type'] == 'remove_ride') return;
 
     final androidData = message.notification?.android;
 

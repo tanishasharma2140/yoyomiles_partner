@@ -3,13 +3,10 @@ import 'dart:convert';
 import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-// import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:provider/provider.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'package:yoyomiles_partner/main.dart';
-import 'package:yoyomiles_partner/service/ride_notification_helper.dart';
 import 'package:yoyomiles_partner/view/auth/register.dart';
-import 'package:yoyomiles_partner/view/ride/ride_request_popup.dart';
 import 'package:yoyomiles_partner/view_model/profile_view_model.dart';
 
 class RideViewModel extends ChangeNotifier {
@@ -51,8 +48,6 @@ class RideViewModel extends ChangeNotifier {
   bool get is78Enabled => _handle78Enabled;
 
   void stopRideRingtone() {
-    // FlutterBackgroundService().invoke('STOP_RINGTONE');
-    // RideNotificationHelper.clear();
     print("🔕 Ringtone stopped from RideViewModel");
   }
 
@@ -83,8 +78,6 @@ class RideViewModel extends ChangeNotifier {
       );
 
       if (isActiveRideForMe) {
-        // FlutterBackgroundService().invoke('STOP_RINGTONE');
-        // RideNotificationHelper.clear();
 
         final activeRide = bookings
             .where(
@@ -109,11 +102,7 @@ class RideViewModel extends ChangeNotifier {
             .toList();
 
         if (reqBookings.isNotEmpty) {
-          // FlutterBackgroundService().invoke('START_RINGTONE');
-          // RideNotificationHelper.showIncomingRide(reqBookings.first);
         } else {
-          // FlutterBackgroundService().invoke('STOP_RINGTONE');
-          // RideNotificationHelper.clear();
         }
 
         setAllRideData(reqBookings);

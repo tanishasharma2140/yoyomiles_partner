@@ -317,7 +317,11 @@
 "due_wallet" : "Due Wallet",
 "main_wallet" : "Main Wallet",
 "transfer_amount" : "Transfer Amount",
-"to" : "To"
+"to" : "To",
+"overlay_permission" : "Overlay Permission",
+"enable_display_overlay" : "Enable Display over other apps to continue.",
+"later" : "Later",
+"allow" : "Allow"
 
 
 

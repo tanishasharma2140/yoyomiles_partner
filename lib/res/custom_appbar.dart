@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:yoyomiles_partner/res/text_const.dart';
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String name;
@@ -53,14 +54,13 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
 
           const SizedBox(width: 12),
 
-          // Name beside image
-          Text(
+          TextConst(
+            title:
             name,
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: Colors.black,
-            ),
+            size: 15,
+            overflow: TextOverflow.ellipsis,
+            fontWeight: FontWeight.w600,
+            color: Colors.black,
           ),
         ],
       ),

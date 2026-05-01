@@ -1906,6 +1906,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'To'**
   String get to;
+
+  /// No description provided for @overlay_permission.
+  ///
+  /// In en, this message translates to:
+  /// **'Overlay Permission'**
+  String get overlay_permission;
+
+  /// No description provided for @enable_display_overlay.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable Display over other apps to continue.'**
+  String get enable_display_overlay;
+
+  /// No description provided for @later.
+  ///
+  /// In en, this message translates to:
+  /// **'Later'**
+  String get later;
+
+  /// No description provided for @allow.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow'**
+  String get allow;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

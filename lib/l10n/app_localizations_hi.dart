@@ -913,4 +913,16 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get to => 'में';
+
+  @override
+  String get overlay_permission => 'ओवरले अनुमति';
+
+  @override
+  String get enable_display_overlay => 'जारी रखने के लिए \"अन्य ऐप्स के ऊपर प्रदर्शित करें\" सक्षम करें।';
+
+  @override
+  String get later => 'बाद में';
+
+  @override
+  String get allow => 'अनुमति दें';
 }
